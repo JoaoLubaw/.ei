@@ -4,3 +4,7 @@ secrets.yaml
 .github/kubernetes/homolog/secret.yaml
 .github/kubernetes/prod/secret.yaml
 *.diff
+.git
+
+Pontuei.Api/obj
+*.Development.json
