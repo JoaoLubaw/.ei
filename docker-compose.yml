@@ -1,0 +1,49 @@
+services:
+  pontuei-core:
+    build: ./pontuei-core
+    restart: always
+    container_name: pontuei-core
+    environment:
+      DOTNET_CONFIGURATION: ${DOTNET_CONFIGURATION}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ConnectionStrings__VblsDbPostgres: ${DB_CONNECTIONSTRING}
+      JWT__Issuer: ${JWT_ISSUER}
+      JWT__Audience: ${JWT_AUDIENCE}
+      JWT__Secret: ${JWT_SECRET}
+      Serilog__WriteTo__2__Args__serverUrl: ${SEQ_URL}
+    ports:
+      - "5000:5000"
+    depends_on:
+      pontuei-db:
+        condition: service_started
+    networks:
+      - compose_net
+
+  pontuei-db:
+    build: ./database
+    restart: always
+    container_name: pontuei-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    networks:
+      - compose_net
+    volumes:
+      - postgres_app_data:/var/lib/postgresql/data
+
+  pontuei-seq:
+    image: datalust/seq:latest
+    restart: always
+    container_name: pontuei-seq
+    environment:
+      ACCEPT_EULA: Y
+      SEQ_FIRSTRUN_ADMINPASSWORD: ${SEQ_FIRSTRUN_ADMINPASSWORD}
+    ports:
+      - "5341:80"
+    volumes:
+      - seq-data:/data
+    networks:
+      - compose_net
