@@ -15,7 +15,8 @@ CREATE TABLE public.loyalty_program
 	loyalty_program_id integer NOT NULL   DEFAULT NEXTVAL(('loyalty_program_id_seq'::text)::regclass),	-- Table primary key.
 	loyalty_program_name varchar(100) NOT NULL,	-- Program display name. Ex: Livelo, Smiles.
 	loyalty_program_logo_url varchar(512) NULL,	-- URL to the program logo asset.
-	loyalty_program_brand_color varchar(7) NULL,	-- Primary brand color in hex format. Ex: #FF0066.
+	loyalty_program_brand_primary_color varchar(7) NULL,	-- Primary brand color in hex format. Ex: #FF0066.
+	loyalty_program_brand_secondary_color varchar(7) NULL,	-- Secondary brand color in hex format. Ex: #00FF66.
 	loyalty_program_is_active boolean NOT NULL   DEFAULT True,	-- Whether this program is currently available for selection.
 	row_creation_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row creation time.
 	row_update_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row last update time.
@@ -58,8 +59,12 @@ COMMENT ON COLUMN public.loyalty_program.loyalty_program_logo_url
 	IS 'URL to the program logo asset.'
 ;
 
-COMMENT ON COLUMN public.loyalty_program.loyalty_program_brand_color
+COMMENT ON COLUMN public.loyalty_program.loyalty_program_brand_primary_color
 	IS 'Primary brand color in hex format. Ex: #FF0066.'
+;
+
+COMMENT ON COLUMN public.loyalty_program.loyalty_program_brand_secondary_color
+	IS 'Secondary brand color in hex format. Ex: #00FF66.'
 ;
 
 COMMENT ON COLUMN public.loyalty_program.loyalty_program_is_active
