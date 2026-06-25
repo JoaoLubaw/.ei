@@ -17,6 +17,8 @@ CREATE TABLE public.configuration
 	configuration_description varchar(256) NULL,
 	configuration_value varchar(256) NOT NULL,
 	configuration_type smallint NOT NULL,
+
+	-- Audit columns
 	row_creation_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row creation time.
 	row_update_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row last update time.
 	row_creation_user varchar(30) NOT NULL   DEFAULT 'system',	-- The user that inserted row.

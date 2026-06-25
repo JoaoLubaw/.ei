@@ -8,14 +8,23 @@ DROP TABLE IF EXISTS public."user" CASCADE
 CREATE TABLE public."user"
 (
 	user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),	-- Table primary key.
+	user_google_id varchar(128) NULL,	-- Google OAuth2 subject identifier. NULL when account uses only email/password login.
+	
 	user_name varchar(100) NOT NULL,	-- User display name.
 	user_email varchar(254) NOT NULL,	-- User email address. Used as login identifier.
+	user_phone_number varchar(20) NULL,	-- User phone number. Optional field for communication or verification purposes.
+	
 	user_password_hash varchar(256) NULL,	-- Bcrypt hash of the user password. NULL when account uses only social login.
-	user_google_id varchar(128) NULL,	-- Google OAuth2 subject identifier. NULL when account uses only email/password login.
+	
 	user_email_verified boolean NOT NULL   DEFAULT False,	-- Whether the user has confirmed their email address.
 	user_email_verified_at timestamp NULL,	-- Timestamp of email confirmation.
+	
 	user_push_notifications_enabled boolean NOT NULL   DEFAULT True,	-- Whether the user opted in to push notifications.
 	user_email_notifications_enabled boolean NOT NULL   DEFAULT True,	-- Whether the user opted in to email notifications.
+		
+	user_is_admin boolean NOT NULL   DEFAULT False,	-- Whether the user has admin privileges.
+	
+	-- Audit columns
 	row_creation_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row creation time.
 	row_update_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row last update time.
 	row_creation_user varchar(30) NOT NULL   DEFAULT 'system',	-- The user that inserted row.
@@ -74,6 +83,10 @@ COMMENT ON COLUMN public."user".user_password_hash
 	IS 'Bcrypt hash of the user password. NULL when account uses only social login.'
 ;
 
+COMMENT ON COLUMN public."user".user_phone_number
+	IS 'User phone number. Optional field for communication or verification purposes.'
+;
+
 COMMENT ON COLUMN public."user".user_google_id
 	IS 'Google OAuth2 subject identifier. NULL when account uses only email/password login.'
 ;
@@ -92,6 +105,10 @@ COMMENT ON COLUMN public."user".user_push_notifications_enabled
 
 COMMENT ON COLUMN public."user".user_email_notifications_enabled
 	IS 'Whether the user opted in to email notifications.'
+;
+
+COMMENT ON COLUMN public."user".user_is_admin
+	IS 'Whether the user has admin privileges.'
 ;
 
 COMMENT ON COLUMN public."user".row_creation_time

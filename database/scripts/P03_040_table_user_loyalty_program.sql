@@ -13,10 +13,17 @@ DROP TABLE IF EXISTS public.user_loyalty_program CASCADE
 CREATE TABLE public.user_loyalty_program
 (
 	user_loyalty_program_id integer NOT NULL   DEFAULT NEXTVAL(('user_loyalty_program_id_seq'::text)::regclass),	-- Table primary key.
+
 	user_id UUID NOT NULL,	-- FK to user.
 	loyalty_program_id integer NOT NULL,	-- FK to loyalty_program.
+
+	-- 1 = Favorite program card (shown as primary card on home).
+    -- 2 = Secund position
+    -- 3 = Third position
+	-- 4 = Others
 	user_loyalty_program_display_order smallint NOT NULL   DEFAULT 0,	-- Visual ordering of the program card in the user wallet. Lower values appear first.
-	user_loyalty_program_is_favorite boolean NOT NULL   DEFAULT False,	-- Whether this is the user preferred program (shown as primary card on home).
+
+	-- Audit columns
 	row_creation_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row creation time.
 	row_update_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row last update time.
 	row_creation_user varchar(30) NOT NULL   DEFAULT 'system',	-- The user that inserted row.

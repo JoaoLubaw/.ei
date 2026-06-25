@@ -8,10 +8,14 @@ DROP TABLE IF EXISTS public.transaction_media CASCADE
 CREATE TABLE public.transaction_media
 (
 	transaction_media_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),	-- Table primary key.
+
 	transaction_id UUID NOT NULL,	-- FK to transaction. The transaction this media is attached to.
+
 	transaction_media_file_url varchar(512) NOT NULL,	-- Storage URL of the uploaded file (image or PDF).
 	transaction_media_file_type smallint NOT NULL,	-- Type of the uploaded file. 0 = Image. 1 = PDF.
 	transaction_media_display_order smallint NOT NULL   DEFAULT 0,	-- Display order within the transaction media gallery.
+
+	-- Audit columns
 	row_creation_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row creation time.
 	row_update_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row last update time.
 	row_creation_user varchar(30) NOT NULL   DEFAULT 'system',	-- The user that inserted row.

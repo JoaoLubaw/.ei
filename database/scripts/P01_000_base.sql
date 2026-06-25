@@ -1,11 +1,11 @@
 \set ON_ERROR_STOP on
 
 -- Extension to generate random UUIDs
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS unaccent;
 
 -- ===== User creation =====
--- :'pontuei_password' is a psql variable — only works outside DO $$ blocks.
-
 SELECT NOT EXISTS (
     SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'pontuei'
 ) AS should_create_user \gset
@@ -33,8 +33,6 @@ SELECT NOT EXISTS (
 GRANT ALL PRIVILEGES ON DATABASE pontuei TO pontuei;
 
 -- ===== Schema public permissions =====
--- PostgreSQL 15+ revoked CREATE on public schema from PUBLIC by default.
--- Must explicitly grant it to the application user after connecting to the target database.
 
 \c pontuei
 

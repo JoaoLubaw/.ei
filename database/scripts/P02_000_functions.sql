@@ -13,7 +13,3 @@ END;
 COMMENT ON FUNCTION public.update_row_update_time()
 	IS 'General trigger function to update row metadata.'
 ;
-
-/* Create Extensions */
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE EXTENSION IF NOT EXISTS unaccent;

@@ -8,21 +8,33 @@ DROP TABLE IF EXISTS public.transaction CASCADE
 CREATE TABLE public.transaction
 (
 	transaction_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
 	user_id UUID NOT NULL,	-- FK to user. Owner of the transaction.
 	loyalty_program_id integer NOT NULL,	-- FK to loyalty_program. Points program tied to this transaction.
+
 	transaction_description varchar(256) NOT NULL,	-- Description of the purchased item. Ex: TV.
 	transaction_store varchar(256) NOT NULL,	-- Name of the store or retailer. Ex: Casas Bahia.
+
 	transaction_total_value numeric(12, 2) NOT NULL,	-- Total purchase amount in BRL.
+	transaction_points_per_real int NOT NULL,	-- Points earned per BRL spent on this transaction.
+
+	transaction_estimated_points numeric(12, 2) NOT NULL,	-- Estimated points earned for this transaction (calculated as transaction_total_value * transaction_points_per_real).
+	transaction_actual_received_points numeric(12, 2) NULL,	-- Actual points credited for this transaction (updated when points are credited).
+
 	transaction_purchase_date date NOT NULL,	-- Date the purchase was made.
 	transaction_item_receipt_date date NULL,	-- Date the physical items were received (when different from purchase date).
 	transaction_receipt_deadline_days smallint NOT NULL   DEFAULT 30,	-- Expected number of days after purchase for points to be credited.
-	transaction_points_per_real smallint NOT NULL,	-- Points earned per BRL spent on this transaction.
+
 	transaction_status smallint NOT NULL   DEFAULT 0,	-- Transaction status.
-		-- 0 = Pending (awaiting point credit).
-		-- 1 = Received (points credited successfully).
-		-- 2 = Disputed (user flagged as not received after deadline).
-		-- 3 = Late (deadline passed without credit, pending user action).
+		-- 0 = Waiting for item arrival.
+		-- 1 = Pending (awaiting point credit).
+		-- 2 = Received (points credited successfully).
+		-- 3 = Disputed (user flagged as not received after deadline).
+		-- 4 = Late (deadline passed without credit, pending user action).
+
 	transaction_status_updated_at timestamp NULL,	-- Timestamp of the last status change.
+
+	-- Audit columns
 	row_creation_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row creation time.
 	row_update_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row last update time.
 	row_creation_user varchar(30) NOT NULL   DEFAULT 'system',	-- The user that inserted row.
@@ -45,7 +57,7 @@ ALTER TABLE public.transaction
 
 ALTER TABLE public.transaction
 	ADD CONSTRAINT transaction_chk1 CHECK (
-		transaction_status IN (0, 1, 2, 3)
+		transaction_status IN (0, 1, 2, 3, 4)
 	)
 ;
 

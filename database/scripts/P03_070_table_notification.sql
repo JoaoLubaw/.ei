@@ -8,13 +8,18 @@ DROP TABLE IF EXISTS public.notification CASCADE
 CREATE TABLE public.notification
 (
 	notification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),	-- Table primary key.
+
 	user_id UUID NOT NULL,	-- FK to user. Recipient of the notification.
 	transaction_id UUID NULL,	-- FK to transaction. The related transaction, if applicable.
+
 	loyalty_program_id integer NULL,	-- FK to loyalty_program. The related program, if applicable.
 	notification_message varchar(512) NOT NULL,	-- Notification body text displayed to the user.
 	notification_points_amount integer NULL,	-- Point amount referenced in the notification, if applicable.
+	
 	notification_is_read boolean NOT NULL   DEFAULT False,	-- Whether the user has read this notification.
 	notification_read_at timestamp NULL,	-- Timestamp when the notification was marked as read.
+	
+	-- Audit columns
 	row_creation_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row creation time.
 	row_update_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row last update time.
 	row_creation_user varchar(30) NOT NULL   DEFAULT 'system',	-- The user that inserted row.
