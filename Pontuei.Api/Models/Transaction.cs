@@ -15,6 +15,7 @@ public class Transaction
     [Column("transaction_id"), DataMember]
     public Guid TransactionId { get; set; }
 
+
     /// <summary>
     /// Unique identifier for the user who made the transaction.
     /// </summary>
@@ -34,6 +35,7 @@ public class Transaction
     [ForeignKey("LoyaltyProgramId"), IgnoreDataMember]
     public virtual LoyaltyProgram? LoyaltyProgram { get; set; }
 
+
     /// <summary>
     /// The description of the transaction, which is a required field and provides details about the purchase, such as items bought or services rendered.
     /// </summary>
@@ -46,12 +48,32 @@ public class Transaction
     [Column("transaction_store"), DataMember]
     public required string TransactionStore { get; set; }
 
+
     /// <summary>
     /// The total value of the transaction, which is a required field and represents the monetary amount spent during the purchase. 
     /// This value is used to calculate loyalty points and track user spending within the loyalty program.
     /// </summary>
     [Column("transaction_total_value"), DataMember]
     public decimal TransactionTotalValue { get; set; }
+
+    /// <summary>
+    /// The number of loyalty points earned per unit of currency spent in the transaction, which is a required field and is used to calculate the total points awarded to the user based on their spending.
+    /// </summary>
+    [Column("transaction_points_per_real"), DataMember]
+    public short TransactionPointsPerReal { get; set; }
+
+    /// <summary>
+    /// The estimated number of loyalty points earned from the transaction, which is a required field and provides users with an estimate of the rewards they will receive for their purchase.
+    /// </summary>
+    [Column("transaction_estimated_points"), DataMember]
+    public int TransactionEstimatedPoints { get; set; }
+
+    /// <summary>
+    /// The actual number of loyalty points received from the transaction, which is a required field and indicates the final points awarded to the user after any adjustments or verifications.
+    /// </summary>
+    [Column("transaction_actual_received_points"), DataMember]
+    public int TransactionActualReceivedPoints { get; set; }
+
 
     /// <summary>
     /// The date of the transaction purchase, which is a required field and indicates when the purchase was made.
@@ -71,11 +93,6 @@ public class Transaction
     [Column("transaction_receipt_deadline_days"), DataMember]
     public short TransactionReceiptDeadlineDays { get; set; }
 
-    /// <summary>
-    /// The number of loyalty points earned per unit of currency spent in the transaction, which is a required field and is used to calculate the total points awarded to the user based on their spending.
-    /// </summary>
-    [Column("transaction_points_per_real"), DataMember]
-    public short TransactionPointsPerReal { get; set; }
 
     /// <summary>
     /// The current status of the transaction, which is a required field and indicates whether the transaction is pending, approved, or rejected.
@@ -104,14 +121,6 @@ public class Transaction
     /// </summary>
     [IgnoreDataMember]
     public bool IsOverdue => TransactionStatus == TransactionStatus.Pending && DateOnly.FromDateTime(DateTime.UtcNow) > Deadline;
-
-    /// <summary>
-    /// Gets the estimated loyalty points earned from the transaction based on the total value and the points per unit of currency spent.
-    /// This property calculates the total points by multiplying the TransactionTotalValue by the TransactionPointsPerReal, 
-    /// and it is used to provide users with an estimate of the rewards they will receive for their purchase.
-    /// </summary>
-    [IgnoreDataMember]
-    public int EstimatedPoints => (int)(TransactionTotalValue * TransactionPointsPerReal);
 
     [IgnoreDataMember]
     public virtual ICollection<TransactionMedia> TransactionMedias { get; set; } = new List<TransactionMedia>();

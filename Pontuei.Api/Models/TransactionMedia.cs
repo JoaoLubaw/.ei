@@ -14,6 +14,7 @@ public class TransactionMedia
     [Column("transaction_media_id"), DataMember]
     public Guid TransactionMediaId { get; set; }
 
+
     /// <summary>
     /// Unique identifier for the transaction associated with this media file.
     /// </summary>
@@ -26,6 +27,7 @@ public class TransactionMedia
     /// </summary>
     [ForeignKey("TransactionId"), IgnoreDataMember]
     public Transaction? Transaction { get; set; }
+
 
     /// <summary>
     /// Gets or sets the URL of the media file associated with the transaction, which is an optional field and can be used to store links to images, documents, 
@@ -47,4 +49,5 @@ public class TransactionMedia
     /// </summary>
     [Column("transaction_media_display_order"), DataMember]
     public short TransactionMediaDisplayOrder { get; set; }
+
 }

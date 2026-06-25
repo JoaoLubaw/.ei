@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 
@@ -13,7 +14,16 @@ public class User : BaseEntity
     /// Gets or sets the unique identifier for the user.
     /// </summary>
     [Column("user_id"), DataMember]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    [Key]
     public Guid UserId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the unique identifier for the user's Google account, which is an optional field and can be used for authentication via Google OAuth.
+    /// </summary>
+    [Column("user_google_id"), DataMember]
+    public string? UserGoogleId { get; set; }
+
 
     /// <summary>
     /// Gets or sets the name of the user, which is a required field and represents the user's full name or display name.
@@ -28,17 +38,20 @@ public class User : BaseEntity
     public required string UserEmail { get; set; }
 
     /// <summary>
+    /// Gets or sets the phone number of the user, which is an optional field and can
+    /// be used for communication or verification purposes.
+    /// </summary>
+    [Column("user_phone_number"), DataMember]
+    public string? UserPhoneNumber { get; set; }
+
+
+    /// <summary>
     /// Gets or sets the hashed password of the user, which is an optional field and is used for authentication purposes. 
     /// This field should be securely hashed and salted to protect user credentials.
     /// </summary>
     [Column("user_password_hash"), DataMember]
     public string? UserPasswordHash { get; set; }
 
-    /// <summary>
-    /// Gets or sets the unique identifier for the user's Google account, which is an optional field and can be used for authentication via Google OAuth.
-    /// </summary>
-    [Column("user_google_id"), DataMember]
-    public string? UserGoogleId { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the user's email address has been verified.
@@ -52,11 +65,6 @@ public class User : BaseEntity
     [Column("user_email_verified_at"), DataMember]
     public DateTime? UserEmailVerifiedAt { get; set; }
 
-    /// <summary>
-    /// Gets or sets the email verification code associated with the user, which is an optional field and can be used for email confirmation or password reset processes.
-    /// </summary>
-    [Column("user_email_verification_code"), DataMember]
-    public string? UserEmailVerificationCode { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether push notifications are enabled for the user.
@@ -70,4 +78,10 @@ public class User : BaseEntity
     [Column("user_email_notifications_enabled"), DataMember]
     public bool UserEmailNotificationsEnabled { get; set; }
 
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the user has administrative privileges.
+    /// </summary>
+    [Column("user_is_admin"), DataMember]
+    public bool UserIsAdmin { get; set; }
 }

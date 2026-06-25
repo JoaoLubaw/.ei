@@ -12,6 +12,7 @@ public class Notification
     [Column("notification_id"), DataMember]
     public Guid NotificationId { get; set; }
 
+
     /// <summary>
     /// Unique identifier for the user associated with this notification.
     /// </summary>
@@ -20,6 +21,7 @@ public class Notification
 
     [ForeignKey("UserId"), IgnoreDataMember]
     public virtual User? User { get; set; }
+
 
     /// <summary>
     /// Unique identifier for the transaction associated with this notification, if applicable. 
@@ -32,6 +34,7 @@ public class Notification
     [ForeignKey("TransactionId"), IgnoreDataMember]
     public virtual Transaction? Transaction { get; set; }
 
+
     /// <summary>
     /// Unique identifier for the loyalty program associated with this notification, if applicable.
     /// This field establishes a relationship between the notification and the loyalty program, enabling the system to track which loyalty programs 
@@ -42,6 +45,7 @@ public class Notification
 
     [ForeignKey("LoyaltyProgramId"), IgnoreDataMember]
     public virtual LoyaltyProgram? LoyaltyProgram { get; set; }
+
 
     /// <summary>
     /// Gets or sets the message content of the notification, which is a required field and provides information to the user about the associated transaction, 
@@ -57,6 +61,7 @@ public class Notification
     /// </summary>
     [Column("notification_points_amount"), DataMember]
     public int? NotificationPointsAmount { get; set; }
+
 
     /// <summary>
     /// Gets or sets a value indicating whether the notification has been read by the user.

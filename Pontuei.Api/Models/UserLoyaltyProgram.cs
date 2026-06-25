@@ -12,6 +12,7 @@ public class UserLoyaltyProgram
     [Column("user_loyalty_program_id"), DataMember]
     public int UserLoyaltyProgramId { get; set; }
 
+
     /// <summary>
     /// Gets or sets the unique identifier for the user associated with this loyalty program entry. 
     /// This field establishes a relationship between the user and their loyalty program participation,
@@ -34,6 +35,7 @@ public class UserLoyaltyProgram
     [ForeignKey("LoyaltyProgramId"), IgnoreDataMember]
     public virtual LoyaltyProgram? LoyaltyProgram { get; set; }
 
+
     /// <summary>
     /// Gets or sets the display order for the user's loyalty program entry.
     /// This field determines the sequence in which the loyalty program is displayed to the user.
@@ -41,10 +43,4 @@ public class UserLoyaltyProgram
     [Column("user_loyalty_program_display_order"), DataMember]
     public short UserLoyaltyProgramDisplayOrder { get; set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the user has marked the loyalty program as a favorite.
-    /// This field allows users to prioritize their preferred loyalty programs.
-    /// </summary>
-    [Column("user_loyalty_program_is_favorite"), DataMember]
-    public bool UserLoyaltyProgramIsFavorite { get; set; }
 }
