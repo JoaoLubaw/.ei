@@ -44,6 +44,7 @@ public class GetNotificationsResponseDto
     public int Size { get; set; }
     public int TotalElements { get; set; }
     public int TotalPages { get; set; }
+    public int UnreadCount { get; set; }
     public required List<NotificationDto> Notifications { get; set; }
 }
 
