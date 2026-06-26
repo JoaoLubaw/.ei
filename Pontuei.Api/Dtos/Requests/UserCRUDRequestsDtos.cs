@@ -80,18 +80,6 @@ public class CreateUserRequestDto
 }
 
 /// <summary>
-/// Response returned after a successful user registration.
-/// </summary>
-public class CreateUserResponseDto : UserBaseDto
-{
-    /// <summary>
-    /// Whether the user's e-mail has already been verified.
-    /// </summary>
-    [JsonPropertyName("userEmailVerified")]
-    public bool UserEmailVerified { get; set; }
-}
-
-/// <summary>
 /// Payload for updating mutable profile fields.
 /// Matches the "Informações de conta" settings screen (name and e-mail editable inline).
 /// All fields are optional — only non-null values are applied.
@@ -136,4 +124,21 @@ public class UpdateUserRequestDto
     public bool IsValidEmail() =>
         ValidationUtils.IsValidEmail(UserEmail);
 
+}
+
+public class GetUsersRequestDto
+{
+    public int Page { get; set; } = 1;
+    public int Size { get; set; } = 10;
+    public UserFiltersDto? Filters { get; set; }
+}
+
+public class UserFiltersDto
+{
+    public Guid? UserId { get; set; }
+    public string? UserName { get; set; }
+    public string? UserEmail { get; set; }
+    public string? UserPhoneNumber { get; set; }
+    public bool? UserEmailVerified { get; set; }
+    public bool? UserIsAdmin { get; set; }
 }

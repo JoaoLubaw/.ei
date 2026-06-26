@@ -5,23 +5,35 @@ namespace Pontuei.Api.Dtos.Objects;
 /// <summary>
 /// Lightweight projection used in list responses and nested references.
 /// </summary>
-public class UserBaseDto
+public class UserDto
 {
-    /// <summary>
-    /// User's unique identifier.
-    /// </summary>
     [JsonPropertyName("userId")]
     public Guid UserId { get; set; }
 
-    /// <summary>
-    /// User's display name.
-    /// </summary>
-    [JsonPropertyName("userName")]
-    public string UserName { get; set; } = null!;
+    [JsonPropertyName("userGoogleId")]
+    public string? UserGoogleId { get; set; }
 
-    /// <summary>
-    /// User's e-mail address.
-    /// </summary>
+    [JsonPropertyName("userName")]
+    public required string UserName { get; set; }
+
     [JsonPropertyName("userEmail")]
-    public string UserEmail { get; set; } = null!;
+    public required string UserEmail { get; set; }
+
+    [JsonPropertyName("userPhoneNumber")]
+    public string? UserPhoneNumber { get; set; }
+
+    [JsonPropertyName("userEmailVerified")]
+    public bool UserEmailVerified { get; set; }
+
+    [JsonPropertyName("userEmailVerifiedAt")]
+    public DateTime? UserEmailVerifiedAt { get; set; }
+
+    [JsonPropertyName("userPushNotificationsEnabled")]
+    public bool UserPushNotificationsEnabled { get; set; }
+
+    [JsonPropertyName("userEmailNotificationsEnabled")]
+    public bool UserEmailNotificationsEnabled { get; set; }
+
+    [JsonPropertyName("userIsAdmin")]
+    public bool UserIsAdmin { get; set; }
 }

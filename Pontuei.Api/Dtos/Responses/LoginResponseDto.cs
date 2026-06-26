@@ -28,5 +28,5 @@ public class LoginResponseDto
     /// Basic user information so the client can render the UI without an extra request.
     /// </summary>
     [JsonPropertyName("user")]
-    public UserBaseDto User { get; set; } = null!;
+    public UserDto User { get; set; } = null!;
 }

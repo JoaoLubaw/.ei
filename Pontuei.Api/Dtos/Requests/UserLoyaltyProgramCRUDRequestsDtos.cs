@@ -39,3 +39,17 @@ public class BulkUpdateUserLoyaltyProgramsRequestDto
     [JsonPropertyName("programs")]
     public required List<CreateUserLoyaltyProgramRequestDto> Programs { get; set; }
 }
+
+public class GetUserLoyaltyProgramsRequestDto
+{
+    public int Page { get; set; } = 1;
+    public int Size { get; set; } = 10;
+    public UserLoyaltyProgramFiltersDto? Filters { get; set; }
+}
+
+public class UserLoyaltyProgramFiltersDto
+{
+    public int? UserLoyaltyProgramId { get; set; }
+    public Guid? UserId { get; set; }
+    public int? LoyaltyProgramId { get; set; }
+}

@@ -33,3 +33,22 @@ public class UpsertTransactionMediaRequestDto
     public short TransactionMediaDisplayOrder { get; set; }
 }
 
+/// <summary>
+/// Payload for retrieving a paginated list of media files associated with a transaction.
+/// </summary>
+public class GetTransactionMediasRequestDto
+{
+    public int Page { get; set; } = 1;
+    public int Size { get; set; } = 10;
+    public TransactionMediaFiltersDto? Filters { get; set; }
+}
+
+/// <summary>
+/// Filters for retrieving a paginated list of media files associated with a transaction.
+/// </summary>
+public class TransactionMediaFiltersDto
+{
+    public Guid? TransactionMediaId { get; set; }
+    public Guid? TransactionId { get; set; }
+    public TransactionMediaFileType? TransactionMediaFileType { get; set; }
+}

@@ -73,3 +73,23 @@ public class UpdateConfigurationRequestDto
     [JsonPropertyName("configurationType")]
     public ConfigurationType? ConfigurationType { get; set; }
 }
+
+/// <summary>
+/// Payload for retrieving a paginated list of configuration entries (admin operation).
+/// </summary>
+public class GetConfigurationsRequestDto
+{
+    public int Page { get; set; } = 1;
+    public int Size { get; set; } = 10;
+    public ConfigurationFiltersDto? Filters { get; set; }
+}
+
+/// <summary>
+/// Filters for retrieving a paginated list of configuration entries (admin operation).
+/// </summary>
+public class ConfigurationFiltersDto
+{
+    public int? ConfigurationId { get; set; }
+    public string? ConfigurationName { get; set; }
+    public ConfigurationType? ConfigurationType { get; set; }
+}

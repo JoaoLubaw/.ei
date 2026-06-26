@@ -8,33 +8,21 @@ namespace Pontuei.Api.Dtos.Objects;
 /// </summary>
 public class LoyaltyProgramDto
 {
-    /// <summary>
-    /// Loyalty program's unique identifier.
-    /// </summary>
     [JsonPropertyName("loyaltyProgramId")]
     public int LoyaltyProgramId { get; set; }
 
-    /// <summary>
-    /// Human-readable name of the program (e.g., "Livelo", "Smiles").
-    /// </summary>
     [JsonPropertyName("loyaltyProgramName")]
-    public string LoyaltyProgramName { get; set; } = null!;
+    public required string LoyaltyProgramName { get; set; }
 
-    /// <summary>
-    /// URL of the program's logo image, used to render the cards in the carousel.
-    /// </summary>
     [JsonPropertyName("loyaltyProgramLogoUrl")]
     public string? LoyaltyProgramLogoUrl { get; set; }
 
-    /// <summary>
-    /// Brand primary color (hex) used to tint the card background.
-    /// </summary>
     [JsonPropertyName("loyaltyProgramBrandPrimaryColor")]
     public string? LoyaltyProgramBrandPrimaryColor { get; set; }
 
-    /// <summary>
-    /// Brand secondary color (hex) for accents on the card.
-    /// </summary>
     [JsonPropertyName("loyaltyProgramBrandSecondaryColor")]
     public string? LoyaltyProgramBrandSecondaryColor { get; set; }
+
+    [JsonPropertyName("loyaltyProgramIsActive")]
+    public bool LoyaltyProgramIsActive { get; set; }
 }

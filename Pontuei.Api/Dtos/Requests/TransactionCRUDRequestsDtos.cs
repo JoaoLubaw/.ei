@@ -184,3 +184,21 @@ public class UpdateTransactionStatusRequestDto
     [JsonPropertyName("transactionActualReceivedPoints")]
     public int? TransactionActualReceivedPoints { get; set; }
 }
+
+public class GetTransactionsRequestDto
+{
+    public int Page { get; set; } = 1;
+    public int Size { get; set; } = 10;
+    public TransactionFiltersDto? Filters { get; set; }
+}
+
+public class TransactionFiltersDto
+{
+    public Guid? TransactionId { get; set; }
+    public Guid? UserId { get; set; }
+    public int? LoyaltyProgramId { get; set; }
+    public string? TransactionStore { get; set; }
+    public TransactionStatus? TransactionStatus { get; set; }
+    public DateOnly? TransactionPurchaseDate { get; set; }
+    public bool? IsOverdue { get; set; }
+}

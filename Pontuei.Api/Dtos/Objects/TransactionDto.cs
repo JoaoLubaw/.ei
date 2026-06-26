@@ -113,38 +113,51 @@ public class TransactionDetailResponseDto
 /// </summary>
 public class TransactionDto
 {
-    /// <summary>Transaction unique identifier.</summary>
     [JsonPropertyName("transactionId")]
     public Guid TransactionId { get; set; }
 
-    /// <summary>Description of the purchased item (e.g., "TV").</summary>
+    [JsonPropertyName("userId")]
+    public Guid UserId { get; set; }
+
+    [JsonPropertyName("loyaltyProgramId")]
+    public int LoyaltyProgramId { get; set; }
+
     [JsonPropertyName("transactionDescription")]
-    public string TransactionDescription { get; set; } = null!;
+    public required string TransactionDescription { get; set; }
 
-    /// <summary>Store name shown as the subtitle in the list row.</summary>
     [JsonPropertyName("transactionStore")]
-    public string TransactionStore { get; set; } = null!;
+    public required string TransactionStore { get; set; }
 
-    /// <summary>Estimated points shown on the right side of each list row.</summary>
+    [JsonPropertyName("transactionTotalValue")]
+    public decimal TransactionTotalValue { get; set; }
+
+    [JsonPropertyName("transactionPointsPerReal")]
+    public short TransactionPointsPerReal { get; set; }
+
     [JsonPropertyName("transactionEstimatedPoints")]
     public int TransactionEstimatedPoints { get; set; }
 
-    /// <summary>Deadline date shown below the points on each list row.</summary>
-    [JsonPropertyName("deadline")]
-    public DateOnly Deadline { get; set; }
+    [JsonPropertyName("transactionActualReceivedPoints")]
+    public int TransactionActualReceivedPoints { get; set; }
 
-    /// <summary>Whether the transaction is past its deadline and still pending.</summary>
-    [JsonPropertyName("isOverdue")]
-    public bool IsOverdue { get; set; }
+    [JsonPropertyName("transactionPurchaseDate")]
+    public DateOnly TransactionPurchaseDate { get; set; }
 
-    /// <summary>Current status, used to apply the red overdue border in the UI.</summary>
+    [JsonPropertyName("transactionItemReceiptDate")]
+    public DateOnly? TransactionItemReceiptDate { get; set; }
+
+    [JsonPropertyName("transactionReceiptDeadlineDays")]
+    public short TransactionReceiptDeadlineDays { get; set; }
+
     [JsonPropertyName("transactionStatus")]
     public TransactionStatus TransactionStatus { get; set; }
 
-    /// <summary>
-    /// Program summary used to render the program logo/chip on the history screen.
-    /// </summary>
-    [JsonPropertyName("loyaltyProgram")]
-    public LoyaltyProgramDto LoyaltyProgram { get; set; } = null!;
-}
+    [JsonPropertyName("transactionStatusUpdatedAt")]
+    public DateTime? TransactionStatusUpdatedAt { get; set; }
 
+    [JsonPropertyName("deadline")]
+    public DateOnly Deadline { get; set; }
+
+    [JsonPropertyName("isOverdue")]
+    public bool IsOverdue { get; set; }
+}

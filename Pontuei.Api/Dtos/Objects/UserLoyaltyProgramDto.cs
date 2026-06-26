@@ -6,23 +6,14 @@ namespace Pontuei.Api.Dtos.Objects;
 /// Response representing a single enrollment entry as shown in the carousel.
 /// Includes the program branding details required to render the colored card.
 /// </summary>
-public class UserLoyaltyProgramResponseDto
+public class UserLoyaltyProgramDto
 {
-    /// <summary>
-    /// Enrollment record identifier.
-    /// </summary>
     [JsonPropertyName("userLoyaltyProgramId")]
     public int UserLoyaltyProgramId { get; set; }
 
-    /// <summary>
-    /// Program summary with branding details for card rendering.
-    /// </summary>
     [JsonPropertyName("loyaltyProgram")]
-    public LoyaltyProgramDto LoyaltyProgram { get; set; } = null!;
+    public required LoyaltyProgramDto LoyaltyProgram { get; set; }
 
-    /// <summary>
-    /// Position of this program's card in the user's home-screen carousel.
-    /// </summary>
-    [JsonPropertyName("displayOrder")]
-    public short DisplayOrder { get; set; }
+    [JsonPropertyName("userLoyaltyProgramDisplayOrder")]
+    public short UserLoyaltyProgramDisplayOrder { get; set; }
 }

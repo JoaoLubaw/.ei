@@ -87,3 +87,23 @@ public class UpdateLoyaltyProgramRequestDto
     [JsonPropertyName("loyaltyProgramIsActive")]
     public bool? LoyaltyProgramIsActive { get; set; }
 }
+
+/// <summary>
+/// Payload for retrieving a paginated list of loyalty programs with optional filters.
+/// </summary>
+public class GetLoyaltyProgramsRequestDto
+{
+    public int Page { get; set; } = 1;
+    public int Size { get; set; } = 10;
+    public LoyaltyProgramFiltersDto? Filters { get; set; }
+}
+
+/// <summary>
+/// Filters for retrieving loyalty programs. All fields are optional.
+/// </summary>
+public class LoyaltyProgramFiltersDto
+{
+    public int? LoyaltyProgramId { get; set; }
+    public string? LoyaltyProgramName { get; set; }
+    public bool? LoyaltyProgramIsActive { get; set; }
+}

@@ -18,7 +18,7 @@ public class ConfigurationDto
     /// Unique key name.
     /// </summary>
     [JsonPropertyName("configurationName")]
-    public string ConfigurationName { get; set; } = null!;
+    public required string ConfigurationName { get; set; }
 
     /// <summary>
     /// Human-readable description of what this entry controls.
@@ -30,7 +30,7 @@ public class ConfigurationDto
     /// Serialised value string.
     /// </summary>
     [JsonPropertyName("configurationValue")]
-    public string ConfigurationValue { get; set; } = null!;
+    public required string ConfigurationValue { get; set; }
 
     /// <summary>
     /// Type discriminator used for deserialisation.
