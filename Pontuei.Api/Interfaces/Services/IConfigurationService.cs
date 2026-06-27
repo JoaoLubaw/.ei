@@ -20,6 +20,12 @@ public interface IConfigurationService
     Task<ApiResult<ConfigurationDto>> GetByIdAsync(int configurationId, Guid CurrentUserId);
 
     /// <summary>
+    /// Returns the JWT expiration time in minutes, as configured in the <c>configuration</c> table.
+    /// </summary>
+    /// <returns></returns>
+    Task<int> GetJWTExpirationMinutes();
+
+    /// <summary>
     /// Returns all configuration entries for the admin management screen.
     /// </summary>
     Task<ApiResult<GetConfigurationsResponseDto>> GetAllAsync(GetConfigurationsRequestDto dto, Guid CurrentUserId);

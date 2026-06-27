@@ -50,7 +50,7 @@ public class User : BaseEntity
     /// This field should be securely hashed and salted to protect user credentials.
     /// </summary>
     [Column("user_password_hash"), DataMember]
-    public string? UserPasswordHash { get; set; }
+    public required string UserPasswordHash { get; set; }
 
 
     /// <summary>

@@ -235,4 +235,23 @@ public class ConfigurationService : IConfigurationService
             updatedConfiguration.Adapt<ConfigurationDto>()
         );
     }
+
+    /// <summary>
+    /// Returns the JWT expiration time in minutes, as configured in the <c>configuration</c> table.
+    /// </summary>
+    /// <returns></returns>
+    public async Task<int> GetJWTExpirationMinutes()
+    {
+        Configuration? configuration = await _configurationRepository.GetByNameAsync("jwt_expiration_time");
+        int defaultValue = 30;
+
+        if (configuration != null && configuration.ConfigurationValue != null
+            && int.TryParse(configuration.ConfigurationValue, out int jwtExpirationMinutes)
+        )
+        {
+            return jwtExpirationMinutes;
+        }
+        else
+            return defaultValue;
+    }
 }

@@ -107,6 +107,14 @@ public class CreateUserRequestDto
     /// </summary>
     public bool IsValidEmail() =>
         ValidationUtils.IsValidEmail(UserEmail);
+
+    /// <summary>
+    /// Validates the phone number in E.164 format (e.g., +1234567890).
+    /// </summary>
+    /// <returns></returns>
+    public bool IsValidPhoneNumber() =>
+        ValidationUtils.IsValidPhoneNumber(UserPhoneNumber);
+
 }
 
 /// <summary>
@@ -153,6 +161,9 @@ public class UpdateUserRequestDto
 
     public bool IsValidEmail() =>
         ValidationUtils.IsValidEmail(UserEmail);
+
+    public bool IsValidPhoneNumber() =>
+        ValidationUtils.IsValidPhoneNumber(UserPhoneNumber);
 
 }
 

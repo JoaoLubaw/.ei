@@ -71,14 +71,14 @@ public interface IAuthService
     /// <exception cref="UnauthorizedAccessException">
     /// Thrown when the code is invalid, expired, or already used.
     /// </exception>
-    Task<ApiResult<EmptyDto>> VerifyEmailAsync(Guid userId, VerifyEmailRequestDto dto);
+    Task<ApiResult<EmptyDto>> VerifyEmailAsync(VerifyEmailRequestDto dto, Guid loggedUserId);
 
     /// <summary>
     /// Re-sends the e-mail verification code after the 60-second cooldown.
     /// Invalidates any previously issued pending code before dispatching a new one.
     /// </summary>
     /// <exception cref="KeyNotFoundException">Thrown when no account matches the given e-mail.</exception>
-    Task<ApiResult<EmptyDto>> ResendVerificationEmailAsync(ResendVerificationEmailRequestDto dto, string currentUser);
+    Task<ApiResult<EmptyDto>> ResendVerificationEmailAsync(ResendVerificationEmailRequestDto dto, Guid loggedUserId);
 
     // ── Forgot password ───────────────────────────────────────────────────
 

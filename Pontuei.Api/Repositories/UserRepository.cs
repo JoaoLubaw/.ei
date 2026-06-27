@@ -29,10 +29,12 @@ public class UserRepository : BaseRepository, IUserRepository
     /// Returns the user whose <c>user_email</c> matches <paramref name="email"/> (case-insensitive),
     /// or <c>null</c> if no record is found.
     /// </summary>
-    public async Task<User?> GetByEmailAsync(string email)
+    public async Task<User?> GetByEmailAsync(string email, bool verifyNotDeleted = false)
     {
-        return await _dbContext.Users
-            .FirstOrDefaultAsync(u => u.UserEmail.ToLower() == email.ToLower());
+        IQueryable<User> query = _dbContext.Users
+            .Where(u => u.UserEmail.ToLower() == email.ToLower() && (!verifyNotDeleted || !u.IsDeleted));
+
+        return await query.FirstOrDefaultAsync();
     }
 
     /// <summary>
@@ -114,11 +116,20 @@ public class UserRepository : BaseRepository, IUserRepository
             _dbContext.Entry(user).Property(u => u.UserPushNotificationsEnabled).IsModified = true;
         }
 
-        if (!string.IsNullOrEmpty(requestDto.UserEmail))
-        {
-            user.UserEmail = requestDto.UserEmail;
-            _dbContext.Entry(user).Property(u => u.UserEmail).IsModified = true;
-        }
+        return user;
+    }
+
+    public async Task<User> UpdatePasswordAsync(User user, string newPasswordHash, string updatedBy)
+    {
+        _dbContext.Attach(user);
+
+        user.UserPasswordHash = newPasswordHash;
+        user.UpdateTime = DateTime.UtcNow;
+        user.UpdateUser = updatedBy;
+
+        _dbContext.Entry(user).Property(u => u.UserPasswordHash).IsModified = true;
+        _dbContext.Entry(user).Property(u => u.UpdateTime).IsModified = true;
+        _dbContext.Entry(user).Property(u => u.UpdateUser).IsModified = true;
 
         return user;
     }

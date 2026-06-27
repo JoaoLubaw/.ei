@@ -20,7 +20,7 @@ public interface IUserRepository
     /// Returns the user whose <c>user_email</c> matches <paramref name="email"/> (case-insensitive),
     /// or <c>null</c> if no record is found.
     /// </summary>
-    Task<User?> GetByEmailAsync(string email);
+    Task<User?> GetByEmailAsync(string email, bool verifyNotDeleted = false);
 
     /// <summary>
     /// Returns the user whose <c>user_google_id</c> matches <paramref name="googleId"/>,
@@ -45,6 +45,16 @@ public interface IUserRepository
     /// Callers are responsible for setting audit fields before invoking this method.
     /// </summary>
     Task<User> UpdateAsync(User user, UpdateUserRequestDto requestDto, string updatedBy);
+
+    /// <summary>
+    /// Applies a new password hash to the user and returns the updated entity.
+    /// Callers are responsible for setting audit fields before invoking this method.
+    /// </summary>
+    /// <param name="user"></param>
+    /// <param name="newPasswordHash"></param>
+    /// <param name="updatedBy"></param>
+    /// <returns></returns>
+    Task<User> UpdatePasswordAsync(User user, string newPasswordHash, string updatedBy);
 
     /// <summary>
     /// Soft-deletes the user by setting <c>row_is_deleted = true</c>.

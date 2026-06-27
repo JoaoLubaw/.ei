@@ -25,8 +25,8 @@ public class UserDto
     [JsonPropertyName("userEmailVerified")]
     public bool UserEmailVerified { get; set; }
 
-    [JsonPropertyName("userEmailVerifiedAt")]
-    public DateTime? UserEmailVerifiedAt { get; set; }
+    [JsonPropertyName("pendingEmail")]
+    public string? PendingEmail { get; set; }
 
     [JsonPropertyName("userPushNotificationsEnabled")]
     public bool UserPushNotificationsEnabled { get; set; }
@@ -36,4 +36,5 @@ public class UserDto
 
     [JsonPropertyName("userIsAdmin")]
     public bool UserIsAdmin { get; set; }
+
 }

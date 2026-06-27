@@ -32,7 +32,7 @@ public interface IUserService
     /// and dispatches the e-mail verification code.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the e-mail is already registered.</exception>
-    Task<ApiResult<UserDto>> RegisterAsync(CreateUserRequestDto dto, Guid currentUserId);
+    Task<ApiResult<UserDto>> RegisterAsync(CreateUserRequestDto dto, Guid? currentUserId);
 
     /// <summary>
     /// Applies partial updates from the "Informações de conta" settings screen.

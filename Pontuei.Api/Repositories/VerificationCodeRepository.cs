@@ -41,6 +41,22 @@ public class VerificationCodeRepository : BaseRepository, IVerificationCodeRepos
     }
 
     /// <summary>
+    /// Returns a verification code by its hash, or <c>null</c> when not found.
+    /// </summary>
+    /// <param name="verificationCodeHash"></param>
+    /// <param name="type"></param>
+    /// <param name="verifyActive"></param>
+    /// <returns></returns>
+    public async Task<VerificationCode?> GetByHashAsync(string verificationCodeHash, VerificationCodeType type, bool verifyActive = true)
+    {
+        return await _dbContext.VerificationCodes
+            .FirstOrDefaultAsync(vc => vc.VerificationCodeHash == verificationCodeHash
+             && vc.VerificationCodeType == type && (!verifyActive || (vc.VerificationCodeUsedAt == null
+             && vc.VerificationCodeExpiresAt > DateTime.UtcNow))
+        );
+    }
+
+    /// <summary>
     /// Persists a new verification code row and returns the saved entity.
     /// </summary>
     public async Task<VerificationCode> CreateAsync(

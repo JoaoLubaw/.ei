@@ -14,7 +14,7 @@ CREATE TABLE public."user"
 	user_email varchar(254) NOT NULL,	-- User email address. Used as login identifier.
 	user_phone_number varchar(20) NULL,	-- User phone number. Optional field for communication or verification purposes.
 	
-	user_password_hash varchar(256) NULL,	-- Bcrypt hash of the user password. NULL when account uses only social login.
+	user_password_hash varchar(256) NOT NULL,	-- Bcrypt hash of the user password.
 	
 	user_email_verified boolean NOT NULL   DEFAULT False,	-- Whether the user has confirmed their email address.
 	user_email_verified_at timestamp NULL,	-- Timestamp of email confirmation.

@@ -24,6 +24,8 @@ public interface IVerificationCodeRepository
     /// </summary>
     Task<VerificationCode?> GetByIdAsync(Guid verificationCodeId, bool verifyActive = true);
 
+    Task<VerificationCode?> GetByHashAsync(string verificationCodeHash, VerificationCodeType type, bool verifyActive = true);
+
     /// <summary>
     /// Persists a new verification code row and returns the saved entity.
     /// </summary>
