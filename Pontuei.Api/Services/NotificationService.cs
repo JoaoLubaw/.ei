@@ -225,6 +225,30 @@ public class NotificationService : INotificationService
 
     }
 
+    public async Task<ApiResult<int>> GetUnreadCountAsync(Guid userId, Guid currentUserId)
+    {
+        User? loggedUser = await _userRepository.GetByIdAsync(currentUserId);
+
+        if (loggedUser == null)
+        {
+            _logger.LogWarning("User with ID {UserId} not found.", currentUserId);
+
+            return new ApiResult<int>(
+                InternalResultCode.UNLOGGED,
+                HttpStatusCode.Unauthorized,
+                0
+            );
+        }
+
+        int unreadCount = await _notificationRepository.CountUnreadByUserIdAsync(userId);
+
+        return new ApiResult<int>(
+            InternalResultCode.NO_ERROR,
+            HttpStatusCode.OK,
+            unreadCount
+        );
+    }
+
     /// <summary>
     /// Creates a notification alerting the user that a transaction's receipt
     /// deadline has passed and points have not yet been credited.

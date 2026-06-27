@@ -45,4 +45,8 @@ public interface INotificationService
     /// </summary>
     Task<bool> NotifyTransactionOverdueAsync(Guid userId, Guid transactionId, Guid currentUserId);
 
+    /// <summary>
+    /// Returns the count of unread notifications for the user.
+    /// </summary>
+    Task<ApiResult<int>> GetUnreadCountAsync(Guid userId, Guid currentUserId);
 }

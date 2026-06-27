@@ -317,7 +317,19 @@ public class UserService : IUserService
             );
         }
 
-        await _emailService.SendVerificationEmailAsync(newUser.UserEmail, newUser.UserName, confirmationToken);
+        try
+        {
+            await _emailService.SendVerificationEmailAsync(newUser.UserEmail, newUser.UserName, confirmationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send verification email to {Email} for user {UserId}.", newUser.UserEmail, newUser.UserId);
+
+            return new ApiResult<UserDto>(
+                InternalResultCode.EMAIL_SEND_ERROR,
+                HttpStatusCode.InternalServerError,
+                null);
+        }
 
         return new ApiResult<UserDto>(
             InternalResultCode.NO_ERROR,
@@ -403,8 +415,21 @@ public class UserService : IUserService
                 createdBy: currentUserId.ToString() ?? currentUserId!.ToString()
             );
 
-            await _emailService.SendEmailChangeNotificationAsync(userToUpdate.UserEmail, userToUpdate.UserName, dto.UserEmail);
-            await _emailService.SendEmailChangeCodeAsync(dto.UserEmail, userToUpdate.UserName, confirmationToken);
+            try
+            {
+                await _emailService.SendEmailChangeNotificationAsync(userToUpdate.UserEmail, userToUpdate.UserName, dto.UserEmail);
+                await _emailService.SendEmailChangeCodeAsync(dto.UserEmail, userToUpdate.UserName, confirmationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send email change notification or code to {NewEmail} for user {UserId}.", dto.UserEmail, userId);
+
+                return new ApiResult<UserDto>(
+                    InternalResultCode.EMAIL_SEND_ERROR,
+                    HttpStatusCode.InternalServerError,
+                    null);
+            }
+
         }
 
         if (dto.UserPhoneNumber != null && !dto.IsValidPhoneNumber())

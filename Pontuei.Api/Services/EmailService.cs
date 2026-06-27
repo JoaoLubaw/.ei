@@ -142,8 +142,8 @@ public class EmailService : IEmailService
     }
 
     public async Task SendOverdueTransactionEmailAsync(
-    string toEmail, string userName, string store,
-    string programName, DateOnly deadline, int estimatedPoints)
+        string toEmail, string userName, string store,
+        string programName, DateOnly deadline, int estimatedPoints)
     {
         string subject = "Eii, um prazo de pontuação foi expirado - .Ei";
 

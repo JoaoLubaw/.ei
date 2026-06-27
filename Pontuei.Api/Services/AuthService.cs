@@ -363,7 +363,20 @@ public class AuthService : IAuthService
 
         await _unitOfWork.CommitAsync();
 
-        await _emailService.SendVerificationEmailAsync(user.UserEmail, user.UserName, newCode);
+        try
+        {
+            await _emailService.SendVerificationEmailAsync(user.UserEmail, user.UserName, newCode);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send verification email to {UserEmail} for user {UserId}.", user.UserEmail, user.UserId);
+
+            return new ApiResult<EmptyDto>(
+                InternalResultCode.EMAIL_SEND_ERROR,
+                HttpStatusCode.InternalServerError,
+                null);
+        }
+
 
         _logger.LogInformation("Verification email resent for user: {UserId}", user.UserId);
 
@@ -398,7 +411,20 @@ public class AuthService : IAuthService
 
             _logger.LogInformation("Reset password token sent for user: {UserId}", user.UserId);
 
-            await _emailService.SendResetPasswordToken(user.UserEmail, user.UserName, resetCode);
+            try
+            {
+                await _emailService.SendResetPasswordToken(user.UserEmail, user.UserName, resetCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send reset password token to {UserEmail} for user {UserId}.", user.UserEmail, user.UserId);
+
+                return new ApiResult<EmptyDto>(
+                    InternalResultCode.EMAIL_SEND_ERROR,
+                    HttpStatusCode.InternalServerError,
+                    null);
+            }
+
         }
 
         return new ApiResult<EmptyDto>(
