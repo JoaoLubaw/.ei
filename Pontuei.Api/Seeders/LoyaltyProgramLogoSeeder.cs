@@ -1,6 +1,6 @@
 using Pontuei.Api.Data;
+using Pontuei.Api.Interfaces.Services;
 using Pontuei.Api.Models;
-using Pontuei.Api.Services;
 
 public static class LoyaltyProgramLogoSeeder
 {
@@ -25,7 +25,7 @@ public static class LoyaltyProgramLogoSeeder
         using IServiceScope scope = services.CreateScope();
 
         PontueiDbContext dbContext = scope.ServiceProvider.GetRequiredService<PontueiDbContext>();
-        MinioStorageService storageService = scope.ServiceProvider.GetRequiredService<MinioStorageService>();
+        IStorageService storageService = scope.ServiceProvider.GetRequiredService<IStorageService>(); // ← aqui
         ILogger<Program> logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
         string assetsPath = Path.Combine(

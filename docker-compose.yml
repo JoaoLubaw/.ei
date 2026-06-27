@@ -26,6 +26,8 @@ services:
       EmailSettings__Password: ${EMAIL_PASSWORD}
       EmailSettings__From: ${EMAIL_FROM}
       FIREBASE_CREDENTIALS_JSON: ${FIREBASE_CREDENTIALS_JSON}
+      AdminSeed__Email: ${ADMIN_EMAIL}
+      AdminSeed__Password: ${ADMIN_PASSWORD}
     ports:
       - "5000:5000"
     depends_on:
@@ -38,7 +40,7 @@ services:
     networks:
       - compose_net
     volumes:
-      - ./assets:/app/assets
+      - ./assets:/App/assets
 
   # ============================================================
   # DATABASE - PostgreSQL 17

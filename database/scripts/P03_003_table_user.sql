@@ -39,10 +39,6 @@ CREATE TABLE public."user"
 
 /* Create Primary Keys, Indexes, Uniques, Checks */
 
-ALTER TABLE public."user" ADD CONSTRAINT user_pk
-	PRIMARY KEY (user_id)
-;
-
 ALTER TABLE public."user"
 	ADD CONSTRAINT user_uk1 UNIQUE (user_email)
 ;

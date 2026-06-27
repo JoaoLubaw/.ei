@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Pontuei.Api.Commons;
@@ -296,7 +297,7 @@ public class TransactionController : PontueiControllerBase
     public async Task<ActionResult<TransactionMediaDto>> AddMedia(
         [FromRoute] Guid userId,
         [FromRoute] Guid transactionId,
-        [FromForm] IFormFile file)
+        [FromForm] AddMediaRequestDto request)
     {
         Guid? currentUserId = CurrentUserId();
         if (currentUserId is null) return Unauthorized();
@@ -305,14 +306,24 @@ public class TransactionController : PontueiControllerBase
 
         try
         {
+            if (request.File == null || request.File.Length == 0)
+            {
+                return BadRequest(new ErrorApiResult
+                (
+                    InternalResultCode.MISSING_INFORMATION,
+                    (int)HttpStatusCode.BadRequest,
+                    "Nenhum arquivo foi fornecido."
+                ));
+            }
+
             // 1. Upload the physical file to the storage bucket and obtain the public URL
-            string fileUrl = await _storageService.UploadFileAsync(file, userId, transactionId);
+            string fileUrl = await _storageService.UploadFileAsync(request.File, userId, transactionId);
 
             // 2. Build the DTO with the resulting URL and persist via the transaction service
             UpsertTransactionMediaRequestDto mediaDto = new UpsertTransactionMediaRequestDto
             {
                 TransactionMediaFileUrl = fileUrl,
-                TransactionMediaFileType = file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? TransactionMediaFileType.Pdf : TransactionMediaFileType.Image
+                TransactionMediaFileType = request.File.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) ? TransactionMediaFileType.Pdf : TransactionMediaFileType.Image
             };
 
             ApiResult<TransactionMediaDto> apiResult = await _transactionService.AddMediaAsync(userId, transactionId, mediaDto, currentUserId.Value);
@@ -346,7 +357,7 @@ public class TransactionController : PontueiControllerBase
     public async Task<ActionResult<IEnumerable<TransactionMediaDto>>> BulkReplaceMedia(
         [FromRoute] Guid userId,
         [FromRoute] Guid transactionId,
-        [FromForm] IEnumerable<IFormFile> files)
+        [FromForm] IFormFileCollection files)
     {
         Guid? currentUserId = CurrentUserId();
         if (currentUserId is null) return Unauthorized();

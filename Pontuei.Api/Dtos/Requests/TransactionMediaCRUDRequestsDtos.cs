@@ -52,3 +52,11 @@ public class TransactionMediaFiltersDto
     public Guid? TransactionId { get; set; }
     public TransactionMediaFileType? TransactionMediaFileType { get; set; }
 }
+
+/// <summary>
+/// Payload for adding a media file to an existing transaction.
+/// </summary>
+public class AddMediaRequestDto
+{
+    public IFormFile? File { get; set; }
+}

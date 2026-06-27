@@ -35,10 +35,6 @@ CREATE TABLE public.verification_code
 
 /* Create Primary Keys, Indexes, Uniques, Checks */
 
-ALTER TABLE public.verification_code ADD CONSTRAINT verification_code_pk
-	PRIMARY KEY (verification_code_id)
-;
-
 ALTER TABLE public.verification_code
 	ADD CONSTRAINT verification_code_fk1 FOREIGN KEY (user_id)
 		REFERENCES public."user" (user_id)

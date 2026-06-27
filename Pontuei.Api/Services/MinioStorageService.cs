@@ -1,6 +1,7 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
+using Amazon.S3.Util;
 using Microsoft.AspNetCore.Http;
 using Pontuei.Api.Interfaces.Services;
 
@@ -9,16 +10,17 @@ namespace Pontuei.Api.Services;
 public class MinioStorageService : IStorageService
 {
     private readonly IAmazonS3 _s3Client;
-    private readonly string _bucketName = "pontuei-media";
+    private readonly string _bucketMedia;
+    private readonly string _bucketPrograms;
     private readonly ILogger<MinioStorageService> _logger;
 
     public MinioStorageService(IConfiguration configuration, ILogger<MinioStorageService> logger)
     {
         _logger = logger;
 
-        string accessKey = configuration["MinIO:AccessKey"] ?? throw new ArgumentNullException("MinIO:AccessKey is not configured.");
-        string secretKey = configuration["MinIO:SecretKey"] ?? throw new ArgumentNullException("MinIO:SecretKey is not configured.");
-        string serviceUrl = configuration["MinIO:Endpoint"] ?? throw new ArgumentNullException("MinIO:Endpoint is not configured.");
+        string accessKey = configuration["Storage:AccessKey"] ?? throw new ArgumentNullException("Storage:AccessKey is not configured.");
+        string secretKey = configuration["Storage:SecretKey"] ?? throw new ArgumentNullException("Storage:SecretKey is not configured.");
+        string serviceUrl = configuration["Storage:Endpoint"] ?? throw new ArgumentNullException("Storage:Endpoint is not configured.");
 
         AmazonS3Config config = new AmazonS3Config
         {
@@ -27,10 +29,14 @@ public class MinioStorageService : IStorageService
         };
 
         _s3Client = new AmazonS3Client(accessKey, secretKey, config);
+        _bucketMedia = configuration["Storage:BucketMedia"] ?? throw new ArgumentNullException("Storage:BucketMedia is not configured.");
+        _bucketPrograms = configuration["Storage:BucketPrograms"] ?? throw new ArgumentNullException("Storage:BucketPrograms is not configured.");
     }
 
     public async Task<string> UploadFileAsync(IFormFile file, Guid userId, Guid transactionId)
     {
+        await EnsureBucketExistsAsync(_bucketMedia);
+
         string fileExtension = Path.GetExtension(file.FileName);
         string uniqueFileName = $"{userId}/{transactionId}/{Guid.NewGuid()}{fileExtension}";
 
@@ -41,7 +47,7 @@ public class MinioStorageService : IStorageService
         {
             InputStream = newMemoryStream,
             Key = uniqueFileName,
-            BucketName = _bucketName,
+            BucketName = _bucketMedia,
             ContentType = file.ContentType
         };
 
@@ -53,16 +59,18 @@ public class MinioStorageService : IStorageService
 
         _logger.LogInformation("Upload completed to MinIO. File: {FileName}", uniqueFileName);
 
-        return $"/{_bucketName}/{uniqueFileName}";
+        return $"/{_bucketMedia}/{uniqueFileName}";
     }
 
     public async Task DeleteFileAsync(string fileUrl)
     {
-        string fileKey = fileUrl.Replace($"/{_bucketName}/", "");
+        await EnsureBucketExistsAsync(_bucketMedia);
+
+        string fileKey = fileUrl.Replace($"/{_bucketMedia}/", "");
 
         DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest
         {
-            BucketName = _bucketName,
+            BucketName = _bucketMedia,
             Key = fileKey
         };
 
@@ -72,13 +80,15 @@ public class MinioStorageService : IStorageService
 
     public async Task<string> UploadFileFromStreamAsync(Stream stream, string fileName, string contentType)
     {
+        await EnsureBucketExistsAsync(_bucketPrograms);
+
         string key = $"loyalty-programs/{fileName}";
 
         TransferUtilityUploadRequest uploadRequest = new TransferUtilityUploadRequest
         {
             InputStream = stream,
             Key = key,
-            BucketName = _bucketName,
+            BucketName = _bucketPrograms,
             ContentType = contentType,
             CannedACL = S3CannedACL.PublicRead
         };
@@ -86,6 +96,20 @@ public class MinioStorageService : IStorageService
         TransferUtility fileTransferUtility = new TransferUtility(_s3Client);
         await fileTransferUtility.UploadAsync(uploadRequest);
 
-        return $"/{_bucketName}/{key}";
+        return $"/{_bucketPrograms}/{key}";
+    }
+
+    private async Task EnsureBucketExistsAsync(string bucketName)
+    {
+        bool exists = await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
+        if (!exists)
+        {
+            await _s3Client.PutBucketAsync(new PutBucketRequest
+            {
+                BucketName = bucketName,
+                UseClientRegion = true
+            });
+            _logger.LogInformation("Bucket created: {BucketName}", bucketName);
+        }
     }
 }

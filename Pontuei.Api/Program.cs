@@ -189,9 +189,9 @@ try
     {
         options.SwaggerDoc("v1", new OpenApiInfo
         {
-            Title = ".ei — Pontuei API",
+            Title = ".ei.API",
             Version = "v1",
-            Description = "API do aplicativo de rastreamento de pontos de fidelidade."
+            Description = "Nunca foi tão fácil colocar os pontos nos i's."
         });
 
         options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

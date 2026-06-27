@@ -20,8 +20,8 @@ INSERT INTO public.loyalty_program (loyalty_program_name, loyalty_program_brand_
 INSERT INTO public.configuration 
 	(configuration_name, configuration_description, configuration_value, configuration_type) 
 VALUES 
-	('jwt_expiration_time', 'JWT access token expiration time', '30', 'integer'),
-	('notification_time', 'Time of day to send notifications for overdue transactions (HH:mm)', '12:00', 'time')
+	('jwt_expiration_time', 'JWT access token expiration time', '30', 1),
+	('notification_time', 'Time of day to send notifications for overdue transactions (HH:mm)', '12:00', 6)
 ;	
 
 -- Versions insertions.
