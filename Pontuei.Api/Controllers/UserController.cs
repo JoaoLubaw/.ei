@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Pontuei.Api.Commons;
 using Pontuei.Api.Dtos.Objects;
 using Pontuei.Api.Dtos.Requests;
@@ -61,6 +62,7 @@ public class UserController : PontueiControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorApiResult))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorApiResult))]
     [HttpGet("{userId:guid}")]
+    [EnableRateLimiting("StrictAuthLimit")]
     public async Task<ActionResult<UserDto>> GetUserById([FromRoute] Guid userId)
     {
         Guid? currentUserId = CurrentUserId();

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Pontuei.Api.Dtos.Objects;
 using Pontuei.Api.Dtos.Requests;
 using Pontuei.Api.Dtos.Responses;
@@ -39,6 +40,7 @@ public class AuthController : PontueiControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorApiResult))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorApiResult))]
     [HttpPost("login")]
+    [EnableRateLimiting("StrictAuthLimit")]
     [AllowAnonymous]
     public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto requestDto)
     {
@@ -71,6 +73,7 @@ public class AuthController : PontueiControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorApiResult))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorApiResult))]
     [HttpPost("login/google")]
+    [EnableRateLimiting("StrictAuthLimit")]
     [AllowAnonymous]
     public async Task<ActionResult<LoginResponseDto>> GoogleLogin([FromBody] GoogleLoginRequestDto requestDto)
     {
@@ -106,6 +109,7 @@ public class AuthController : PontueiControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorApiResult))]
     [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(ErrorApiResult))]
     [HttpPost("register")]
+    [EnableRateLimiting("StrictAuthLimit")]
     [AllowAnonymous]
     public async Task<ActionResult<LoginResponseDto>> Register([FromBody] CreateUserRequestDto requestDto)
     {
@@ -156,6 +160,7 @@ public class AuthController : PontueiControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorApiResult))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorApiResult))]
     [HttpPost("refresh")]
+    [EnableRateLimiting("StrictAuthLimit")]
     [AllowAnonymous]
     public async Task<ActionResult<LoginResponseDto>> RefreshToken([FromBody] RefreshTokenRequestDto requestDto)
     {
@@ -209,6 +214,7 @@ public class AuthController : PontueiControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorApiResult))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorApiResult))]
     [HttpPut("sessions/{sessionId}/push-token")]
+    [EnableRateLimiting("StrictAuthLimit")]
     [Authorize]
     public async Task<ActionResult> UpdatePushNotificationToken(
         [FromRoute] Guid sessionId,
@@ -240,6 +246,7 @@ public class AuthController : PontueiControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorApiResult))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorApiResult))]
     [HttpPost("verify-email")]
+    [EnableRateLimiting("StrictAuthLimit")]
     [Authorize]
     public async Task<ActionResult> VerifyEmail([FromBody] VerifyEmailRequestDto requestDto)
     {
@@ -270,6 +277,7 @@ public class AuthController : PontueiControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorApiResult))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorApiResult))]
     [HttpPost("resend-verification")]
+    [EnableRateLimiting("StrictAuthLimit")]
     [Authorize]
     public async Task<ActionResult> ResendVerificationEmail([FromBody] ResendVerificationEmailRequestDto requestDto)
     {
@@ -301,6 +309,7 @@ public class AuthController : PontueiControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorApiResult))]
     [HttpPost("forgot-password")]
+    [EnableRateLimiting("StrictAuthLimit")]
     [AllowAnonymous]
     public async Task<ActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto requestDto)
     {
@@ -328,6 +337,7 @@ public class AuthController : PontueiControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorApiResult))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorApiResult))]
     [HttpPost("verify-reset-code")]
+    [EnableRateLimiting("StrictAuthLimit")]
     [AllowAnonymous]
     public async Task<ActionResult<VerifyResetCodeResponseDto>> VerifyResetCode([FromBody] VerifyResetCodeRequestDto requestDto)
     {
@@ -355,6 +365,7 @@ public class AuthController : PontueiControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ErrorApiResult))]
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorApiResult))]
     [HttpPost("reset-password")]
+    [EnableRateLimiting("StrictAuthLimit")]
     [AllowAnonymous]
     public async Task<ActionResult> ResetPassword([FromBody] ResetPasswordRequestDto requestDto)
     {
@@ -386,6 +397,7 @@ public class AuthController : PontueiControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ErrorApiResult))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ErrorApiResult))]
     [HttpPost("change-password")]
+    [EnableRateLimiting("StrictAuthLimit")]
     [Authorize]
     public async Task<ActionResult<UserDto>> ChangePassword([FromBody] ChangePasswordRequestDto requestDto)
     {

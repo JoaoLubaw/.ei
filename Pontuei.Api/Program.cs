@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -91,6 +92,54 @@ try
     // =========================================================
     builder.Services.Configure<EmailSettings>(
         builder.Configuration.GetSection("EmailSettings"));
+
+    // =========================================================
+    // RATE LIMITING 
+    // =========================================================
+    builder.Services.AddRateLimiter(options =>
+    {
+        // Politic 1: Global / Generic
+        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        {
+            string ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            return RateLimitPartition.GetFixedWindowLimiter(ipAddress, partition => new FixedWindowRateLimiterOptions
+            {
+                AutoReplenishment = true,
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1)
+            });
+        });
+
+        // Politic 2: To sensitive routes
+        options.AddPolicy("StrictAuthLimit", httpContext =>
+        {
+            string ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+            return RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: ipAddress,
+                factory: partition => new FixedWindowRateLimiterOptions
+                {
+                    AutoReplenishment = true,
+                    PermitLimit = 3,
+                    Window = TimeSpan.FromMinutes(1)
+                });
+        });
+
+        options.OnRejected = async (context, token) =>
+        {
+            context.HttpContext.Response.StatusCode = 429;
+            context.HttpContext.Response.ContentType = "application/json";
+
+            var errorResponse = new
+            {
+                resultCode = "TOO_MANY_REQUESTS",
+                httpCode = 429,
+                message = "Muitas tentativas em pouco tempo. Por favor, aguarde alguns instantes."
+            };
+
+            await context.HttpContext.Response.WriteAsJsonAsync(errorResponse, token);
+        };
+    });
 
     // =========================================================
     // REPOSITORIES
@@ -207,6 +256,8 @@ try
 
     app.UseAuthentication();
     app.UseAuthorization();
+
+    app.UseRateLimiter();
 
     app.MapControllers();
 
