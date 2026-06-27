@@ -45,7 +45,7 @@ public class ConfigurationRepository : BaseRepository, IConfigurationRepository
     /// <summary>
     /// Applies changes to an existing configuration row and returns the updated entity.
     /// </summary>
-    public async Task<Configuration> UpdateAsync(Configuration configuration, UpdateConfigurationRequestDto dto, string updatedBy)
+    public Task<Configuration> UpdateAsync(Configuration configuration, UpdateConfigurationRequestDto dto, string updatedBy)
     {
         _dbContext.Attach(configuration);
 
@@ -67,7 +67,7 @@ public class ConfigurationRepository : BaseRepository, IConfigurationRepository
         configuration.UpdateUser = updatedBy;
         _dbContext.Entry(configuration).Property(c => c.UpdateUser).IsModified = true;
 
-        return configuration;
+        return Task.FromResult(configuration);
     }
 
 }

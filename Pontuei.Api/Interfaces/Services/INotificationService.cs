@@ -39,13 +39,6 @@ public interface INotificationService
     Task<ApiResult<GetNotificationsResponseDto>> MarkAllAsReadAsync(GetNotificationsRequestDto requestDto, Guid userId, Guid currentUserId);
 
     /// <summary>
-    /// Creates a notification alerting the user that a transaction's receipt
-    /// deadline has passed and points have not yet been credited.
-    /// Called by the background overdue-check job.
-    /// </summary>
-    Task<bool> NotifyTransactionOverdueAsync(Guid userId, Guid transactionId, Guid currentUserId);
-
-    /// <summary>
     /// Returns the count of unread notifications for the user.
     /// </summary>
     Task<ApiResult<int>> GetUnreadCountAsync(Guid userId, Guid currentUserId);

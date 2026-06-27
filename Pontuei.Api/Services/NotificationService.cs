@@ -249,16 +249,4 @@ public class NotificationService : INotificationService
         );
     }
 
-    /// <summary>
-    /// Creates a notification alerting the user that a transaction's receipt
-    /// deadline has passed and points have not yet been credited.
-    /// Called by the background overdue-check job.
-    /// </summary>
-    public async Task<bool> NotifyTransactionOverdueAsync(Guid userId, Guid transactionId, Guid currentUserId)
-    {
-        //TODO
-
-        throw new NotImplementedException();
-    }
-
 }

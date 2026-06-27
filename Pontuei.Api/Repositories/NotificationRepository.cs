@@ -56,7 +56,7 @@ public class NotificationRepository : BaseRepository, INotificationRepository
     /// Called internally by service methods that produce side-effect notifications
     /// (e.g., transaction status change, overdue alert).
     /// </summary>
-    public async Task<Notification> CreateAsync(NotificationDto dto, string createdBy)
+    public Task<Notification> CreateAsync(NotificationDto dto, string createdBy)
     {
         Notification notification = new Notification
         {
@@ -73,14 +73,14 @@ public class NotificationRepository : BaseRepository, INotificationRepository
 
         _dbContext.Notifications.Add(notification);
 
-        return notification;
+        return Task.FromResult(notification);
     }
 
     /// <summary>
     /// Marks a single notification as read by setting <c>notification_is_read = true</c>
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    public async Task MarkAsReadAsync(Notification notification, string readBy)
+    public Task MarkAsReadAsync(Notification notification, string readBy)
     {
         _dbContext.Attach(notification);
 
@@ -92,6 +92,8 @@ public class NotificationRepository : BaseRepository, INotificationRepository
 
         notification.UpdateUser = readBy;
         _dbContext.Entry(notification).Property(n => n.UpdateUser).IsModified = true;
+
+        return Task.CompletedTask;
     }
 
     /// <summary>

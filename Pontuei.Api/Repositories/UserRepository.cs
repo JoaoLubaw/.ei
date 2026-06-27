@@ -60,7 +60,7 @@ public class UserRepository : BaseRepository, IUserRepository
     /// Persists a new <see cref="User"/> row and returns the saved entity
     /// (with database-generated fields populated).
     /// </summary>
-    public async Task<User> CreateAsync(CreateUserRequestDto requestDto, string passwordHash, string createdBy)
+    public Task<User> CreateAsync(CreateUserRequestDto requestDto, string passwordHash, string createdBy)
     {
         User user = new User
         {
@@ -81,14 +81,14 @@ public class UserRepository : BaseRepository, IUserRepository
 
         _dbContext.Users.Add(user);
 
-        return user;
+        return Task.FromResult(user);
     }
 
     /// <summary>
     /// Applies field-level changes to an existing user row and returns the updated entity.
     /// Callers are responsible for setting audit fields before invoking this method.
     /// </summary>
-    public async Task<User> UpdateAsync(User user, UpdateUserRequestDto requestDto, string updatedBy)
+    public Task<User> UpdateAsync(User user, UpdateUserRequestDto requestDto, string updatedBy)
     {
         _dbContext.Attach(user);
 
@@ -116,10 +116,10 @@ public class UserRepository : BaseRepository, IUserRepository
             _dbContext.Entry(user).Property(u => u.UserPushNotificationsEnabled).IsModified = true;
         }
 
-        return user;
+        return Task.FromResult(user);
     }
 
-    public async Task<User> UpdatePasswordAsync(User user, string newPasswordHash, string updatedBy)
+    public Task<User> UpdatePasswordAsync(User user, string newPasswordHash, string updatedBy)
     {
         _dbContext.Attach(user);
 
@@ -131,14 +131,14 @@ public class UserRepository : BaseRepository, IUserRepository
         _dbContext.Entry(user).Property(u => u.UpdateTime).IsModified = true;
         _dbContext.Entry(user).Property(u => u.UpdateUser).IsModified = true;
 
-        return user;
+        return Task.FromResult(user);
     }
 
     /// <summary>
     /// Soft-deletes the user by setting <c>row_is_deleted = true</c>.
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    public async Task SoftDeleteAsync(User user, string deletedBy)
+    public Task SoftDeleteAsync(User user, string deletedBy)
     {
         _dbContext.Attach(user);
 
@@ -149,12 +149,14 @@ public class UserRepository : BaseRepository, IUserRepository
         _dbContext.Entry(user).Property(u => u.IsDeleted).IsModified = true;
         _dbContext.Entry(user).Property(u => u.UpdateTime).IsModified = true;
         _dbContext.Entry(user).Property(u => u.UpdateUser).IsModified = true;
+
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Marks the user's e-mail as verified, setting <c>user_email_verified = true</c>
     /// </summary>
-    public async Task SetEmailVerifiedAsync(User user, string verifiedBy)
+    public Task SetEmailVerifiedAsync(User user, string verifiedBy)
     {
         _dbContext.Attach(user);
 
@@ -167,5 +169,7 @@ public class UserRepository : BaseRepository, IUserRepository
         _dbContext.Entry(user).Property(u => u.UserEmailVerifiedAt).IsModified = true;
         _dbContext.Entry(user).Property(u => u.UpdateTime).IsModified = true;
         _dbContext.Entry(user).Property(u => u.UpdateUser).IsModified = true;
+
+        return Task.CompletedTask;
     }
 }

@@ -37,7 +37,7 @@ public class TransactionMediaRepository : BaseRepository, ITransactionMediaRepos
     /// <summary>
     /// Persists a new media entry and returns the saved entity.
     /// </summary>
-    public async Task<TransactionMedia> CreateAsync(Transaction transaction, UpsertTransactionMediaRequestDto media, string createdBy)
+    public Task<TransactionMedia> CreateAsync(Transaction transaction, UpsertTransactionMediaRequestDto media, string createdBy)
     {
         TransactionMedia transactionMedia = new TransactionMedia
         {
@@ -51,10 +51,10 @@ public class TransactionMediaRepository : BaseRepository, ITransactionMediaRepos
 
         _dbContext.TransactionMedias.Add(transactionMedia);
 
-        return transactionMedia;
+        return Task.FromResult(transactionMedia);
     }
 
-    public async Task BatchCreateAsync(Transaction transaction, IEnumerable<UpsertTransactionMediaRequestDto> medias, string createdBy)
+    public Task BatchCreateAsync(Transaction transaction, IEnumerable<UpsertTransactionMediaRequestDto> medias, string createdBy)
     {
         List<TransactionMedia> transactionMedias = medias.Select(media => new TransactionMedia
         {
@@ -67,6 +67,8 @@ public class TransactionMediaRepository : BaseRepository, ITransactionMediaRepos
         }).ToList();
 
         _dbContext.TransactionMedias.AddRange(transactionMedias);
+
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -103,20 +105,22 @@ public class TransactionMediaRepository : BaseRepository, ITransactionMediaRepos
     /// Deletes a single media entry by ID.
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    public async Task DeleteAsync(TransactionMedia media, string deletedBy)
+    public Task DeleteAsync(TransactionMedia media, string deletedBy)
     {
         _dbContext.TransactionMedias.Remove(media);
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Deletes all media entries for the given transaction.
     /// Returns the number of rows deleted.
     /// </summary>
-    public async Task DeleteAllByTransactionAsync(Transaction transaction)
+    public Task DeleteAllByTransactionAsync(Transaction transaction)
     {
         if (transaction.TransactionMedias.Any())
         {
             _dbContext.TransactionMedias.RemoveRange(transaction.TransactionMedias);
         }
+        return Task.CompletedTask;
     }
 }

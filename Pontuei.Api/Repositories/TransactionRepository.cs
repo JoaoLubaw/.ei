@@ -13,7 +13,6 @@ public class TransactionRepository : BaseRepository, ITransactionRepository
 {
     public TransactionRepository(PontueiDbContext dbContext) : base(dbContext)
     {
-
     }
 
     /// <summary>
@@ -84,7 +83,7 @@ public class TransactionRepository : BaseRepository, ITransactionRepository
     /// Persists a new transaction (and its associated media, when provided via
     /// cascade) and returns the saved entity.
     /// </summary>
-    public async Task<Transaction> CreateAsync(CreateTransactionRequestDto transactionDto, Guid userId, string createdBy)
+    public Task<Transaction> CreateAsync(CreateTransactionRequestDto transactionDto, Guid userId, string createdBy)
     {
         TransactionStatus status = DetermineTransactionStatus(transactionDto.TransactionPurchaseDate, transactionDto.TransactionItemReceiptDate, transactionDto.TransactionReceiptDeadlineDays);
 
@@ -107,14 +106,14 @@ public class TransactionRepository : BaseRepository, ITransactionRepository
 
         _dbContext.Transactions.Add(transaction);
 
-        return transaction;
+        return Task.FromResult(transaction);
     }
 
     /// <summary>
     /// Applies field-level changes to an existing transaction row and returns the
     /// updated entity.
     /// </summary>
-    public async Task<Transaction> UpdateAsync(
+    public Task<Transaction> UpdateAsync(
             Transaction transaction,
             UpdateTransactionRequestDto transactionDto,
             LoyaltyProgram? newLoyaltyProgram,
@@ -195,10 +194,10 @@ public class TransactionRepository : BaseRepository, ITransactionRepository
         transaction.UpdateUser = updatedBy;
         _dbContext.Entry(transaction).Property(t => t.UpdateUser).IsModified = true;
 
-        return transaction;
+        return Task.FromResult(transaction);
     }
 
-    public async Task<Transaction> UpdateStatusAsync(Transaction transaction, TransactionStatus newStatus, decimal? actualReceivedPoints, string updatedBy)
+    public Task<Transaction> UpdateStatusAsync(Transaction transaction, TransactionStatus newStatus, decimal? actualReceivedPoints, string updatedBy)
     {
         if (newStatus != transaction.TransactionStatus)
         {
@@ -223,14 +222,14 @@ public class TransactionRepository : BaseRepository, ITransactionRepository
         transaction.UpdateUser = updatedBy;
         _dbContext.Entry(transaction).Property(t => t.UpdateUser).IsModified = true;
 
-        return transaction;
+        return Task.FromResult(transaction);
     }
 
     /// <summary>
     /// Deletes a transaction row and its associated media rows (cascade).
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    public async Task DeleteAsync(Transaction transaction, string deletedBy)
+    public Task DeleteAsync(Transaction transaction, string deletedBy)
     {
         _dbContext.Attach(transaction);
 
@@ -254,6 +253,8 @@ public class TransactionRepository : BaseRepository, ITransactionRepository
             media.UpdateUser = deletedBy;
             _dbContext.Entry(media).Property(tm => tm.UpdateUser).IsModified = true;
         }
+
+        return Task.CompletedTask;
     }
 
     private TransactionStatus DetermineTransactionStatus(DateOnly purchaseDate, DateOnly? itemReceiptDate, int receiptDeadlineDays)

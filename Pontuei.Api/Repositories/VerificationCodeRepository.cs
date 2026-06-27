@@ -59,7 +59,7 @@ public class VerificationCodeRepository : BaseRepository, IVerificationCodeRepos
     /// <summary>
     /// Persists a new verification code row and returns the saved entity.
     /// </summary>
-    public async Task<VerificationCode> CreateAsync(
+    public Task<VerificationCode> CreateAsync(
         Guid userId,
         VerificationCodeType type,
         string code,
@@ -81,13 +81,13 @@ public class VerificationCodeRepository : BaseRepository, IVerificationCodeRepos
 
         _dbContext.VerificationCodes.Add(verificationCode);
 
-        return verificationCode;
+        return Task.FromResult(verificationCode);
     }
 
     /// <summary>
     /// Records a successful code use by setting <c>verification_code_used_at</c>.
     /// </summary>
-    public async Task MarkAsUsedAsync(VerificationCode verificationCode, string updatedBy)
+    public Task MarkAsUsedAsync(VerificationCode verificationCode, string updatedBy)
     {
         _dbContext.VerificationCodes.Attach(verificationCode);
 
@@ -99,13 +99,14 @@ public class VerificationCodeRepository : BaseRepository, IVerificationCodeRepos
         _dbContext.Entry(verificationCode).Property(vc => vc.UpdateTime).IsModified = true;
         _dbContext.Entry(verificationCode).Property(vc => vc.UpdateUser).IsModified = true;
 
+        return Task.CompletedTask;
     }
 
     /// <summary>
     /// Increments <c>verification_code_failed_attempts</c> by 1 for the given code.
     /// Used to detect brute-force attempts.
     /// </summary>
-    public async Task IncrementFailedAttemptsAsync(VerificationCode verificationCode, string updatedBy)
+    public Task IncrementFailedAttemptsAsync(VerificationCode verificationCode, string updatedBy)
     {
         _dbContext.VerificationCodes.Attach(verificationCode);
         verificationCode.VerificationCodeFailedAttempts++;
@@ -116,6 +117,7 @@ public class VerificationCodeRepository : BaseRepository, IVerificationCodeRepos
         _dbContext.Entry(verificationCode).Property(vc => vc.UpdateTime).IsModified = true;
         _dbContext.Entry(verificationCode).Property(vc => vc.UpdateUser).IsModified = true;
 
+        return Task.CompletedTask;
     }
 
     /// <summary>

@@ -41,7 +41,7 @@ public class UserLoyaltyProgramRepository : BaseRepository, IUserLoyaltyProgramR
     /// <summary>
     /// Persists a new enrollment record and returns the saved entity.
     /// </summary>
-    public async Task<UserLoyaltyProgram> CreateAsync(CreateUserLoyaltyProgramRequestDto dto, Guid userId, string createdBy)
+    public Task<UserLoyaltyProgram> CreateAsync(CreateUserLoyaltyProgramRequestDto dto, Guid userId, string createdBy)
     {
         UserLoyaltyProgram userLoyaltyProgram = new UserLoyaltyProgram
         {
@@ -54,7 +54,7 @@ public class UserLoyaltyProgramRepository : BaseRepository, IUserLoyaltyProgramR
 
         _dbContext.UserLoyaltyPrograms.Add(userLoyaltyProgram);
 
-        return userLoyaltyProgram;
+        return Task.FromResult(userLoyaltyProgram);
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public class UserLoyaltyProgramRepository : BaseRepository, IUserLoyaltyProgramR
     /// Removes a single enrollment record.
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    public async Task DeleteAsync(UserLoyaltyProgram userLoyaltyProgram, string deletedBy)
+    public Task DeleteAsync(UserLoyaltyProgram userLoyaltyProgram, string deletedBy)
     {
         _dbContext.Attach(userLoyaltyProgram);
 
@@ -120,6 +120,11 @@ public class UserLoyaltyProgramRepository : BaseRepository, IUserLoyaltyProgramR
 
         userLoyaltyProgram.UpdateTime = DateTime.UtcNow;
         _dbContext.Entry(userLoyaltyProgram).Property(ulp => ulp.UpdateTime).IsModified = true;
+
+        userLoyaltyProgram.UpdateUser = deletedBy;
+        _dbContext.Entry(userLoyaltyProgram).Property(ulp => ulp.UpdateUser).IsModified = true;
+
+        return Task.CompletedTask;
     }
 
     public async Task DeleteAllUserLoyaltyProgramsAsync(User user, string deletedBy)

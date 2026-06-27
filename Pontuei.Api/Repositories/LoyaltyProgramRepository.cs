@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Pontuei.Api.Data;
 
 using Pontuei.Api.Dtos;
+using Pontuei.Api.Dtos.Requests;
 using Pontuei.Api.Interfaces.Repositories;
 
 using Pontuei.Api.Models;
@@ -53,7 +54,7 @@ public class LoyaltyProgramRepository : BaseRepository, ILoyaltyProgramRepositor
     /// <summary>
     /// Persists a new loyalty program and returns the saved entity.
     /// </summary>
-    public async Task<LoyaltyProgram> CreateAsync(CreateLoyaltyProgramRequestDto createDto, string createdBy)
+    public Task<LoyaltyProgram> CreateAsync(CreateLoyaltyProgramRequestDto createDto, string createdBy)
     {
         LoyaltyProgram loyaltyProgram = new LoyaltyProgram
         {
@@ -68,13 +69,13 @@ public class LoyaltyProgramRepository : BaseRepository, ILoyaltyProgramRepositor
 
         _dbContext.LoyaltyPrograms.Add(loyaltyProgram);
 
-        return loyaltyProgram;
+        return Task.FromResult(loyaltyProgram);
     }
 
     /// <summary>
     /// Applies changes to an existing loyalty program row and returns the updated entity.
     /// </summary>
-    public async Task<LoyaltyProgram> UpdateAsync(LoyaltyProgram loyaltyProgram, UpdateLoyaltyProgramRequestDto updateDto, string updatedBy)
+    public Task<LoyaltyProgram> UpdateAsync(LoyaltyProgram loyaltyProgram, UpdateLoyaltyProgramRequestDto updateDto, string updatedBy)
     {
         _dbContext.Attach(loyaltyProgram);
 
@@ -108,14 +109,14 @@ public class LoyaltyProgramRepository : BaseRepository, ILoyaltyProgramRepositor
         loyaltyProgram.UpdateUser = updatedBy;
         _dbContext.Entry(loyaltyProgram).Property(lp => lp.UpdateUser).IsModified = true;
 
-        return loyaltyProgram;
+        return Task.FromResult(loyaltyProgram);
     }
 
     /// <summary>
     /// Toggles the active status of the loyalty program.
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    public async Task<bool> ToggleActiveAsync(LoyaltyProgram loyaltyProgram, string updatedBy)
+    public Task<bool> ToggleActiveAsync(LoyaltyProgram loyaltyProgram, string updatedBy)
     {
         _dbContext.Attach(loyaltyProgram);
 
@@ -128,7 +129,7 @@ public class LoyaltyProgramRepository : BaseRepository, ILoyaltyProgramRepositor
         loyaltyProgram.UpdateUser = updatedBy;
         _dbContext.Entry(loyaltyProgram).Property(lp => lp.UpdateUser).IsModified = true;
 
-        return true;
+        return Task.FromResult(true);
     }
 
 }

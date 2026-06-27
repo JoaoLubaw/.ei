@@ -50,7 +50,7 @@ public class UserSessionRepository : BaseRepository, IUserSessionRepository
     /// <summary>
     /// Persists a new session row and returns the saved entity.
     /// </summary>
-    public async Task<UserSession> CreateAsync(
+    public Task<UserSession> CreateAsync(
         Guid userId,
         string refreshTokenHash,
         DateTime refreshTokenExpiresAt,
@@ -78,14 +78,14 @@ public class UserSessionRepository : BaseRepository, IUserSessionRepository
 
         _dbContext.UserSessions.Add(userSession);
 
-        return userSession;
+        return Task.FromResult(userSession);
 
     }
 
     /// <summary>
     /// Updates mutable session fields (push token, device info) and returns the saved entity.
     /// </summary>
-    public async Task<UserSession> UpdateAsync(
+    public Task<UserSession> UpdateAsync(
         UserSession userSession,
         string refreshTokenHash,
         DateTime refreshTokenExpiresAt,
@@ -133,14 +133,14 @@ public class UserSessionRepository : BaseRepository, IUserSessionRepository
         _dbContext.Entry(userSession).Property(s => s.UpdateTime).IsModified = true;
         _dbContext.Entry(userSession).Property(s => s.UpdateUser).IsModified = true;
 
-        return userSession;
+        return Task.FromResult(userSession);
     }
 
     /// <summary>
     /// Sets <c>user_session_is_revoked = true</c> for the given session.
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    public async Task RevokeAsync(UserSession userSession, string revokedBy)
+    public Task RevokeAsync(UserSession userSession, string revokedBy)
     {
         _dbContext.Attach(userSession);
 
@@ -152,6 +152,7 @@ public class UserSessionRepository : BaseRepository, IUserSessionRepository
         _dbContext.Entry(userSession).Property(s => s.UpdateTime).IsModified = true;
         _dbContext.Entry(userSession).Property(s => s.UpdateUser).IsModified = true;
 
+        return Task.CompletedTask;
     }
 
     /// <summary>
@@ -182,7 +183,7 @@ public class UserSessionRepository : BaseRepository, IUserSessionRepository
     /// Updates the push-notification token for the given session.
     /// Pass <c>null</c> in <paramref name="token"/> to clear it.
     /// </summary>
-    public async Task SetPushNotificationTokenAsync(UserSession userSession, string? token, string updatedBy)
+    public Task SetPushNotificationTokenAsync(UserSession userSession, string? token, string updatedBy)
     {
         _dbContext.Attach(userSession);
 
@@ -194,5 +195,6 @@ public class UserSessionRepository : BaseRepository, IUserSessionRepository
         _dbContext.Entry(userSession).Property(s => s.UpdateTime).IsModified = true;
         _dbContext.Entry(userSession).Property(s => s.UpdateUser).IsModified = true;
 
+        return Task.CompletedTask;
     }
 }

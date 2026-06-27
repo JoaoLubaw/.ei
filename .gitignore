@@ -8,3 +8,5 @@ secrets.yaml
 
 Pontuei.Api/obj
 *.Development.json
+
+/Pontuei.Api/bin
