@@ -14,7 +14,7 @@ public interface INotificationRepository
     /// including <c>Transaction</c> and <c>LoyaltyProgram</c> navigation properties,
     /// or <c>null</c> when not found.
     /// </summary>
-    Task<Notification?> GetByIdAsync(Guid notificationId);
+    Task<Notification?> GetByIdAsync(Guid notificationId, bool verifyDeleted = true);
 
     /// <summary>
     /// Returns all notifications for the given user, ordered by creation time descending
@@ -39,7 +39,7 @@ public interface INotificationRepository
     /// Marks a single notification as read by setting <c>notification_is_read = true</c>
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    Task<bool> MarkAsReadAsync(Notification notification, string readBy);
+    Task MarkAsReadAsync(Notification notification, string readBy);
 
     /// <summary>
     /// Marks all unread notifications for the given user as read.

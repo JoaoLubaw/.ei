@@ -48,6 +48,27 @@ public class CreateUserRequestDto
     [JsonPropertyName("userPhoneNumber")]
     public string? UserPhoneNumber { get; set; }
 
+    /// <summary>
+    /// Whether push notifications should be enabled for this user.
+    /// Optional. Maps to <c>user_push_notifications_enabled</c>.
+    /// </summary>
+    [JsonPropertyName("userPushNotificationsEnabled")]
+    public required bool UserPushNotificationsEnabled { get; set; }
+
+    /// <summary>
+    /// Whether e-mail notifications should be enabled for this user.
+    /// Optional. Maps to <c>user_email_notifications_enabled</c>.
+    /// </summary>
+    [JsonPropertyName("userEmailNotificationsEnabled")]
+    public required bool UserEmailNotificationsEnabled { get; set; }
+
+    /// <summary>
+    /// Whether the user is an administrator.
+    /// Optional. Maps to <c>user_is_admin</c>.
+    /// </summary>
+    [JsonPropertyName("userIsAdmin")]
+    public bool? UserIsAdmin { get; set; }
+
     // ── Validation helpers ────────────────────────────────────────────────
 
     /// <summary>

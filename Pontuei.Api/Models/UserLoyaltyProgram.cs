@@ -7,7 +7,7 @@ namespace Pontuei.Api.Models;
 /// Represents the association between a user and a loyalty program, including display order, favorite status, and audit information.
 /// </summary>
 [Table("user_loyalty_program"), DataContract]
-public class UserLoyaltyProgram
+public class UserLoyaltyProgram : BaseEntity
 {
     [Column("user_loyalty_program_id"), DataMember]
     public int UserLoyaltyProgramId { get; set; }

@@ -14,7 +14,7 @@ public interface IUserSessionRepository
     /// Returns the session matching the given <paramref name="sessionId"/>,
     /// or <c>null</c> when not found.
     /// </summary>
-    Task<UserSession?> GetByIdAsync(Guid sessionId);
+    Task<UserSession?> GetByIdAsync(Guid sessionId, bool verifyActive = true);
 
     /// <summary>
     /// Returns the active (non-revoked, non-expired) session whose hashed
@@ -59,14 +59,14 @@ public interface IUserSessionRepository
     /// Sets <c>user_session_is_revoked = true</c> for the given session.
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    Task<bool> RevokeAsync(UserSession userSession, string revokedBy);
+    Task RevokeAsync(UserSession userSession, string revokedBy);
 
     /// <summary>
     /// Revokes all active sessions for a user at once.
     /// Called on password change or account deletion.
     /// Returns the number of rows affected.
     /// </summary>
-    Task<int> RevokeAllByUserIdAsync(Guid userId, string revokedBy);
+    Task RevokeAllByUserIdAsync(User user, string revokedBy);
 
     /// <summary>
     /// Updates the push-notification token for the given session.

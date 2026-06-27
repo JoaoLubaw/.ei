@@ -8,7 +8,7 @@ namespace Pontuei.Api.Models;
 /// Represents a database version entry.
 /// </summary>
 [Table("db_version"), DataContract]
-public class DbVersion
+public class DbVersion : BaseEntity
 {
     [Column("db_version_id"), DataMember]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

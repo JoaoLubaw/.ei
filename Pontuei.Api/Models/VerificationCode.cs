@@ -10,7 +10,7 @@ namespace Pontuei.Api.Models;
 /// Represents an email verification code associated with a user, including its type, expiration, and usage details.
 /// </summary>
 [Table("verification_code"), DataContract]
-public class VerificationCode
+public class VerificationCode : BaseEntity
 {
     [Column("verification_code_id"), DataMember]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

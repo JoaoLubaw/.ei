@@ -7,7 +7,7 @@ namespace Pontuei.Api.Models;
 /// Represents a notification sent to a user, including details about the associated transaction, loyalty program, and read status.
 /// </summary>
 [Table("notification"), DataContract]
-public class Notification
+public class Notification : BaseEntity
 {
     [Column("notification_id"), DataMember]
     public Guid NotificationId { get; set; }

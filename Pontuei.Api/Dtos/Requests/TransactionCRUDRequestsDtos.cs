@@ -56,7 +56,7 @@ public class CreateTransactionRequestDto
     /// Maps to <c>transaction_receipt_deadline_days</c>.
     /// </summary>
     [JsonPropertyName("transactionReceiptDeadlineDays")]
-    public short TransactionReceiptDeadlineDays { get; set; }
+    public short TransactionReceiptDeadlineDays { get; set; } = 30;
 
     /// <summary>
     /// Points awarded per BRL 1.00 spent, as advertised by the loyalty program
@@ -64,7 +64,7 @@ public class CreateTransactionRequestDto
     /// Maps to <c>transaction_points_per_real</c>.
     /// </summary>
     [JsonPropertyName("transactionPointsPerReal")]
-    public short TransactionPointsPerReal { get; set; }
+    public decimal TransactionPointsPerReal { get; set; }
 
     /// <summary>
     /// Identifier of the loyalty program that will credit the points.
@@ -132,7 +132,7 @@ public class UpdateTransactionRequestDto
     public DateOnly? TransactionItemReceiptDate { get; set; }
 
     /// <summary>
-    /// Updated receipt deadline in days. Optional.
+    /// Updated receipt deadline in days..
     /// </summary>
     [JsonPropertyName("transactionReceiptDeadlineDays")]
     public short? TransactionReceiptDeadlineDays { get; set; }
@@ -168,21 +168,12 @@ public class UpdateTransactionStatusRequestDto
     public required TransactionStatus TransactionStatus { get; set; }
 
     /// <summary>
-    /// The effective date of the status change (i.e., when the points were
-    /// actually received or when the dispute was identified).
-    /// Shown as "DATA" in the status action sheet.
-    /// Maps to <c>transaction_status_updated_at</c>.
-    /// </summary>
-    [JsonPropertyName("statusUpdatedAt")]
-    public required DateTime StatusUpdatedAt { get; set; }
-
-    /// <summary>
     /// Actual number of points received, required when status is <c>Received</c>.
     /// May differ from <c>transaction_estimated_points</c> due to program adjustments.
     /// Maps to <c>transaction_actual_received_points</c>.
     /// </summary>
     [JsonPropertyName("transactionActualReceivedPoints")]
-    public int? TransactionActualReceivedPoints { get; set; }
+    public decimal? TransactionActualReceivedPoints { get; set; }
 }
 
 public class GetTransactionsRequestDto

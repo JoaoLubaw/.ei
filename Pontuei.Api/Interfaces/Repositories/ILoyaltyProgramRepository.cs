@@ -13,7 +13,7 @@ public interface ILoyaltyProgramRepository
     /// Returns the loyalty program with the given <paramref name="loyaltyProgramId"/>,
     /// or <c>null</c> when not found.
     /// </summary>
-    Task<LoyaltyProgram?> GetByIdAsync(int loyaltyProgramId);
+    Task<LoyaltyProgram?> GetByIdAsync(int loyaltyProgramId, bool VerifyActive = false);
 
     /// <summary>
     /// Returns all loyalty programs, optionally filtered to active-only records.
@@ -29,11 +29,11 @@ public interface ILoyaltyProgramRepository
     /// <summary>
     /// Applies changes to an existing loyalty program row and returns the updated entity.
     /// </summary>
-    Task<LoyaltyProgram> UpdateAsync(UpdateLoyaltyProgramRequestDto updateDto, string updatedBy);
+    Task<LoyaltyProgram> UpdateAsync(LoyaltyProgram loyaltyProgram, UpdateLoyaltyProgramRequestDto updateDto, string updatedBy);
 
     /// <summary>
-    /// Soft-deletes the loyalty program by setting <c>row_is_deleted = true</c>.
+    /// Toggles the active status of the loyalty program.
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    Task<bool> SoftDeleteAsync(int loyaltyProgramId, string deletedBy);
+    Task<bool> ToggleActiveAsync(LoyaltyProgram loyaltyProgram, string updatedBy);
 }

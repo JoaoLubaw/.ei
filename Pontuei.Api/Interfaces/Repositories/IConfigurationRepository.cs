@@ -23,23 +23,7 @@ public interface IConfigurationRepository
     Task<Configuration?> GetByNameAsync(string name);
 
     /// <summary>
-    /// Returns all configuration entries, ordered by name ascending.
-    /// </summary>
-    IQueryable<Configuration> GetAllAsync();
-
-    /// <summary>
-    /// Persists a new configuration entry and returns the saved entity.
-    /// </summary>
-    Task<Configuration> CreateAsync(CreateConfigurationRequestDto dto, string createdBy);
-
-    /// <summary>
     /// Applies changes to an existing configuration row and returns the updated entity.
     /// </summary>
-    Task<Configuration> UpdateAsync(UpdateConfigurationRequestDto dto, string updatedBy);
-
-    /// <summary>
-    /// Soft-deletes a configuration entry by setting <c>row_is_deleted = true</c>.
-    /// Returns <c>false</c> when no matching row is found.
-    /// </summary>
-    Task<bool> SoftDeleteAsync(Configuration configuration, string deletedBy);
+    Task<Configuration> UpdateAsync(Configuration configuration, UpdateConfigurationRequestDto dto, string updatedBy);
 }

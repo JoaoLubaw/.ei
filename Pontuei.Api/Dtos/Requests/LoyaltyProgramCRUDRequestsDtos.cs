@@ -80,12 +80,6 @@ public class UpdateLoyaltyProgramRequestDto
     [JsonPropertyName("loyaltyProgramBrandSecondaryColor")]
     public string? LoyaltyProgramBrandSecondaryColor { get; set; }
 
-    /// <summary>
-    /// Toggling this to <c>false</c> hides the program from users without deleting it.
-    /// Optional.
-    /// </summary>
-    [JsonPropertyName("loyaltyProgramIsActive")]
-    public bool? LoyaltyProgramIsActive { get; set; }
 }
 
 /// <summary>

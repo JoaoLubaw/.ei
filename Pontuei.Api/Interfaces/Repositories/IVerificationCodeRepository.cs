@@ -22,7 +22,7 @@ public interface IVerificationCodeRepository
     /// <summary>
     /// Returns a verification code by its primary key, or <c>null</c> when not found.
     /// </summary>
-    Task<VerificationCode?> GetByIdAsync(Guid verificationCodeId);
+    Task<VerificationCode?> GetByIdAsync(Guid verificationCodeId, bool verifyActive = true);
 
     /// <summary>
     /// Persists a new verification code row and returns the saved entity.

@@ -1,4 +1,5 @@
 
+using Pontuei.Api.Dtos.Requests;
 using Pontuei.Api.Models;
 
 namespace Pontuei.Api.Interfaces.Repositories;
@@ -25,24 +26,31 @@ public interface ITransactionMediaRepository
     /// <summary>
     /// Persists a new media entry and returns the saved entity.
     /// </summary>
-    Task<TransactionMedia> CreateAsync(TransactionMedia media, string createdBy);
+    Task<TransactionMedia> CreateAsync(Transaction transaction, UpsertTransactionMediaRequestDto media, string createdBy);
+
+    /// <summary>
+    /// Creates all media entries for a transaction atomically.
+    /// </summary>
+    /// <param name="transaction"></param>
+    /// <param name="medias"></param>
+    /// <param name="createdBy"></param>
+    /// <returns></returns>
+    Task BatchCreateAsync(Transaction transaction, IEnumerable<UpsertTransactionMediaRequestDto> medias, string createdBy);
 
     /// <summary>
     /// Replaces all media entries for a transaction atomically.
     /// Deletes existing rows not present in <paramref name="medias"/> and inserts the new ones.
     /// Used by the "Salvar" action on the Mídias edit screen.
     /// </summary>
-    Task BulkReplaceAsync(Guid transactionId, IEnumerable<TransactionMedia> medias, string updatedBy);
+    Task BulkReplaceAsync(Transaction transaction, IEnumerable<UpsertTransactionMediaRequestDto> medias, string updatedBy);
 
     /// <summary>
     /// Deletes a single media entry by ID.
-    /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    Task<bool> DeleteAsync(TransactionMedia media, string deletedBy);
+    Task DeleteAsync(TransactionMedia media, string deletedBy);
 
     /// <summary>
     /// Deletes all media entries for the given transaction.
-    /// Returns the number of rows deleted.
     /// </summary>
-    Task<int> DeleteAllByTransactionIdAsync(Guid transactionId, string deletedBy);
+    Task DeleteAllByTransactionAsync(Transaction transaction);
 }

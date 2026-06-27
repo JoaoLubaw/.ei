@@ -38,7 +38,7 @@ public interface IUserRepository
     /// Persists a new <see cref="User"/> row and returns the saved entity
     /// (with database-generated fields populated).
     /// </summary>
-    Task<User> CreateAsync(CreateUserRequestDto requestDto, string createdBy);
+    Task<User> CreateAsync(CreateUserRequestDto requestDto, string passwordHash, string createdBy);
 
     /// <summary>
     /// Applies field-level changes to an existing user row and returns the updated entity.
@@ -50,7 +50,7 @@ public interface IUserRepository
     /// Soft-deletes the user by setting <c>row_is_deleted = true</c>.
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    Task<bool> SoftDeleteAsync(User user, string deletedBy);
+    Task SoftDeleteAsync(User user, string deletedBy);
 
     /// <summary>
     /// Marks the user's e-mail as verified, setting <c>user_email_verified = true</c>

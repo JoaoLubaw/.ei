@@ -16,7 +16,16 @@ public interface ITransactionRepository
     /// including the <c>LoyaltyProgram</c> and <c>TransactionMedias</c> navigation
     /// properties. Returns <c>null</c> when not found.
     /// </summary>
-    Task<Transaction?> GetByIdAsync(Guid transactionId);
+    Task<Transaction?> GetCompleteByIdAsync(Guid transactionId, bool verifyDeleted = true);
+
+    /// <summary>
+    /// Returns the transaction with the given <paramref name="transactionId"/>,
+    /// or <c>null</c> when not found. Does not include navigation properties.
+    /// </summary>
+    /// <param name="transactionId"></param>
+    /// <param name="verifyDeleted"></param>
+    /// <returns></returns>
+    Task<Transaction?> GetByIdAsync(Guid transactionId, bool verifyDeleted = true);
 
     /// <summary>
     /// Returns all pending (status = Pending) transactions for the given user,
@@ -44,11 +53,11 @@ public interface ITransactionRepository
     /// Applies field-level changes to an existing transaction row and returns the
     /// updated entity.
     /// </summary>
-    Task<Transaction> UpdateAsync(UpdateTransactionRequestDto transactionDto, Guid userId, string updatedBy);
+    Task<Transaction> UpdateAsync(Transaction transaction, UpdateTransactionRequestDto transactionDto, LoyaltyProgram? newLoyaltyProgram, string updatedBy);
 
     /// <summary>
     /// Deletes a transaction row and its associated media rows (cascade).
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    Task<bool> DeleteAsync(Guid transactionId, string deletedBy);
+    Task DeleteAsync(Transaction transaction, string deletedBy);
 }

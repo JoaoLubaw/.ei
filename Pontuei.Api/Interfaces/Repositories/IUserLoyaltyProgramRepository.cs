@@ -27,18 +27,26 @@ public interface IUserLoyaltyProgramRepository
     /// <summary>
     /// Persists a new enrollment record and returns the saved entity.
     /// </summary>
-    Task<UserLoyaltyProgram> CreateAsync(CreateUserLoyaltyProgramRequestDto dto, string createdBy);
+    Task<UserLoyaltyProgram> CreateAsync(CreateUserLoyaltyProgramRequestDto dto, Guid userId, string createdBy);
 
     /// <summary>
     /// Atomically replaces the full enrollment list for a user with the provided set.
     /// Used by the bulk-save operation on the card-reorder screen ("Salvar").
-    /// Deletes records not present in <paramref name="programs"/> and inserts/updates the rest.
+    /// Deletes records not present in <paramref name="requestDto"/> and inserts/updates the rest.
     /// </summary>
-    Task BulkReplaceAsync(Guid userId, IEnumerable<UserLoyaltyProgram> programs, string updatedBy);
+    Task BulkUpdateAsync(User user, BulkUpdateUserLoyaltyProgramsRequestDto requestDto, string updatedBy);
 
     /// <summary>
     /// Removes a single enrollment record.
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
-    Task<bool> DeleteAsync(Guid userId, int loyaltyProgramId, string deletedBy);
+    Task DeleteAsync(UserLoyaltyProgram userLoyaltyProgram, string deletedBy);
+
+    /// <summary>
+    /// Removes all enrollment records for the given user.
+    /// </summary>
+    /// <param name="user"></param>
+    /// <param name="deletedBy"></param>
+    /// <returns></returns>
+    Task DeleteAllUserLoyaltyProgramsAsync(User user, string deletedBy);
 }

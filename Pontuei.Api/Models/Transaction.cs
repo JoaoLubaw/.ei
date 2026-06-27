@@ -10,7 +10,7 @@ namespace Pontuei.Api.Models;
 /// and media files related to the transaction.
 /// </summary>
 [Table("transaction"), DataContract]
-public class Transaction
+public class Transaction : BaseEntity
 {
     [Column("transaction_id"), DataMember]
     public Guid TransactionId { get; set; }
@@ -60,19 +60,19 @@ public class Transaction
     /// The number of loyalty points earned per unit of currency spent in the transaction, which is a required field and is used to calculate the total points awarded to the user based on their spending.
     /// </summary>
     [Column("transaction_points_per_real"), DataMember]
-    public short TransactionPointsPerReal { get; set; }
+    public decimal TransactionPointsPerReal { get; set; }
 
     /// <summary>
     /// The estimated number of loyalty points earned from the transaction, which is a required field and provides users with an estimate of the rewards they will receive for their purchase.
     /// </summary>
     [Column("transaction_estimated_points"), DataMember]
-    public int TransactionEstimatedPoints { get; set; }
+    public decimal TransactionEstimatedPoints { get; set; }
 
     /// <summary>
     /// The actual number of loyalty points received from the transaction, which is a required field and indicates the final points awarded to the user after any adjustments or verifications.
     /// </summary>
     [Column("transaction_actual_received_points"), DataMember]
-    public int TransactionActualReceivedPoints { get; set; }
+    public decimal TransactionActualReceivedPoints { get; set; }
 
 
     /// <summary>
@@ -112,7 +112,7 @@ public class Transaction
     /// and it is used to determine if the transaction is overdue for item verification.
     /// </summary>
     [IgnoreDataMember]
-    public DateOnly Deadline => TransactionPurchaseDate.AddDays(TransactionReceiptDeadlineDays);
+    public DateOnly? Deadline => TransactionItemReceiptDate?.AddDays(TransactionReceiptDeadlineDays);
 
     /// <summary>
     /// Gets a value indicating whether the transaction is overdue based on its status and the calculated deadline.

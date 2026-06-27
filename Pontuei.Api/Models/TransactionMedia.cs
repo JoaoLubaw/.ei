@@ -9,11 +9,10 @@ namespace Pontuei.Api.Models;
 /// Represents media files associated with a transaction, including their type, URL, and display order.
 /// </summary>
 [Table("transaction_media"), DataContract]
-public class TransactionMedia
+public class TransactionMedia : BaseEntity
 {
     [Column("transaction_media_id"), DataMember]
     public Guid TransactionMediaId { get; set; }
-
 
     /// <summary>
     /// Unique identifier for the transaction associated with this media file.

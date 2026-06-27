@@ -38,7 +38,7 @@ public class UserSession : BaseEntity
     /// Gets or sets the expiration date and time for the user session's refresh token, indicating when the session will no longer be valid.
     /// </summary>
     [Column("user_session_refresh_token_expires_at"), DataMember]
-    public required DateTime UserSessionExpiration { get; set; }
+    public required DateTime UserSessionRefreshTokenExpiration { get; set; }
 
 
 
