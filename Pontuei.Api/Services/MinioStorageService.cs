@@ -80,7 +80,7 @@ public class MinioStorageService : IStorageService
 
     public async Task<string> UploadFileFromStreamAsync(Stream stream, string fileName, string contentType)
     {
-        await EnsureBucketExistsAsync(_bucketPrograms);
+        await EnsureBucketExistsAsync(_bucketPrograms, true);
 
         string key = $"loyalty-programs/{fileName}";
 
@@ -99,7 +99,7 @@ public class MinioStorageService : IStorageService
         return $"/{_bucketPrograms}/{key}";
     }
 
-    private async Task EnsureBucketExistsAsync(string bucketName)
+    private async Task EnsureBucketExistsAsync(string bucketName, bool publicRead = false)
     {
         bool exists = await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);
         if (!exists)
@@ -110,6 +110,28 @@ public class MinioStorageService : IStorageService
                 UseClientRegion = true
             });
             _logger.LogInformation("Bucket created: {BucketName}", bucketName);
+        }
+
+        if (publicRead)
+        {
+            string policy = $$"""
+        {
+            "Version": "2012-10-17",
+            "Statement": [{
+                "Effect": "Allow",
+                "Principal": {"AWS": ["*"]},
+                "Action": ["s3:GetObject"],
+                "Resource": ["arn:aws:s3:::{{bucketName}}/*"]
+            }]
+        }
+        """;
+
+            await _s3Client.PutBucketPolicyAsync(new PutBucketPolicyRequest
+            {
+                BucketName = bucketName,
+                Policy = policy
+            });
+            _logger.LogInformation("Public read policy applied: {BucketName}", bucketName);
         }
     }
 }
