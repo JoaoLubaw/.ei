@@ -258,6 +258,7 @@ try
             options.InjectJavascript("/js/custom.js", "text/javascript");
             options.SwaggerEndpoint("/swagger/v1/swagger.json", ".Ei.Api");
             options.RoutePrefix = string.Empty;
+            options.DocumentTitle = ".Ei.Api - Swagger UI";
         });
     }
 
