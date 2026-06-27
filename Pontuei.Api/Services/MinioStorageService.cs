@@ -69,4 +69,23 @@ public class MinioStorageService : IStorageService
         await _s3Client.DeleteObjectAsync(deleteObjectRequest);
         _logger.LogInformation("File deleted from MinIO. Key: {FileKey}", fileKey);
     }
+
+    public async Task<string> UploadFileFromStreamAsync(Stream stream, string fileName, string contentType)
+    {
+        string key = $"loyalty-programs/{fileName}";
+
+        TransferUtilityUploadRequest uploadRequest = new TransferUtilityUploadRequest
+        {
+            InputStream = stream,
+            Key = key,
+            BucketName = _bucketName,
+            ContentType = contentType,
+            CannedACL = S3CannedACL.PublicRead
+        };
+
+        TransferUtility fileTransferUtility = new TransferUtility(_s3Client);
+        await fileTransferUtility.UploadAsync(uploadRequest);
+
+        return $"/{_bucketName}/{key}";
+    }
 }

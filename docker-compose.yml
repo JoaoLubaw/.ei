@@ -37,6 +37,8 @@ services:
         condition: service_healthy
     networks:
       - compose_net
+    volumes:
+      - ./assets:/app/assets
 
   # ============================================================
   # DATABASE - PostgreSQL 17

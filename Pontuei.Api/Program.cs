@@ -263,6 +263,9 @@ try
 
     Log.Information(".EI API Ready. Environment: {Environment}", app.Environment.EnvironmentName);
 
+    await AdminUserSeeder.SeedAsync(app.Services, app.Configuration);
+    await LoyaltyProgramLogoSeeder.SeedAsync(app.Services, app.Configuration);
+
     app.Run();
 }
 catch (Exception ex)
