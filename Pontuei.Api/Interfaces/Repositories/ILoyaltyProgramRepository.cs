@@ -1,4 +1,5 @@
 using Pontuei.Api.Dtos;
+using Pontuei.Api.Dtos.Requests;
 using Pontuei.Api.Models;
 
 namespace Pontuei.Api.Interfaces.Repositories;

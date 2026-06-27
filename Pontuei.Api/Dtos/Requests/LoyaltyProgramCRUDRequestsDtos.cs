@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Pontuei.Api.Dtos;
+namespace Pontuei.Api.Dtos.Requests;
 
 /// <summary>
 /// Payload for creating a new loyalty program entry (admin operation).

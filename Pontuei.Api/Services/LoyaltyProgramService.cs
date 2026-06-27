@@ -3,6 +3,7 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Pontuei.Api.Dtos;
 using Pontuei.Api.Dtos.Objects;
+using Pontuei.Api.Dtos.Requests;
 using Pontuei.Api.Dtos.Responses;
 using Pontuei.Api.Interfaces.Repositories;
 using Pontuei.Api.Interfaces.Services;
