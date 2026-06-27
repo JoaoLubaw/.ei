@@ -19,7 +19,12 @@ services:
       Storage__SecretKey: ${MINIO_SECRET_KEY}
       Storage__BucketMedia: ${MINIO_BUCKET_MEDIA}
       Storage__BucketPrograms: ${MINIO_BUCKET_PROGRAMS}
-      Serilog__WriteTo__2__Args__serverUrl: ${SEQ_URL}
+      Serilog__WriteTo__1__Args__serverUrl: ${SEQ_URL}
+      EmailSettings__Host: ${EMAIL_HOST}
+      EmailSettings__Port: ${EMAIL_PORT}
+      EmailSettings__Username: ${EMAIL_USERNAME}
+      EmailSettings__Password: ${EMAIL_PASSWORD}
+      EmailSettings__From: ${EMAIL_FROM}
     ports:
       - "5000:5000"
     depends_on:
