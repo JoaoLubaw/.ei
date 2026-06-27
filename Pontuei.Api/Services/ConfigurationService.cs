@@ -254,4 +254,19 @@ public class ConfigurationService : IConfigurationService
         else
             return defaultValue;
     }
+
+    public async Task<TimeOnly> GetNotificationTimeAsync()
+    {
+        Configuration? configuration = await _configurationRepository.GetByNameAsync("notification_time");
+        TimeOnly defaultValue = new TimeOnly(12, 0); // Default to 12:00 PM
+
+        if (configuration != null && configuration.ConfigurationValue != null
+            && TimeOnly.TryParse(configuration.ConfigurationValue, out TimeOnly notificationTime)
+        )
+        {
+            return notificationTime;
+        }
+        else
+            return defaultValue;
+    }
 }

@@ -32,4 +32,5 @@ public interface IConfigurationRepository
     /// Applies changes to an existing configuration row and returns the updated entity.
     /// </summary>
     Task<Configuration> UpdateAsync(Configuration configuration, UpdateConfigurationRequestDto dto, string updatedBy);
+
 }

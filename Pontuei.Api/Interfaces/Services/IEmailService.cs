@@ -6,4 +6,5 @@ public interface IEmailService
     Task SendResetPasswordToken(string toEmail, string userName, string code);
     Task SendEmailChangeNotificationAsync(string toEmail, string completeName, string newEmail);
     Task SendEmailChangeCodeAsync(string toEmail, string completeName, string code);
+    Task SendOverdueTransactionEmailAsync(string toEmail, string userName, string store, string programName, DateOnly deadline, int estimatedPoints);
 }

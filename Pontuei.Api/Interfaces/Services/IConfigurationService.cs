@@ -26,6 +26,12 @@ public interface IConfigurationService
     Task<int> GetJWTExpirationMinutes();
 
     /// <summary>
+    /// Returns the configured time of day for sending push notifications to users.
+    /// </summary>
+    /// <returns></returns>
+    Task<TimeOnly> GetNotificationTimeAsync();
+
+    /// <summary>
     /// Returns all configuration entries for the admin management screen.
     /// </summary>
     Task<ApiResult<GetConfigurationsResponseDto>> GetAllAsync(GetConfigurationsRequestDto dto, Guid CurrentUserId);

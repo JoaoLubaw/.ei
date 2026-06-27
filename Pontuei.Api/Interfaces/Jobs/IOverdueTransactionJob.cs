@@ -1,4 +1,4 @@
-namespace Pontuei.Api.Interfaces.Services;
+namespace Pontuei.Api.Interfaces.Jobs;
 
 public interface IOverdueTransactionJob
 {

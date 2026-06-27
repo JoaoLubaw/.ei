@@ -141,6 +141,33 @@ public class EmailService : IEmailService
         }
     }
 
+    public async Task SendOverdueTransactionEmailAsync(
+    string toEmail, string userName, string store,
+    string programName, DateOnly deadline, int estimatedPoints)
+    {
+        string subject = "Eii, um prazo de pontuação foi expirado - .Ei";
+
+        string content = $@"
+        <h2 style='color: #1a1a1a; margin-top: 0;'>Atenção, {userName}!</h2>
+        <p style='color: #4a4a4a; font-size: 16px; line-height: 1.5;'>
+            O prazo para creditação dos seus pontos expirou e você ainda não identificou o crédito na sua conta.
+        </p>
+        <div style='background-color: #fff8e1; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;'>
+            <p style='margin: 0 0 8px 0; color: #5d4037; font-size: 15px;'><strong>🏪 Loja:</strong> {store}</p>
+            <p style='margin: 0 0 8px 0; color: #5d4037; font-size: 15px;'><strong>🎯 Programa:</strong> {programName}</p>
+            <p style='margin: 0 0 8px 0; color: #5d4037; font-size: 15px;'><strong>📅 Prazo era:</strong> {deadline:dd/MM/yyyy}</p>
+            <p style='margin: 0; color: #5d4037; font-size: 15px;'><strong>✈️ Pontos esperados:</strong> {estimatedPoints:N0} pts</p>
+        </div>
+        <p style='color: #4a4a4a; font-size: 16px; line-height: 1.5;'>
+            Acesse o aplicativo e verifique se os pontos foram creditados. 
+            Se não, pode ser um bom momento para entrar em contato com o(a) {programName}.
+        </p>
+        <p style='color: #7a7a7a; font-size: 14px;'>Você recebeu este e-mail porque tem notificações ativas no .Ei.</p>";
+
+        await SendEmailAsync(toEmail, subject, content);
+    }
+
+
     /// <summary>
     /// Estrutura base do e-mail simulando o design moderno do app Pontuei.
     /// </summary>

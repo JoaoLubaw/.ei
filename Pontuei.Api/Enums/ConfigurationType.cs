@@ -10,5 +10,6 @@ public enum ConfigurationType
     Decimal = 2,
     Boolean = 3,
     Date = 4,
-    Url = 5
+    Url = 5,
+    Time = 6
 }
