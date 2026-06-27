@@ -25,8 +25,8 @@ CREATE TABLE public.loyalty_program
 	--Audit columns
 	row_creation_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row creation time.
 	row_update_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row last update time.
-	row_creation_user varchar(30) NOT NULL   DEFAULT 'system',	-- The user that inserted row.
-	row_update_user varchar(30) NOT NULL   DEFAULT 'system',	-- The user that last updated row.
+	row_creation_user varchar(256) NOT NULL   DEFAULT 'system',	-- The user that inserted row.
+	row_update_user varchar(256) NOT NULL   DEFAULT 'system',	-- The user that last updated row.
 	row_is_deleted boolean NOT NULL   DEFAULT False	-- Row has been removed.
 )
 ;

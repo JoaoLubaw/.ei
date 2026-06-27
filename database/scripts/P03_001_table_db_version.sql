@@ -11,14 +11,14 @@ CREATE TABLE public.db_version
 (
 	version_id integer NOT NULL   DEFAULT NEXTVAL(('db_version_id_seq'::text)::regclass),	-- Table primary key.
 	
-	version_number varchar(30) NOT NULL,	-- Version number. Ex. 1.0.5
+	version_number varchar(256) NOT NULL,	-- Version number. Ex. 1.0.5
 	version_notes varchar(256) NULL,	-- Version description and notes.
 
 	-- Audit columns
 	row_creation_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row creation time.
 	row_update_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row last update time.
-	row_creation_user varchar(30) NOT NULL   DEFAULT 'system',	-- The user that inserted row.
-	row_update_user varchar(30) NOT NULL   DEFAULT 'system',	-- The user that last updated row.
+	row_creation_user varchar(256) NOT NULL   DEFAULT 'system',	-- The user that inserted row.
+	row_update_user varchar(256) NOT NULL   DEFAULT 'system',	-- The user that last updated row.
 	row_is_deleted boolean NULL   DEFAULT False	-- Row has been removed.
 )
 ;
