@@ -28,6 +28,20 @@ public class LoyaltyProgramRepository : BaseRepository, ILoyaltyProgramRepositor
     }
 
     /// <summary>
+    /// Returns the loyalty program with the given <paramref name="loyaltyProgramName"/>,
+    /// or <c>null</c> when not found.
+    /// </summary>
+    /// <param name="loyaltyProgramName"></param>
+    /// <returns></returns>
+    public async Task<LoyaltyProgram?> GetByNameAsync(string loyaltyProgramName)
+    {
+        return await _dbContext.LoyaltyPrograms.FirstOrDefaultAsync(
+            lp => lp.LoyaltyProgramName.ToLower() == loyaltyProgramName.ToLower()
+            && !lp.IsDeleted
+            );
+    }
+
+    /// <summary>
     /// Returns all loyalty programs, optionally filtered to active-only records.
     /// Results are ordered by name ascending.
     /// </summary>

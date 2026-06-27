@@ -13,6 +13,15 @@ namespace Pontuei.Api.Interfaces.Services;
 public interface ITransactionService
 {
     /// <summary>
+    /// Returns a summary of the user's transactions for the dashboard view.
+    /// Includes the top 3 programs with the most pending transactions and an "In Others"
+    /// card aggregating all other programs.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    Task<ApiResult<GetDashboardSummaryResponseDto>> GetDashboardSummaryAsync(Guid userId);
+
+    /// <summary>
     /// Returns the full detail of a transaction, including media, for display
     /// on the "Detalhes de transação" screen.
     /// </summary>

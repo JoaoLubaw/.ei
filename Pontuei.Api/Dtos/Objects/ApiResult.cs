@@ -29,7 +29,7 @@ public enum InternalResultCode
     // Validation Errors
     INVALID_PARAMETERS = 2005,
     MISSING_INFORMATION = 2007,
-    USERNAME_ALREADY_TAKEN = 2008,
+    INFO_ALREADY_EXISTS = 2008,
     INVALID_TYPE = 2009,
     INVALID_USER_USERNAME = 2015,
     INVALID_USER_EMAIL = 2018,
@@ -40,6 +40,7 @@ public enum InternalResultCode
     PASSWORDS_DO_NOT_MATCH = 2034,
     INVALID_USER_PHONE_NUMBER = 2035,
     INVALID_CODE = 2036,
+    TRANSACTION_NOT_PENDING = 2037,
 
 
     // Entity Errors

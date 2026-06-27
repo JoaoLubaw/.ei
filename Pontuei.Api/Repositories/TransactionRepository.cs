@@ -49,7 +49,24 @@ public class TransactionRepository : BaseRepository, ITransactionRepository
     /// </summary>
     public IQueryable<Transaction> GetAllByUserIdAsync(Guid userId)
     {
-        return _dbContext.Transactions.Where(t => t.UserId == userId && !t.IsDeleted).OrderByDescending(t => t.TransactionPurchaseDate);
+        return _dbContext.Transactions
+            .Include(t => t.LoyaltyProgram)
+            .Where(t => t.UserId == userId && !t.IsDeleted)
+            .OrderByDescending(t => t.TransactionPurchaseDate);
+    }
+
+    /// <summary>
+    /// Returns all pending transactions for the given user filtered to a specific
+    /// loyalty program. Used when rendering the per-program card on the home screen.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public async Task<List<Transaction>> GetAllPendingByUserIdAsync(Guid userId)
+    {
+        return await GetAllByUserIdAsync(userId)
+                    .Include(t => t.LoyaltyProgram)
+                    .Where(t => t.TransactionStatus == TransactionStatus.Pending)
+                    .ToListAsync();
     }
 
     /// <summary>
@@ -170,6 +187,34 @@ public class TransactionRepository : BaseRepository, ITransactionRepository
         {
             transaction.TransactionStatus = newStatus;
             _dbContext.Entry(transaction).Property(t => t.TransactionStatus).IsModified = true;
+        }
+
+        transaction.UpdateTime = DateTime.UtcNow;
+        _dbContext.Entry(transaction).Property(t => t.UpdateTime).IsModified = true;
+
+        transaction.UpdateUser = updatedBy;
+        _dbContext.Entry(transaction).Property(t => t.UpdateUser).IsModified = true;
+
+        return transaction;
+    }
+
+    public async Task<Transaction> UpdateStatusAsync(Transaction transaction, TransactionStatus newStatus, decimal? actualReceivedPoints, string updatedBy)
+    {
+        if (newStatus != transaction.TransactionStatus)
+        {
+            transaction.TransactionStatus = newStatus;
+            _dbContext.Entry(transaction).Property(t => t.TransactionStatus).IsModified = true;
+        }
+
+        if (actualReceivedPoints.HasValue)
+        {
+            transaction.TransactionActualReceivedPoints = actualReceivedPoints.Value;
+            _dbContext.Entry(transaction).Property(t => t.TransactionActualReceivedPoints).IsModified = true;
+        }
+        else
+        {
+            transaction.TransactionActualReceivedPoints = transaction.TransactionEstimatedPoints;
+            _dbContext.Entry(transaction).Property(t => t.TransactionActualReceivedPoints).IsModified = true;
         }
 
         transaction.UpdateTime = DateTime.UtcNow;

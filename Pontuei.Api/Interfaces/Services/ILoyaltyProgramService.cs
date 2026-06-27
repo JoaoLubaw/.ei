@@ -39,5 +39,5 @@ public interface ILoyaltyProgramService
     /// Soft-deletes a loyalty program from the catalogue.
     /// </summary>
     /// <exception cref="KeyNotFoundException">Thrown when the program is not found.</exception>
-    Task<ApiResult<bool>> DeleteAsync(int loyaltyProgramId, Guid currentUserId);
+    Task<ApiResult<bool>> ToggleActiveAsync(int loyaltyProgramId, Guid currentUserId);
 }

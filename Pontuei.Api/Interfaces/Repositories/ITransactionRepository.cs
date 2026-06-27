@@ -1,5 +1,6 @@
 using Pontuei.Api.Dtos;
 using Pontuei.Api.Dtos.Requests;
+using Pontuei.Api.Enums;
 using Pontuei.Api.Models;
 
 namespace Pontuei.Api.Interfaces.Repositories;
@@ -11,6 +12,7 @@ namespace Pontuei.Api.Interfaces.Repositories;
 /// </summary>
 public interface ITransactionRepository
 {
+
     /// <summary>
     /// Returns the transaction with the given <paramref name="transactionId"/>,
     /// including the <c>LoyaltyProgram</c> and <c>TransactionMedias</c> navigation
@@ -44,6 +46,14 @@ public interface ITransactionRepository
     );
 
     /// <summary>
+    /// Returns all pending transactions for the given user filtered to a specific status. 
+    /// Used when rendering the per-program card on the home screen.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    Task<List<Transaction>> GetAllPendingByUserIdAsync(Guid userId);
+
+    /// <summary>
     /// Persists a new transaction (and its associated media, when provided via
     /// cascade) and returns the saved entity.
     /// </summary>
@@ -56,8 +66,20 @@ public interface ITransactionRepository
     Task<Transaction> UpdateAsync(Transaction transaction, UpdateTransactionRequestDto transactionDto, LoyaltyProgram? newLoyaltyProgram, string updatedBy);
 
     /// <summary>
+    /// Updates the status of an existing transaction row and returns the updated entity.
+    /// Sets <c>transaction_actual_received_points</c> when marking as Received.
+    /// </summary>
+    /// <param name="transaction"></param>
+    /// <param name="newStatus"></param>
+    /// <param name="actualReceivedPoints"></param>
+    /// <param name="updatedBy"></param>
+    /// <returns></returns>
+    Task<Transaction> UpdateStatusAsync(Transaction transaction, TransactionStatus newStatus, decimal? actualReceivedPoints, string updatedBy);
+
+    /// <summary>
     /// Deletes a transaction row and its associated media rows (cascade).
     /// Returns <c>false</c> when no matching row is found.
     /// </summary>
     Task DeleteAsync(Transaction transaction, string deletedBy);
+
 }

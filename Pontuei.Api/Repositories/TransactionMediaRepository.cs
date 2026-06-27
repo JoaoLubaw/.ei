@@ -49,6 +49,8 @@ public class TransactionMediaRepository : BaseRepository, ITransactionMediaRepos
             CreationUser = createdBy
         };
 
+        _dbContext.TransactionMedias.Add(transactionMedia);
+
         return transactionMedia;
     }
 

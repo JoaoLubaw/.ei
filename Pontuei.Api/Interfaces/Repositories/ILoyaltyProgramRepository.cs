@@ -22,6 +22,14 @@ public interface ILoyaltyProgramRepository
     IQueryable<LoyaltyProgram> GetAllAsync();
 
     /// <summary>
+    /// Returns the loyalty program with the given <paramref name="loyaltyProgramName"/>,
+    /// or <c>null</c> when not found.
+    /// </summary>
+    /// <param name="loyaltyProgramName"></param>
+    /// <returns></returns>
+    Task<LoyaltyProgram?> GetByNameAsync(string loyaltyProgramName);
+
+    /// <summary>
     /// Persists a new loyalty program and returns the saved entity.
     /// </summary>
     Task<LoyaltyProgram> CreateAsync(CreateLoyaltyProgramRequestDto createDto, string createdBy);
