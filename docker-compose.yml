@@ -25,6 +25,7 @@ services:
       EmailSettings__Username: ${EMAIL_USERNAME}
       EmailSettings__Password: ${EMAIL_PASSWORD}
       EmailSettings__From: ${EMAIL_FROM}
+      FIREBASE_CREDENTIALS_JSON: ${FIREBASE_CREDENTIALS_JSON}
     ports:
       - "5000:5000"
     depends_on:

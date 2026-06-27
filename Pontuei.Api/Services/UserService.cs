@@ -402,6 +402,9 @@ public class UserService : IUserService
                 expiresAt: DateTime.UtcNow.AddMinutes(15),
                 createdBy: currentUserId.ToString() ?? currentUserId!.ToString()
             );
+
+            await _emailService.SendEmailChangeNotificationAsync(userToUpdate.UserEmail, userToUpdate.UserName, dto.UserEmail);
+            await _emailService.SendEmailChangeCodeAsync(dto.UserEmail, userToUpdate.UserName, confirmationToken);
         }
 
         if (dto.UserPhoneNumber != null && !dto.IsValidPhoneNumber())
