@@ -19,7 +19,6 @@ public class GetNotificationsRequestDto
 public class NotificationFiltersDto
 {
     public Guid? NotificationId { get; set; }
-    public Guid? UserId { get; set; }
     public Guid? TransactionId { get; set; }
     public int? LoyaltyProgramId { get; set; }
     public bool? NotificationIsRead { get; set; }

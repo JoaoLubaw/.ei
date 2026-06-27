@@ -2,8 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Pontuei.Api.Models;
 
-namespace Pontuei.Api.Models;
+namespace Pontuei.Api.Data;
 
 [ExcludeFromCodeCoverage]
 public class PontueiDbContext(DbContextOptions<PontueiDbContext> options) : DbContext(options)

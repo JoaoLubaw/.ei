@@ -1,4 +1,4 @@
-using Pontuei.Api.Models;
+using Pontuei.Api.Data;
 
 namespace Pontuei.Api.Repositories;
 

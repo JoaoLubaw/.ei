@@ -1,4 +1,4 @@
-namespace Pontuei.Api.Interfaces;
+namespace Pontuei.Api.Interfaces.Repositories;
 
 public interface IUnitOfWork
 {

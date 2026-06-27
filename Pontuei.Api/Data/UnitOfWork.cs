@@ -1,7 +1,6 @@
-using Pontuei.Api.Interfaces;
-using Pontuei.Api.Models;
+using Pontuei.Api.Interfaces.Repositories;
 
-namespace Pontuei.Api.Models;
+namespace Pontuei.Api.Data;
 
 public class UnitOfWork : IUnitOfWork
 {

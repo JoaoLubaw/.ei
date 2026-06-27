@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
+using Pontuei.Api.Data;
+
 using Pontuei.Api.Dtos.Objects;
 using Pontuei.Api.Interfaces.Repositories;
 using Pontuei.Api.Models;
@@ -70,7 +72,6 @@ public class NotificationRepository : BaseRepository, INotificationRepository
         };
 
         _dbContext.Notifications.Add(notification);
-        await _dbContext.SaveChangesAsync();
 
         return notification;
     }
@@ -91,8 +92,6 @@ public class NotificationRepository : BaseRepository, INotificationRepository
 
         notification.UpdateUser = readBy;
         _dbContext.Entry(notification).Property(n => n.UpdateUser).IsModified = true;
-
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>

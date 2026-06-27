@@ -67,11 +67,6 @@ public class UpdateConfigurationRequestDto
     [JsonPropertyName("configurationValue")]
     public string? ConfigurationValue { get; set; }
 
-    /// <summary>
-    /// Updated type discriminator. Optional.
-    /// </summary>
-    [JsonPropertyName("configurationType")]
-    public ConfigurationType? ConfigurationType { get; set; }
 }
 
 /// <summary>

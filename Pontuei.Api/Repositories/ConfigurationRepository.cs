@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Pontuei.Api.Data;
 
 using Pontuei.Api.Dtos.Requests;
-using Pontuei.Api.Enums;
 using Pontuei.Api.Interfaces.Repositories;
+
 using Pontuei.Api.Models;
 
 namespace Pontuei.Api.Repositories;
@@ -20,7 +21,15 @@ public class ConfigurationRepository : BaseRepository, IConfigurationRepository
     public async Task<Configuration?> GetByIdAsync(int configurationId)
     {
         return await _dbContext.Configurations.FirstOrDefaultAsync(c => c.ConfigurationId == configurationId);
+    }
 
+    /// <summary>
+    /// Returns all configuration entries for the admin management screen.
+    /// </summary>
+    /// <returns></returns>
+    public IQueryable<Configuration> GetAll()
+    {
+        return _dbContext.Configurations;
     }
 
     /// <summary>
@@ -46,12 +55,6 @@ public class ConfigurationRepository : BaseRepository, IConfigurationRepository
             _dbContext.Entry(configuration).Property(c => c.ConfigurationDescription).IsModified = true;
         }
 
-        if (dto.ConfigurationType != null && dto.ConfigurationType != configuration.ConfigurationType)
-        {
-            configuration.ConfigurationType = (ConfigurationType)dto.ConfigurationType;
-            _dbContext.Entry(configuration).Property(c => c.ConfigurationType).IsModified = true;
-        }
-
         if (dto.ConfigurationValue != null && dto.ConfigurationValue != configuration.ConfigurationValue)
         {
             configuration.ConfigurationValue = dto.ConfigurationValue;
@@ -63,8 +66,6 @@ public class ConfigurationRepository : BaseRepository, IConfigurationRepository
 
         configuration.UpdateUser = updatedBy;
         _dbContext.Entry(configuration).Property(c => c.UpdateUser).IsModified = true;
-
-        await _dbContext.SaveChangesAsync();
 
         return configuration;
     }

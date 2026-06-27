@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using Pontuei.Api.Data;
+
 using Pontuei.Api.Dtos;
-using Pontuei.Api.Dtos.Requests;
-using Pontuei.Api.Enums;
 using Pontuei.Api.Interfaces.Repositories;
+
 using Pontuei.Api.Models;
 
 namespace Pontuei.Api.Repositories;
@@ -52,7 +53,6 @@ public class LoyaltyProgramRepository : BaseRepository, ILoyaltyProgramRepositor
         };
 
         _dbContext.LoyaltyPrograms.Add(loyaltyProgram);
-        await _dbContext.SaveChangesAsync();
 
         return loyaltyProgram;
     }
@@ -94,8 +94,6 @@ public class LoyaltyProgramRepository : BaseRepository, ILoyaltyProgramRepositor
         loyaltyProgram.UpdateUser = updatedBy;
         _dbContext.Entry(loyaltyProgram).Property(lp => lp.UpdateUser).IsModified = true;
 
-        await _dbContext.SaveChangesAsync();
-
         return loyaltyProgram;
     }
 
@@ -116,7 +114,6 @@ public class LoyaltyProgramRepository : BaseRepository, ILoyaltyProgramRepositor
         loyaltyProgram.UpdateUser = updatedBy;
         _dbContext.Entry(loyaltyProgram).Property(lp => lp.UpdateUser).IsModified = true;
 
-        await _dbContext.SaveChangesAsync();
         return true;
     }
 

@@ -1,9 +1,10 @@
 
 using Microsoft.EntityFrameworkCore;
-using Pontuei.Api.Dtos;
-using Pontuei.Api.Dtos.Objects;
+
+using Pontuei.Api.Data;
+
 using Pontuei.Api.Dtos.Requests;
-using Pontuei.Api.Enums;
+
 using Pontuei.Api.Interfaces.Repositories;
 using Pontuei.Api.Models;
 
@@ -48,8 +49,6 @@ public class TransactionMediaRepository : BaseRepository, ITransactionMediaRepos
             CreationUser = createdBy
         };
 
-        await _dbContext.SaveChangesAsync();
-
         return transactionMedia;
     }
 
@@ -66,7 +65,6 @@ public class TransactionMediaRepository : BaseRepository, ITransactionMediaRepos
         }).ToList();
 
         _dbContext.TransactionMedias.AddRange(transactionMedias);
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -97,8 +95,6 @@ public class TransactionMediaRepository : BaseRepository, ITransactionMediaRepos
 
         _dbContext.TransactionMedias.RemoveRange(mediasToDelete);
         _dbContext.TransactionMedias.AddRange(mediasToAdd);
-
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -108,7 +104,6 @@ public class TransactionMediaRepository : BaseRepository, ITransactionMediaRepos
     public async Task DeleteAsync(TransactionMedia media, string deletedBy)
     {
         _dbContext.TransactionMedias.Remove(media);
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -120,7 +115,6 @@ public class TransactionMediaRepository : BaseRepository, ITransactionMediaRepos
         if (transaction.TransactionMedias.Any())
         {
             _dbContext.TransactionMedias.RemoveRange(transaction.TransactionMedias);
-            await _dbContext.SaveChangesAsync();
         }
     }
 }

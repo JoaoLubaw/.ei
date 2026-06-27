@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 
+using Pontuei.Api.Data;
+
 using Pontuei.Api.Dtos.Requests;
-using Pontuei.Api.Enums;
 using Pontuei.Api.Interfaces.Repositories;
 using Pontuei.Api.Models;
 
@@ -52,7 +53,6 @@ public class UserLoyaltyProgramRepository : BaseRepository, IUserLoyaltyProgramR
         };
 
         _dbContext.UserLoyaltyPrograms.Add(userLoyaltyProgram);
-        await _dbContext.SaveChangesAsync();
 
         return userLoyaltyProgram;
     }
@@ -105,8 +105,6 @@ public class UserLoyaltyProgramRepository : BaseRepository, IUserLoyaltyProgramR
 
             _dbContext.UserLoyaltyPrograms.Add(newEnrollment);
         }
-
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -122,8 +120,6 @@ public class UserLoyaltyProgramRepository : BaseRepository, IUserLoyaltyProgramR
 
         userLoyaltyProgram.UpdateTime = DateTime.UtcNow;
         _dbContext.Entry(userLoyaltyProgram).Property(ulp => ulp.UpdateTime).IsModified = true;
-
-        await _dbContext.SaveChangesAsync();
     }
 
     public async Task DeleteAllUserLoyaltyProgramsAsync(User user, string deletedBy)

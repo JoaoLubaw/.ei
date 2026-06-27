@@ -17,6 +17,12 @@ public interface IConfigurationRepository
     Task<Configuration?> GetByIdAsync(int configurationId);
 
     /// <summary>
+    /// Returns all configuration entries for the admin management screen.
+    /// </summary>
+    /// <returns></returns>
+    IQueryable<Configuration> GetAll();
+
+    /// <summary>
     /// Returns the configuration entry whose <c>configuration_name</c> matches
     /// <paramref name="name"/> (case-insensitive), or <c>null</c> when not found.
     /// </summary>

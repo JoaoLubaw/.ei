@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
+using Pontuei.Api.Data;
+
 using Pontuei.Api.Dtos.Requests;
 using Pontuei.Api.Enums;
 using Pontuei.Api.Interfaces.Repositories;
@@ -87,7 +89,6 @@ public class TransactionRepository : BaseRepository, ITransactionRepository
         };
 
         _dbContext.Transactions.Add(transaction);
-        await _dbContext.SaveChangesAsync();
 
         return transaction;
     }
@@ -176,8 +177,6 @@ public class TransactionRepository : BaseRepository, ITransactionRepository
 
         transaction.UpdateUser = updatedBy;
         _dbContext.Entry(transaction).Property(t => t.UpdateUser).IsModified = true;
-
-        await _dbContext.SaveChangesAsync();
 
         return transaction;
     }

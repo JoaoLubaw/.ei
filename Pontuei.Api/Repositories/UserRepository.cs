@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 
+using Pontuei.Api.Data;
+
 using Pontuei.Api.Dtos.Requests;
-using Pontuei.Api.Enums;
+
 using Pontuei.Api.Interfaces.Repositories;
 using Pontuei.Api.Models;
 
@@ -76,7 +78,6 @@ public class UserRepository : BaseRepository, IUserRepository
         };
 
         _dbContext.Users.Add(user);
-        await _dbContext.SaveChangesAsync();
 
         return user;
     }
@@ -119,8 +120,6 @@ public class UserRepository : BaseRepository, IUserRepository
             _dbContext.Entry(user).Property(u => u.UserEmail).IsModified = true;
         }
 
-        await _dbContext.SaveChangesAsync();
-
         return user;
     }
 
@@ -139,8 +138,6 @@ public class UserRepository : BaseRepository, IUserRepository
         _dbContext.Entry(user).Property(u => u.IsDeleted).IsModified = true;
         _dbContext.Entry(user).Property(u => u.UpdateTime).IsModified = true;
         _dbContext.Entry(user).Property(u => u.UpdateUser).IsModified = true;
-
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -159,7 +156,5 @@ public class UserRepository : BaseRepository, IUserRepository
         _dbContext.Entry(user).Property(u => u.UserEmailVerifiedAt).IsModified = true;
         _dbContext.Entry(user).Property(u => u.UpdateTime).IsModified = true;
         _dbContext.Entry(user).Property(u => u.UpdateUser).IsModified = true;
-
-        await _dbContext.SaveChangesAsync();
     }
 }

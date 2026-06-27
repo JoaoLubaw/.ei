@@ -36,18 +36,13 @@ public interface INotificationService
     /// Triggered by "Marcar todas as notificações como lidas" at the bottom of the screen.
     /// Returns a summary with the number of rows updated.
     /// </summary>
-    Task<ApiResult<GetNotificationsResponseDto>> MarkAllAsReadAsync(Guid userId, Guid currentUserId);
+    Task<ApiResult<GetNotificationsResponseDto>> MarkAllAsReadAsync(GetNotificationsRequestDto requestDto, Guid userId, Guid currentUserId);
 
     /// <summary>
     /// Creates a notification alerting the user that a transaction's receipt
     /// deadline has passed and points have not yet been credited.
     /// Called by the background overdue-check job.
     /// </summary>
-    Task<ApiResult<NotificationDto>> NotifyTransactionOverdueAsync(Guid userId, Guid transactionId, Guid currentUserId);
+    Task<bool> NotifyTransactionOverdueAsync(Guid userId, Guid transactionId, Guid currentUserId);
 
-    /// <summary>
-    /// Creates a notification for a transaction that was marked as disputed.
-    /// Called internally by <see cref="ITransactionService.UpdateStatusAsync"/>.
-    /// </summary>
-    Task<ApiResult<NotificationDto>> NotifyTransactionDisputedAsync(Guid userId, Guid transactionId, Guid currentUserId);
 }

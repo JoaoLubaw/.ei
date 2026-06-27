@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
-using Pontuei.Api.Dtos.Requests;
+using Pontuei.Api.Data;
+
 using Pontuei.Api.Enums;
 using Pontuei.Api.Interfaces.Repositories;
 using Pontuei.Api.Models;
@@ -63,7 +64,6 @@ public class VerificationCodeRepository : BaseRepository, IVerificationCodeRepos
         };
 
         _dbContext.VerificationCodes.Add(verificationCode);
-        await _dbContext.SaveChangesAsync();
 
         return verificationCode;
     }
@@ -83,7 +83,6 @@ public class VerificationCodeRepository : BaseRepository, IVerificationCodeRepos
         _dbContext.Entry(verificationCode).Property(vc => vc.UpdateTime).IsModified = true;
         _dbContext.Entry(verificationCode).Property(vc => vc.UpdateUser).IsModified = true;
 
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -101,7 +100,6 @@ public class VerificationCodeRepository : BaseRepository, IVerificationCodeRepos
         _dbContext.Entry(verificationCode).Property(vc => vc.UpdateTime).IsModified = true;
         _dbContext.Entry(verificationCode).Property(vc => vc.UpdateUser).IsModified = true;
 
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>

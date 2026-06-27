@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
-using Pontuei.Api.Dtos.Requests;
-using Pontuei.Api.Enums;
+using Pontuei.Api.Data;
+
 using Pontuei.Api.Interfaces.Repositories;
 using Pontuei.Api.Models;
 
@@ -77,7 +77,6 @@ public class UserSessionRepository : BaseRepository, IUserSessionRepository
         }
 
         _dbContext.UserSessions.Add(userSession);
-        await _dbContext.SaveChangesAsync();
 
         return userSession;
 
@@ -134,8 +133,6 @@ public class UserSessionRepository : BaseRepository, IUserSessionRepository
         _dbContext.Entry(userSession).Property(s => s.UpdateTime).IsModified = true;
         _dbContext.Entry(userSession).Property(s => s.UpdateUser).IsModified = true;
 
-        await _dbContext.SaveChangesAsync();
-
         return userSession;
     }
 
@@ -155,7 +152,6 @@ public class UserSessionRepository : BaseRepository, IUserSessionRepository
         _dbContext.Entry(userSession).Property(s => s.UpdateTime).IsModified = true;
         _dbContext.Entry(userSession).Property(s => s.UpdateUser).IsModified = true;
 
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -180,7 +176,6 @@ public class UserSessionRepository : BaseRepository, IUserSessionRepository
             _dbContext.Entry(session).Property(s => s.UpdateUser).IsModified = true;
         }
 
-        await _dbContext.SaveChangesAsync();
     }
 
     /// <summary>
@@ -199,6 +194,5 @@ public class UserSessionRepository : BaseRepository, IUserSessionRepository
         _dbContext.Entry(userSession).Property(s => s.UpdateTime).IsModified = true;
         _dbContext.Entry(userSession).Property(s => s.UpdateUser).IsModified = true;
 
-        await _dbContext.SaveChangesAsync();
     }
 }

@@ -13,5 +13,5 @@ public interface IMetadataService
     /// Returns the current database version, or <c>null</c> when no version row exists.
     /// </summary>
     /// <returns></returns>
-    Task<ApiResult<DbVersion?>> GetCurrentDbVersionAsync();
+    Task<ApiResult<VersionsDtos?>> GetCurrentVersionsAsync(string currentUser);
 }

@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using Pontuei.Api.Dtos;
-using Pontuei.Api.Dtos.Requests;
-using Pontuei.Api.Enums;
+using Pontuei.Api.Data;
+
 using Pontuei.Api.Interfaces.Repositories;
 using Pontuei.Api.Models;
 
