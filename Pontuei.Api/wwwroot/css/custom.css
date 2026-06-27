@@ -1,0 +1,46 @@
+body {
+    background-color: #edeae6;
+}
+.swagger-ui .topbar {
+    background-color: #2d5a3d;
+}
+.swagger-ui .topbar .download-url-wrapper {
+    display: none;
+}
+.swagger-ui .info .title {
+    color: #1a1a1a;
+    font-weight: 800;
+}
+
+.swagger-ui .opblock.opblock-get .opblock-summary {
+    border-color: #2d5a3d;
+}
+.swagger-ui .opblock.opblock-get .opblock-summary-method {
+    background: #2d5a3d;
+}
+.swagger-ui .opblock.opblock-post .opblock-summary-method {
+    background: #3d7a52;
+}
+.swagger-ui .opblock.opblock-put .opblock-summary-method {
+    background: #6b8c5a;
+}
+.swagger-ui .opblock.opblock-delete .opblock-summary-method {
+    background: #8b2020;
+}
+
+.swagger-ui .btn.execute {
+    background-color: #2d5a3d;
+    border-color: #2d5a3d;
+}
+
+.swagger-ui input[type="text"],
+.swagger-ui textarea {
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.swagger-ui .topbar-wrapper img {
+    content: url("/img/logo.svg");
+    height: 40px;
+    width: auto;
+}

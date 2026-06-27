@@ -189,9 +189,9 @@ try
     {
         options.SwaggerDoc("v1", new OpenApiInfo
         {
-            Title = ".ei.API",
+            Title = ".Ei.Api",
             Version = "v1",
-            Description = "Nunca foi tão fácil colocar os pontos nos i's."
+            Description = "Nunca foi tão fácil colocar os pontos nos i's"
         });
 
         options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -248,8 +248,17 @@ try
 
     if (app.Environment.IsDevelopment())
     {
+        app.UseStaticFiles();
         app.UseSwagger();
-        app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", ".ei API v1"));
+        app.MapGet("/swagger/favicon-32x32.png", () => Results.Redirect("/swagger-ui/favicon.ico"));
+        app.MapGet("/swagger/favicon-16x16.png", () => Results.Redirect("/swagger-ui/favicon.ico"));
+        app.UseSwaggerUI(options =>
+        {
+            options.InjectStylesheet("/css/custom.css");
+            options.InjectJavascript("/js/custom.js", "text/javascript");
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", ".Ei.Api");
+            options.RoutePrefix = string.Empty;
+        });
     }
 
     app.UseCors("AllowAll");
