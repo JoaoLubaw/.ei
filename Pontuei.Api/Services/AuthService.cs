@@ -1,7 +1,8 @@
 using System.Net;
-using System.Security.Cryptography;
-using System.Text;
+using System.Text.Json;
 using Mapster;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Pontuei.Api.Common;
 using Pontuei.Api.Dtos.Objects;
 using Pontuei.Api.Dtos.Requests;
@@ -21,6 +22,7 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly IEmailService _emailService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IDistributedCache _cache;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -30,6 +32,7 @@ public class AuthService : IAuthService
         ITokenService tokenService,
         IEmailService emailService,
         IUnitOfWork unitOfWork,
+        IDistributedCache cache,
         ILogger<AuthService> logger)
     {
         _userRepository = userRepository;
@@ -38,6 +41,7 @@ public class AuthService : IAuthService
         _tokenService = tokenService;
         _unitOfWork = unitOfWork;
         _emailService = emailService;
+        _cache = cache;
         _logger = logger;
     }
 
@@ -61,6 +65,8 @@ public class AuthService : IAuthService
 
         if (user.UserEmailVerified)
         {
+            _logger.LogWarning("User {UserId} attempted to verify an already verified email.", loggedUserId);
+
             return new ApiResult<EmptyDto>(
                 InternalResultCode.EMAIL_ALREADY_VERIFIED,
                 HttpStatusCode.BadRequest,
@@ -117,6 +123,7 @@ public class AuthService : IAuthService
         if (!saved)
         {
             _logger.LogError("Failed to save email verification in the database for user: {UserId}", loggedUserId);
+
             return new ApiResult<EmptyDto>(
                 InternalResultCode.DATABASE_CONNECTION,
                 HttpStatusCode.InternalServerError,
@@ -139,6 +146,7 @@ public class AuthService : IAuthService
         if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.UserPasswordHash))
         {
             _logger.LogWarning("Failed to login with email: {Email}", dto.UserEmail);
+
             return new ApiResult<LoginResponseDto>(
                 InternalResultCode.INVALID_CREDENTIALS,
                 HttpStatusCode.Unauthorized,
@@ -167,6 +175,7 @@ public class AuthService : IAuthService
         if (!saved)
         {
             _logger.LogError("Failed to save login session for user: {UserId}", user.UserId);
+
             return new ApiResult<LoginResponseDto>(
                 InternalResultCode.DATABASE_CONNECTION,
                 HttpStatusCode.InternalServerError,
@@ -175,6 +184,26 @@ public class AuthService : IAuthService
         }
 
         _logger.LogInformation("Login successful for user: {UserId}. Remember me: {Remember}", user.UserId, dto.RememberMe);
+
+        UserSessionData sessionData = new UserSessionData
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            DeviceInfo = dto.DeviceInfo,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        string jsonSession = JsonSerializer.Serialize(sessionData);
+
+        string redisKey = $"session:{user.UserId}:{hashedRefreshToken}";
+
+        await _cache.SetStringAsync(
+                redisKey,
+                jsonSession,
+                new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpiration = expiration
+                });
 
         return new ApiResult<LoginResponseDto>(
             InternalResultCode.NO_ERROR,
@@ -222,6 +251,8 @@ public class AuthService : IAuthService
 
         DateTime expiration = DateTime.UtcNow.AddDays(30);
 
+        _logger.LogInformation("Refresh token used for user: {UserId}. New session created.", user.UserId);
+
         await _userSessionRepository.CreateAsync(
             user.UserId,
             hashedNewRefreshToken,
@@ -250,14 +281,17 @@ public class AuthService : IAuthService
     public async Task<ApiResult<EmptyDto>> LogoutAsync(string refreshToken)
     {
         string hashedInputToken = ValidationUtils.HashToken(refreshToken);
-
         UserSession? activeSession = await _userSessionRepository.GetActiveByRefreshTokenHashAsync(hashedInputToken);
 
         if (activeSession != null)
         {
             await _userSessionRepository.RevokeAsync(activeSession, activeSession.UserId.ToString());
             await _unitOfWork.CommitAsync();
+
+            await _cache.RemoveAsync($"session:{activeSession.UserId}:{hashedInputToken}");
         }
+
+        _logger.LogInformation("Logout successful for session: {SessionId}", activeSession?.UserSessionId);
 
         return new ApiResult<EmptyDto>(
             InternalResultCode.NO_ERROR,
@@ -279,6 +313,8 @@ public class AuthService : IAuthService
             );
         }
 
+        _logger.LogInformation("Updating push notification token for session: {SessionId}", sessionId);
+
         await _userSessionRepository.SetPushNotificationTokenAsync(session, dto.PushNotificationToken, session.UserId.ToString());
         await _unitOfWork.CommitAsync();
 
@@ -291,6 +327,8 @@ public class AuthService : IAuthService
 
         if (user == null)
         {
+            _logger.LogWarning("Attempt to resend verification email for non-existent user: {UserId}", loggedUserId);
+
             return new ApiResult<EmptyDto>(
                 InternalResultCode.ENTITY_NOT_FOUND,
                 HttpStatusCode.NotFound,
@@ -300,6 +338,8 @@ public class AuthService : IAuthService
 
         if (user.UserEmailVerified)
         {
+            _logger.LogWarning("User {UserId} attempted to resend verification email for an already verified email.", loggedUserId);
+
             return new ApiResult<EmptyDto>(
                 InternalResultCode.EMAIL_ALREADY_VERIFIED,
                 HttpStatusCode.BadRequest,
@@ -324,6 +364,8 @@ public class AuthService : IAuthService
         await _unitOfWork.CommitAsync();
 
         await _emailService.SendVerificationEmailAsync(user.UserEmail, user.UserName, newCode);
+
+        _logger.LogInformation("Verification email resent for user: {UserId}", user.UserId);
 
         return new ApiResult<EmptyDto>(
             InternalResultCode.NO_ERROR,
@@ -354,6 +396,8 @@ public class AuthService : IAuthService
 
             await _unitOfWork.CommitAsync();
 
+            _logger.LogInformation("Reset password token sent for user: {UserId}", user.UserId);
+
             await _emailService.SendResetPasswordToken(user.UserEmail, user.UserName, resetCode);
         }
 
@@ -381,10 +425,10 @@ public class AuthService : IAuthService
         if (pendingCode == null)
 
             return new ApiResult<VerifyResetCodeResponseDto>(
-                InternalResultCode.ENTITY_NOT_FOUND,
-                HttpStatusCode.NotFound,
-                null
-            );
+            InternalResultCode.ENTITY_NOT_FOUND,
+            HttpStatusCode.NotFound,
+            null
+        );
 
         string hashedInputCode = ValidationUtils.HashToken(dto.Code);
 
@@ -399,6 +443,8 @@ public class AuthService : IAuthService
                 null
             );
         }
+
+        _logger.LogInformation("Password reset code verified for user: {UserId}", user.UserId);
 
         await _verificationCodeRepository.MarkAsUsedAsync(pendingCode, "PasswordReset");
 
@@ -415,6 +461,8 @@ public class AuthService : IAuthService
         );
 
         await _unitOfWork.CommitAsync();
+
+        _logger.LogInformation("Temporary reset token generated for user: {UserId}", user.UserId);
 
         return new ApiResult<VerifyResetCodeResponseDto>(
             InternalResultCode.NO_ERROR,
@@ -466,10 +514,18 @@ public class AuthService : IAuthService
 
         await _verificationCodeRepository.MarkAsUsedAsync(validationContext, "PasswordReset");
 
-        await _userSessionRepository.RevokeAllByUserIdAsync(userToUpdate!, "PasswordReset");
+        List<UserSession> activeSessions = await _userSessionRepository.GetActiveByUserIdAsync(userToUpdate!.UserId).ToListAsync();
 
+        await _userSessionRepository.RevokeAllByUserIdAsync(userToUpdate, "PasswordReset");
         await _unitOfWork.CommitAsync();
 
+        foreach (UserSession session in activeSessions)
+        {
+            string redisKey = $"session:{userToUpdate.UserId}:{session.UserSessionRefreshToken}";
+            await _cache.RemoveAsync(redisKey);
+        }
+
+        _logger.LogInformation("Password reset successful and all sessions revoked for user: {UserId}", userToUpdate.UserId);
         return new ApiResult<EmptyDto>(
             InternalResultCode.NO_ERROR,
             HttpStatusCode.OK,
@@ -507,6 +563,8 @@ public class AuthService : IAuthService
 
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(name))
         {
+            _logger.LogWarning("Google ID token is missing required claims: email or name.");
+
             return new ApiResult<LoginResponseDto>(
                 InternalResultCode.INVALID_CREDENTIALS,
                 HttpStatusCode.NotFound,
@@ -522,6 +580,8 @@ public class AuthService : IAuthService
             if (user != null)
             {
                 user.UserGoogleId = googleId;
+
+                _logger.LogInformation("Existing user found by email. Linked Google ID: {GoogleId} to user: {UserId}", googleId, user.UserId);
             }
             else
             {
@@ -560,6 +620,28 @@ public class AuthService : IAuthService
         );
 
         await _unitOfWork.CommitAsync();
+
+        _logger.LogInformation("User logged in successfully: {UserId}", user.UserId);
+
+        UserSessionData sessionData = new UserSessionData
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            DeviceInfo = dto.DeviceInfo,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        string jsonSession = JsonSerializer.Serialize(sessionData);
+
+        string redisKey = $"session:{user.UserId}:{hashedRefreshToken}";
+
+        await _cache.SetStringAsync(
+                redisKey,
+                jsonSession,
+                new DistributedCacheEntryOptions
+                {
+                    AbsoluteExpiration = expiration
+                });
 
         return new ApiResult<LoginResponseDto>(
             InternalResultCode.NO_ERROR,
