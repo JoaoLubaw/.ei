@@ -11,3 +11,9 @@ Pontuei.App/obj
 *.Development.json
 
 /Pontuei.Api/bin
+/Pontuei.App/bin
+/Pontuei.App/.idea
+/Pontuei.App/.cursor
+
+undefined
+*.csproj.user

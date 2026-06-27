@@ -3,12 +3,28 @@
     x:Class="Pontuei.App.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:Pontuei.App"
-    Title="Pontuei.App">
+    xmlns:views="clr-namespace:Pontuei.App.Views"
+    Shell.FlyoutBehavior="Disabled">
+
+    <!--
+        =========================================================
+        Navigation routes for the app's main flow (non-modal):
+          - splash
+          - auth
+          - main
+        =========================================================
+    -->
+
+    <!-- Initial Screen: Splash -->
+    <ShellContent
+        x:Name="SplashContent"
+        Route="splash"
+        ContentTemplate="{DataTemplate views:SplashPage}"
+        Shell.NavBarIsVisible="False" />
 
     <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Route="auth"
+        ContentTemplate="{DataTemplate views:AuthPage}"
+        Shell.NavBarIsVisible="False" />
 
 </Shell>

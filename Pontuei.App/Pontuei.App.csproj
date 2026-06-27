@@ -54,7 +54,9 @@
 		
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
-
+		<MauiFont Include="Resources\Fonts\**\*.ttf" />
+		<MauiFont Include="Resources\Fonts\**\*.otf" />
+		
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>

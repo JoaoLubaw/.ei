@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Pontuei.App.Views.SplashPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+    Shell.NavBarIsVisible="False"
+    NavigationPage.HasNavigationBar="False"
+    BackgroundColor="#E9E2E2">
+
+    <AbsoluteLayout>
+
+        <!-- ① VERDE PRIMEIRO (atrás) — mesmo centro X, 16px mais acima no Y -->
+        <!-- Centro SVG: (208, -53), raio 287 → Y MAUI = -53 - 287 = -340 -->
+        <!-- X: 208/414 = 0.503, mas LayoutBounds X com XProportional é a fração -->
+        <!-- do espaço disponível APÓS subtrair a largura do elemento: -->
+        <!-- posição_pixel = x_frac * (container_width - element_width) -->
+        <!-- queremos pixel_x = 208 - 287 = -79 (borda esquerda do círculo) -->
+        <!-- -79 = frac * (414 - 574) → frac = -79 / -160 = 0.494 -->
+        <shapes:Ellipse
+            AbsoluteLayout.LayoutFlags="XProportional"
+            AbsoluteLayout.LayoutBounds="0.494, -340, 574, 574"
+            Fill="#3A6B4A"
+            StrokeThickness="0" />
+
+        <!-- ② ESCURO POR CIMA — cobre o verde exceto na borda inferior -->
+        <!-- Centro SVG: (195, -37), raio 287 → Y MAUI = -37 - 287 = -324 -->
+        <!-- borda esquerda pixel = 195 - 287 = -92 -->
+        <!-- -92 = frac * (414 - 574) → frac = -92 / -160 = 0.575 -->
+        <shapes:Ellipse
+            AbsoluteLayout.LayoutFlags="XProportional"
+            AbsoluteLayout.LayoutBounds="0.575, -324, 574, 574"
+            Fill="#222222"
+            StrokeThickness="0" />
+
+        <!-- ③ LOGO — na borda do arco, ~26% Y -->
+        <Image
+            x:Name="LogoLabel"
+            AbsoluteLayout.LayoutFlags="XProportional, YProportional"
+            AbsoluteLayout.LayoutBounds="0.5, 0.26, 190, 110"
+            Source="logo.svg"
+            Aspect="AspectFit"
+            Opacity="0"
+            TranslationY="20" />
+
+        <!-- ④ HEADLINE — ~46% Y -->
+        <Label
+            x:Name="HeadlineLabel"
+            AbsoluteLayout.LayoutFlags="XProportional, YProportional, WidthProportional"
+            AbsoluteLayout.LayoutBounds="0, 0.46, 1, AutoSize"
+            Margin="36,0"
+            LineHeight="1.25"
+            Opacity="0"
+            TranslationY="16">
+            <Label.FormattedText>
+                <FormattedString>
+                    <Span Text="Nunca foi tão fácil&#10;colocar os "
+                          TextColor="#1A1A1A"
+                          FontSize="30"
+                          FontFamily="PoppinsRegular" />
+                    <Span Text="pontos"
+                          TextColor="#427A5B"
+                          FontSize="30"
+                          FontAttributes="Bold"
+                          FontFamily="BricolageGrotesqueBold" />
+                    <Span Text="&#10;nos I's."
+                          TextColor="#1A1A1A"
+                          FontSize="30"
+                          FontFamily="PoppinsRegular" />
+                </FormattedString>
+            </Label.FormattedText>
+        </Label>
+
+        <!-- ⑤ BOTÃO — 85,7% Y (768/896 do SVG) -->
+        <Button
+            x:Name="StartButton"
+            AbsoluteLayout.LayoutFlags="XProportional, YProportional, WidthProportional"
+            AbsoluteLayout.LayoutBounds="0, 0.857, 1, 56"
+            Margin="32,0"
+            Text="Bora começar!"
+            FontFamily="PoppinsBold"
+            FontAttributes="Bold"
+            FontSize="17"
+            TextColor="White"
+            CornerRadius="28"
+            HeightRequest="56"
+            Opacity="0"
+            TranslationY="12"
+            Clicked="OnStartClicked">
+            <Button.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#559363" Offset="0.0" />
+                    <GradientStop Color="#2C3E35" Offset="1.0" />
+                </LinearGradientBrush>
+            </Button.Background>
+        </Button>
+
+    </AbsoluteLayout>
+
+</ContentPage>

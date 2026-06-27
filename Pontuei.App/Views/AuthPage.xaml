@@ -1,0 +1,1269 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Pontuei.App.Views.AuthPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Shell.NavBarIsVisible="False"
+    NavigationPage.HasNavigationBar="False"
+    BackgroundColor="#000000">
+
+    <Grid RowDefinitions="Auto, *">
+
+        <!-- ① HEADER — fundo preto sólido -->
+        <Grid
+            Grid.Row="0"
+            BackgroundColor="#000000"
+            Padding="28,52,28,20"
+            RowDefinitions="Auto, Auto"
+            MinimumHeightRequest="148">
+
+            <Image
+                Grid.Row="0"
+                Source="logo.svg"
+                HeightRequest="72"
+                WidthRequest="120"
+                HorizontalOptions="End"
+                VerticalOptions="Start"
+                Aspect="AspectFit" />
+
+            <Label
+                Grid.Row="1"
+                LineHeight="1.35"
+                HorizontalOptions="Start"
+                Margin="0,8,0,0">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span
+                            Text="Nunca foi tão fácil&#10;colocar os "
+                            TextColor="White"
+                            FontSize="18"
+                            FontFamily="PoppinsRegular" />
+                        <Span
+                            Text="pontos"
+                            TextColor="#427A5B"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            FontFamily="BricolageGrotesqueBold" />
+                        <Span
+                            Text="&#10;nos I's."
+                            TextColor="White"
+                            FontSize="18"
+                            FontFamily="PoppinsRegular" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+
+        </Grid>
+
+        <!-- ② BLOCO DO FORM — degradê no bloco com cantos arredondados em cima -->
+        <Border
+            x:Name="FormBlock"
+            Grid.Row="1"
+            StrokeThickness="0">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="36,36,0,0" />
+            </Border.StrokeShape>
+            <Border.Background>
+                <!-- Modo AUTH: degradê horizontal esq→dir -->
+                <LinearGradientBrush x:Name="BlockGradientBrush" StartPoint="0,0.5" EndPoint="1,0.5">
+                    <GradientStop x:Name="BlockGradientLeft"  Color="#4E8A61" Offset="0.0" />
+                    <GradientStop                             Color="#3A6B4A" Offset="0.5" />
+                    <GradientStop x:Name="BlockGradientRight" Color="#343a46" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Grid RowDefinitions="Auto, *" Padding="0,20,0,0">
+
+                <!-- ── HEADER MODO AUTH: duas tabs ── -->
+                <Border
+                    x:Name="TabContainer"
+                    Grid.Row="0"
+                    HeightRequest="48"
+                    BackgroundColor="#26000000"
+                    StrokeThickness="0"
+                    Margin="28,0,28,0">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="24" />
+                    </Border.StrokeShape>
+                    <Grid ColumnDefinitions="*,*">
+                        <Border
+                            x:Name="ActiveTabPill"
+                            Grid.Column="0"
+                            BackgroundColor="White"
+                            StrokeThickness="0"
+                            ZIndex="0"
+                            Margin="4,4,2,4">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="20" />
+                            </Border.StrokeShape>
+                        </Border>
+                        <Label
+                            x:Name="LoginTabLabel"
+                            Grid.Column="0"
+                            ZIndex="1"
+                            Text="Login"
+                            TextColor="#3A6B4A"
+                            FontFamily="PoppinsSemibold"
+                            FontAttributes="Bold"
+                            FontSize="14"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnLoginTabTapped" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                        <Label
+                            x:Name="RegisterTabLabel"
+                            Grid.Column="1"
+                            ZIndex="1"
+                            Text="Nova conta"
+                            TextColor="White"
+                            FontFamily="PoppinsRegular"
+                            FontSize="14"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center">
+                            <Label.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnRegisterTabTapped" />
+                            </Label.GestureRecognizers>
+                        </Label>
+                    </Grid>
+                </Border>
+
+                <!-- ── HEADER MODO SECUNDÁRIO: pill única com título ── -->
+                <Border
+                    x:Name="SinglePillContainer"
+                    Grid.Row="0"
+                    HeightRequest="48"
+                    BackgroundColor="White"
+                    StrokeThickness="0"
+                    IsVisible="False"
+                    Margin="28,0,28,0">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="24" />
+                    </Border.StrokeShape>
+                    <Label
+                        x:Name="SinglePillLabel"
+                        Text=""
+                        TextColor="#3A6B4A"
+                        FontFamily="PoppinsSemibold"
+                        FontAttributes="Bold"
+                        FontSize="15"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center" />
+                </Border>
+
+                <!-- Card bege com formulário -->
+                <Border
+                    Grid.Row="1"
+                    BackgroundColor="#E9E2E2"
+                    StrokeThickness="0"
+                    Margin="0,12,0,0">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="32,32,0,0" />
+                    </Border.StrokeShape>
+
+                    <ScrollView>
+                        <VerticalStackLayout Padding="28,28,28,36" Spacing="0">
+
+                            <!-- LOGIN -->
+                            <VerticalStackLayout x:Name="LoginPanel" Spacing="0">
+
+                                <Border
+                                    HeightRequest="52"
+                                    BackgroundColor="#3f3838"
+                                    StrokeThickness="0"
+                                    Margin="0,0,0,10">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="26" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="White"
+                                            StrokeThickness="0"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="17" />
+                                            </Border.StrokeShape>
+                                            <Image
+                                                Source="email.svg"
+                                                WidthRequest="18"
+                                                HeightRequest="18"
+                                                Aspect="AspectFit"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+                                        </Border>
+                                        <Entry
+                                            Grid.Column="1"
+                                            x:Name="EmailEntry"
+                                            Placeholder="Seu e-mail"
+                                            PlaceholderColor="#9E9E9E"
+                                            TextColor="White"
+                                            FontFamily="PoppinsRegular"
+                                            FontSize="14"
+                                            Keyboard="Email"
+                                            BackgroundColor="Transparent"
+                                            Margin="10,0,14,0"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+
+                                <Border
+                                    HeightRequest="52"
+                                    BackgroundColor="#3f3838"
+                                    StrokeThickness="0"
+                                    Margin="0,0,0,14">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="26" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="White"
+                                            StrokeThickness="0"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="17" />
+                                            </Border.StrokeShape>
+                                            <Image
+                                                Source="lock.svg"
+                                                WidthRequest="18"
+                                                HeightRequest="18"
+                                                Aspect="AspectFit"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+                                        </Border>
+                                        <Entry
+                                            Grid.Column="1"
+                                            x:Name="PasswordEntry"
+                                            Placeholder="••••••••"
+                                            PlaceholderColor="#9E9E9E"
+                                            TextColor="White"
+                                            FontFamily="PoppinsRegular"
+                                            FontSize="14"
+                                            IsPassword="True"
+                                            BackgroundColor="Transparent"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center" />
+                                        <Image
+                                            Grid.Column="2"
+                                            x:Name="EyeIcon"
+                                            Source="eve_crossed.svg"
+                                            WidthRequest="22"
+                                            HeightRequest="22"
+                                            Aspect="AspectFit"
+                                            VerticalOptions="Center"
+                                            Margin="0,0,14,0">
+                                            <Image.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnTogglePasswordTapped" />
+                                            </Image.GestureRecognizers>
+                                        </Image>
+                                    </Grid>
+                                </Border>
+
+                                <Grid ColumnDefinitions="*,Auto" Margin="2,0,2,18">
+                                    <Label
+                                        Grid.Column="0"
+                                        Text="Se lembre de mim"
+                                        TextColor="#1A1A1A"
+                                        FontFamily="PoppinsRegular"
+                                        FontSize="14"
+                                        VerticalOptions="Center" />
+                                    <Switch
+                                        Grid.Column="1"
+                                        OnColor="#427A5B"
+                                        ThumbColor="White"
+                                        IsToggled="False" />
+                                </Grid>
+
+                                <Button
+                                    x:Name="LoginButton"
+                                    Text="Login"
+                                    FontFamily="PoppinsBold"
+                                    FontAttributes="Bold"
+                                    FontSize="16"
+                                    TextColor="White"
+                                    BackgroundColor="#3f3838"
+                                    CornerRadius="26"
+                                    HeightRequest="52"
+                                    Margin="0,0,0,10"
+                                    Clicked="OnLoginClicked" />
+
+                                <Label
+                                    x:Name="ForgotPasswordLabel"
+                                    Text="Vish... esqueci minha senha"
+                                    TextColor="#427A5B"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="14"
+                                    HorizontalOptions="Center"
+                                    Margin="0,0,0,18">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnForgotPasswordTapped" />
+                                    </Label.GestureRecognizers>
+                                </Label>
+
+                            </VerticalStackLayout>
+
+                            <!-- CADASTRO -->
+                            <VerticalStackLayout x:Name="RegisterPanel" IsVisible="False" Spacing="0">
+
+                                <!-- Nome -->
+                                <Border
+                                    x:Name="NameFieldBorder"
+                                    HeightRequest="52"
+                                    BackgroundColor="#3f3838"
+                                    StrokeThickness="0"
+                                    Margin="0,0,0,4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="26" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="White"
+                                            StrokeThickness="0"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="17" />
+                                            </Border.StrokeShape>
+                                            <Image
+                                                Source="profile.svg"
+                                                WidthRequest="18"
+                                                HeightRequest="18"
+                                                Aspect="AspectFit"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+                                        </Border>
+                                        <Entry
+                                            Grid.Column="1"
+                                            x:Name="NameEntry"
+                                            Placeholder="Digite seu nome"
+                                            PlaceholderColor="#9E9E9E"
+                                            TextColor="White"
+                                            FontFamily="PoppinsRegular"
+                                            FontSize="14"
+                                            BackgroundColor="Transparent"
+                                            Margin="10,0,14,0"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+                                <Label
+                                    x:Name="NameError"
+                                    TextColor="#E53935"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="11"
+                                    Margin="14,0,0,6"
+                                    IsVisible="False" />
+
+                                <!-- E-mail -->
+                                <Border
+                                    x:Name="RegisterEmailFieldBorder"
+                                    HeightRequest="52"
+                                    BackgroundColor="#3f3838"
+                                    StrokeThickness="0"
+                                    Margin="0,0,0,4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="26" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="White"
+                                            StrokeThickness="0"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="17" />
+                                            </Border.StrokeShape>
+                                            <Image
+                                                Source="email.svg"
+                                                WidthRequest="18"
+                                                HeightRequest="18"
+                                                Aspect="AspectFit"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+                                        </Border>
+                                        <Entry
+                                            Grid.Column="1"
+                                            x:Name="RegisterEmailEntry"
+                                            Placeholder="Digite seu e-mail"
+                                            PlaceholderColor="#9E9E9E"
+                                            TextColor="White"
+                                            FontFamily="PoppinsRegular"
+                                            FontSize="14"
+                                            Keyboard="Email"
+                                            BackgroundColor="Transparent"
+                                            Margin="10,0,14,0"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+                                <Label
+                                    x:Name="RegisterEmailError"
+                                    TextColor="#E53935"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="11"
+                                    Margin="14,0,0,6"
+                                    IsVisible="False" />
+
+                                <!-- Senha -->
+                                <Border
+                                    x:Name="RegisterPasswordFieldBorder"
+                                    HeightRequest="52"
+                                    BackgroundColor="#3f3838"
+                                    StrokeThickness="0"
+                                    Margin="0,0,0,6">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="26" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="White"
+                                            StrokeThickness="0"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="17" />
+                                            </Border.StrokeShape>
+                                            <Image
+                                                Source="key.svg"
+                                                WidthRequest="18"
+                                                HeightRequest="18"
+                                                Aspect="AspectFit"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+                                        </Border>
+                                        <Entry
+                                            Grid.Column="1"
+                                            x:Name="RegisterPasswordEntry"
+                                            Placeholder="Senha"
+                                            PlaceholderColor="#9E9E9E"
+                                            TextColor="White"
+                                            FontFamily="PoppinsRegular"
+                                            FontSize="14"
+                                            IsPassword="True"
+                                            BackgroundColor="Transparent"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center"
+                                            TextChanged="OnRegisterPasswordChanged" />
+                                        <Image
+                                            Grid.Column="2"
+                                            x:Name="RegisterEyeIcon"
+                                            Source="eve_crossed.svg"
+                                            WidthRequest="22"
+                                            HeightRequest="22"
+                                            Aspect="AspectFit"
+                                            VerticalOptions="Center"
+                                            Margin="0,0,14,0">
+                                            <Image.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnToggleRegisterPasswordTapped" />
+                                            </Image.GestureRecognizers>
+                                        </Image>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Checklist de validação de senha -->
+                                <VerticalStackLayout
+                                    x:Name="PasswordRulesPanel"
+                                    Margin="4,0,0,10"
+                                    Spacing="2">
+                                    <Label
+                                        Text="Sua senha deve conter:"
+                                        TextColor="#1A1A1A"
+                                        FontFamily="PoppinsSemibold"
+                                        FontSize="12"
+                                        Margin="0,0,0,2" />
+                                    <Label x:Name="RuleLength"   Text="No mínimo 8 dígitos."           TextColor="#9E9E9E" FontFamily="PoppinsRegular" FontSize="12" />
+                                    <Label x:Name="RuleUpper"    Text="Pelo menos 1 letra maiúscula."  TextColor="#9E9E9E" FontFamily="PoppinsRegular" FontSize="12" />
+                                    <Label x:Name="RuleLower"    Text="Pelo menos 1 letra minúscula."  TextColor="#9E9E9E" FontFamily="PoppinsRegular" FontSize="12" />
+                                    <Label x:Name="RuleNumber"   Text="Pelo menos 1 número."           TextColor="#9E9E9E" FontFamily="PoppinsRegular" FontSize="12" />
+                                    <Label x:Name="RuleSpecial"  Text="Pelo menos 1 caractere especial." TextColor="#9E9E9E" FontFamily="PoppinsRegular" FontSize="12" />
+                                </VerticalStackLayout>
+
+                                <!-- Confirmar senha -->
+                                <Border
+                                    x:Name="ConfirmPasswordFieldBorder"
+                                    HeightRequest="52"
+                                    BackgroundColor="#3f3838"
+                                    StrokeThickness="0"
+                                    Margin="0,0,0,4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="26" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="White"
+                                            StrokeThickness="0"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="17" />
+                                            </Border.StrokeShape>
+                                            <Image
+                                                Source="key_hole.svg"
+                                                WidthRequest="18"
+                                                HeightRequest="18"
+                                                Aspect="AspectFit"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+                                        </Border>
+                                        <Entry
+                                            Grid.Column="1"
+                                            x:Name="ConfirmPasswordEntry"
+                                            Placeholder="Confirme sua senha"
+                                            PlaceholderColor="#9E9E9E"
+                                            TextColor="White"
+                                            FontFamily="PoppinsRegular"
+                                            FontSize="14"
+                                            IsPassword="True"
+                                            BackgroundColor="Transparent"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center" />
+                                        <Image
+                                            Grid.Column="2"
+                                            x:Name="ConfirmEyeIcon"
+                                            Source="eve_crossed.svg"
+                                            WidthRequest="22"
+                                            HeightRequest="22"
+                                            Aspect="AspectFit"
+                                            VerticalOptions="Center"
+                                            Margin="0,0,14,0">
+                                            <Image.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnToggleConfirmPasswordTapped" />
+                                            </Image.GestureRecognizers>
+                                        </Image>
+                                    </Grid>
+                                </Border>
+                                <Label
+                                    x:Name="ConfirmPasswordError"
+                                    TextColor="#E53935"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="11"
+                                    Margin="14,0,0,6"
+                                    IsVisible="False" />
+
+                                <!-- Checkbox — Termos de Uso -->
+                                <Grid
+                                    ColumnDefinitions="Auto,*"
+                                    Margin="2,0,2,4"
+                                    ColumnSpacing="10"
+                                    VerticalOptions="Center">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnTermsTapped" />
+                                    </Grid.GestureRecognizers>
+                                    <Border
+                                        Grid.Column="0"
+                                        x:Name="TermsCheckBorder"
+                                        WidthRequest="22"
+                                        HeightRequest="22"
+                                        BackgroundColor="Transparent"
+                                        Stroke="#3A6B4A"
+                                        StrokeThickness="2"
+                                        VerticalOptions="Start"
+                                        Margin="0,1,0,0">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="4" />
+                                        </Border.StrokeShape>
+                                        <Label
+                                            x:Name="TermsCheckMark"
+                                            Text="✓"
+                                            TextColor="#3A6B4A"
+                                            FontSize="13"
+                                            FontAttributes="Bold"
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center"
+                                            IsVisible="False" />
+                                    </Border>
+                                    <Label Grid.Column="1" VerticalOptions="Center">
+                                        <Label.FormattedText>
+                                            <FormattedString>
+                                                <Span
+                                                    Text="Confirmo que li e concordo com os "
+                                                    TextColor="#1A1A1A"
+                                                    FontFamily="PoppinsRegular"
+                                                    FontSize="13" />
+                                                <Span
+                                                    Text="Termos de Uso e Privacidade."
+                                                    TextColor="#427A5B"
+                                                    FontFamily="PoppinsSemibold"
+                                                    TextDecorations="Underline"
+                                                    FontSize="13">
+                                                </Span>
+                                            </FormattedString>
+                                        </Label.FormattedText>
+                                    </Label>
+                                </Grid>
+                                <Label
+                                    x:Name="TermsError"
+                                    TextColor="#E53935"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="11"
+                                    Margin="14,0,0,10"
+                                    IsVisible="False" />
+
+                                <!-- Checkbox — Notificações por e-mail -->
+                                <Grid
+                                    ColumnDefinitions="Auto,*"
+                                    Margin="2,0,2,18"
+                                    ColumnSpacing="10"
+                                    VerticalOptions="Center">
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnEmailNotificationsTapped" />
+                                    </Grid.GestureRecognizers>
+                                    <Border
+                                        Grid.Column="0"
+                                        x:Name="EmailNotificationsCheckBorder"
+                                        WidthRequest="22"
+                                        HeightRequest="22"
+                                        BackgroundColor="Transparent"
+                                        Stroke="#3A6B4A"
+                                        StrokeThickness="2"
+                                        VerticalOptions="Start"
+                                        Margin="0,1,0,0">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="4" />
+                                        </Border.StrokeShape>
+                                        <Label
+                                            x:Name="EmailNotificationsCheckMark"
+                                            Text="✓"
+                                            TextColor="#3A6B4A"
+                                            FontSize="13"
+                                            FontAttributes="Bold"
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center"
+                                            IsVisible="False" />
+                                    </Border>
+                                    <Label
+                                        Grid.Column="1"
+                                        Text="Desejo receber notificações via e-mail."
+                                        TextColor="#1A1A1A"
+                                        FontFamily="PoppinsRegular"
+                                        FontSize="13"
+                                        VerticalOptions="Center" />
+                                </Grid>
+
+                                <Button
+                                    x:Name="RegisterButton"
+                                    Text="Criar conta"
+                                    FontFamily="PoppinsBold"
+                                    FontAttributes="Bold"
+                                    FontSize="16"
+                                    TextColor="White"
+                                    BackgroundColor="#3f3838"
+                                    CornerRadius="26"
+                                    HeightRequest="52"
+                                    Margin="0,0,0,18"
+                                    Clicked="OnRegisterSubmitClicked" />
+
+
+                            </VerticalStackLayout>
+
+                            <!-- Envolva os três elementos neste StackLayout -->
+                            <VerticalStackLayout x:Name="SocialAndFooterPanel" Spacing="0">
+
+                                <!-- DIVIDER -->
+                                <Grid ColumnDefinitions="*,Auto,*" Margin="0,0,0,14">
+                                    <BoxView Grid.Column="0" Color="#C5C2BC" HeightRequest="1" VerticalOptions="Center" />
+                                    <Label
+                                        Grid.Column="1"
+                                        Text=" Ou ... "
+                                        TextColor="#9E9E9E"
+                                        FontFamily="PoppinsRegular"
+                                        FontSize="12" />
+                                    <BoxView Grid.Column="2" Color="#C5C2BC" HeightRequest="1" VerticalOptions="Center" />
+                                </Grid>
+
+                                <!-- GOOGLE -->
+                                <Border
+                                    HeightRequest="52"
+                                    BackgroundColor="#3f3838"
+                                    StrokeThickness="0"
+                                    Margin="0,0,0,18">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="26" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="30"
+                                            HeightRequest="30"
+                                            BackgroundColor="White"
+                                            StrokeThickness="0"
+                                            Margin="14,0,0,0"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="15" />
+                                            </Border.StrokeShape>
+                                            <Image
+                                                Source="google_icon.svg"
+                                                WidthRequest="18"
+                                                HeightRequest="18"
+                                                Aspect="AspectFit"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+                                        </Border>
+                                        <Label
+                                            Grid.Column="1"
+                                            Text="Continue com Google"
+                                            TextColor="White"
+                                            FontFamily="PoppinsSemibold"
+                                            FontAttributes="Bold"
+                                            FontSize="14"
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnGoogleLoginTapped" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+
+                                <!-- RODAPÉ -->
+                                <HorizontalStackLayout HorizontalOptions="Center" Spacing="4" Margin="0,0,0,24">
+                                    <Label
+                                        x:Name="FooterPromptLabel"
+                                        Text="Ainda não tem uma conta?"
+                                        TextColor="#6B6B6B"
+                                        FontFamily="PoppinsRegular"
+                                        FontSize="13" />
+                                    <Label
+                                        x:Name="FooterActionLabel"
+                                        Text="Crie uma!"
+                                        TextColor="#427A5B"
+                                        FontFamily="PoppinsSemibold"
+                                        FontAttributes="Bold"
+                                        FontSize="13">
+                                        <Label.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="OnFooterActionTapped" />
+                                        </Label.GestureRecognizers>
+                                    </Label>
+                                </HorizontalStackLayout>
+
+                            </VerticalStackLayout>
+                            <!-- ══════════════════════════════════════════
+                                 ESQUECI MINHA SENHA — Step 1: e-mail
+                                 ══════════════════════════════════════════ -->
+                            <VerticalStackLayout x:Name="ForgotPasswordPanel" IsVisible="False" Spacing="0">
+
+                                <Label
+                                    Text="Relaxa, a gente super te entende!"
+                                    TextColor="#1A1A1A"
+                                    FontFamily="PoppinsSemibold"
+                                    FontSize="15"
+                                    Margin="0,0,0,6" />
+                                <Label
+                                    Text="Vamos dar um jeito nisso..."
+                                    TextColor="#6B6B6B"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="14"
+                                    Margin="0,0,0,24" />
+
+                                <Border
+                                    x:Name="ForgotEmailFieldBorder"
+                                    HeightRequest="52"
+                                    BackgroundColor="#3f3838"
+                                    StrokeThickness="0"
+                                    Margin="0,0,0,4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="26" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="White"
+                                            StrokeThickness="0"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="17" />
+                                            </Border.StrokeShape>
+                                            <Image
+                                                Source="email.svg"
+                                                WidthRequest="18"
+                                                HeightRequest="18"
+                                                Aspect="AspectFit"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+                                        </Border>
+                                        <Entry
+                                            Grid.Column="1"
+                                            x:Name="ForgotEmailEntry"
+                                            Placeholder="Digite seu e-mail cadastrado"
+                                            PlaceholderColor="#9E9E9E"
+                                            TextColor="White"
+                                            FontFamily="PoppinsRegular"
+                                            FontSize="14"
+                                            Keyboard="Email"
+                                            BackgroundColor="Transparent"
+                                            Margin="10,0,14,0"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+                                <Label
+                                    x:Name="ForgotEmailError"
+                                    TextColor="#E53935"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="11"
+                                    Margin="14,0,0,24"
+                                    IsVisible="False" />
+
+                                <Button
+                                    Text="Confirmar código"
+                                    FontFamily="PoppinsBold"
+                                    FontAttributes="Bold"
+                                    FontSize="16"
+                                    TextColor="White"
+                                    BackgroundColor="#3f3838"
+                                    CornerRadius="26"
+                                    HeightRequest="52"
+                                    Margin="0,0,0,20"
+                                    Clicked="OnForgotPasswordSendClicked" />
+
+                                <Label
+                                    Text="Já lembrei!"
+                                    TextColor="#427A5B"
+                                    FontFamily="PoppinsSemibold"
+                                    FontAttributes="Bold"
+                                    FontSize="14"
+                                    HorizontalOptions="Center">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnAlreadyRememberedTapped" />
+                                    </Label.GestureRecognizers>
+                                </Label>
+
+                            </VerticalStackLayout>
+
+                            <!-- ══════════════════════════════════════════
+                                 ESQUECI MINHA SENHA — Step 2: código
+                                 ══════════════════════════════════════════ -->
+                            <VerticalStackLayout x:Name="ForgotPasswordCodePanel" IsVisible="False" Spacing="0">
+
+                                <Label
+                                    TextColor="#1A1A1A"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="14"
+                                    LineHeight="1.4"
+                                    Margin="0,0,0,24">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Se encontramos uma conta associada à esse e-mail, enviamos um código de verificação de " FontFamily="PoppinsRegular" FontSize="14" TextColor="#1A1A1A" />
+                                            <Span Text="6 dígitos" FontFamily="PoppinsSemibold" FontSize="14" TextColor="#1A1A1A" />
+                                            <Span Text=" para o mesmo... Pode confirmar pra gente?" FontFamily="PoppinsRegular" FontSize="14" TextColor="#1A1A1A" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <Border
+                                    x:Name="ForgotCodeFieldBorder"
+                                    HeightRequest="52"
+                                    BackgroundColor="#3f3838"
+                                    StrokeThickness="0"
+                                    Margin="0,0,0,4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="26" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="White"
+                                            StrokeThickness="0"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="17" />
+                                            </Border.StrokeShape>
+                                            <Image
+                                                Source="lock.svg"
+                                                WidthRequest="18"
+                                                HeightRequest="18"
+                                                Aspect="AspectFit"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+                                        </Border>
+                                        <Entry
+                                            Grid.Column="1"
+                                            x:Name="ForgotCodeEntry"
+                                            Placeholder="Digite o código recebido"
+                                            PlaceholderColor="#9E9E9E"
+                                            TextColor="White"
+                                            FontFamily="PoppinsRegular"
+                                            FontSize="14"
+                                            Keyboard="Numeric"
+                                            MaxLength="6"
+                                            BackgroundColor="Transparent"
+                                            Margin="10,0,14,0"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+                                <Label
+                                    x:Name="ForgotCodeError"
+                                    TextColor="#E53935"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="11"
+                                    Margin="14,0,0,4"
+                                    IsVisible="False" />
+
+                                <!-- Reenviar com countdown -->
+                                <Label
+                                    x:Name="ResendForgotLabel"
+                                    TextColor="#9E9E9E"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="12"
+                                    Margin="4,0,0,24">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnResendForgotCodeTapped" />
+                                    </Label.GestureRecognizers>
+                                </Label>
+
+                                <Button
+                                    Text="Confirmar código"
+                                    FontFamily="PoppinsBold"
+                                    FontAttributes="Bold"
+                                    FontSize="16"
+                                    TextColor="White"
+                                    BackgroundColor="#3f3838"
+                                    CornerRadius="26"
+                                    HeightRequest="52"
+                                    Margin="0,0,0,20"
+                                    Clicked="OnForgotPasswordConfirmCodeClicked" />
+
+                                <Label
+                                    Text="Já lembrei!"
+                                    TextColor="#427A5B"
+                                    FontFamily="PoppinsSemibold"
+                                    FontAttributes="Bold"
+                                    FontSize="14"
+                                    HorizontalOptions="Center">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnAlreadyRememberedTapped" />
+                                    </Label.GestureRecognizers>
+                                </Label>
+
+                            </VerticalStackLayout>
+
+                            <!-- ══════════════════════════════════════════
+                                 ESQUECI MINHA SENHA — Step 3: nova senha
+                                 ══════════════════════════════════════════ -->
+                            <VerticalStackLayout x:Name="ResetPasswordPanel" IsVisible="False" Spacing="0">
+
+                                <Label
+                                    Text="Prontinho, agora é só escolher a senha nova! :)"
+                                    TextColor="#1A1A1A"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="14"
+                                    LineHeight="1.4"
+                                    Margin="0,0,0,24" />
+
+                                <!-- Nova senha -->
+                                <Border
+                                    x:Name="ResetPasswordFieldBorder"
+                                    HeightRequest="52"
+                                    BackgroundColor="#3f3838"
+                                    StrokeThickness="0"
+                                    Margin="0,0,0,6">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="26" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="White"
+                                            StrokeThickness="0"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="17" />
+                                            </Border.StrokeShape>
+                                            <Image
+                                                Source="key.svg"
+                                                WidthRequest="18"
+                                                HeightRequest="18"
+                                                Aspect="AspectFit"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+                                        </Border>
+                                        <Entry
+                                            Grid.Column="1"
+                                            x:Name="ResetPasswordEntry"
+                                            Placeholder="Senha"
+                                            PlaceholderColor="#9E9E9E"
+                                            TextColor="White"
+                                            FontFamily="PoppinsRegular"
+                                            FontSize="14"
+                                            IsPassword="True"
+                                            BackgroundColor="Transparent"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center"
+                                            TextChanged="OnResetPasswordChanged" />
+                                        <Image
+                                            Grid.Column="2"
+                                            x:Name="ResetEyeIcon"
+                                            Source="eve_crossed.svg"
+                                            WidthRequest="22"
+                                            HeightRequest="22"
+                                            Aspect="AspectFit"
+                                            VerticalOptions="Center"
+                                            Margin="0,0,14,0">
+                                            <Image.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnToggleResetPasswordTapped" />
+                                            </Image.GestureRecognizers>
+                                        </Image>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Checklist de validação -->
+                                <VerticalStackLayout Margin="4,0,0,10" Spacing="2">
+                                    <Label Text="Sua senha deve conter:" TextColor="#1A1A1A" FontFamily="PoppinsSemibold" FontSize="12" Margin="0,0,0,2" />
+                                    <Label x:Name="ResetRuleLength"  Text="No mínimo 8 dígitos."             TextColor="#9E9E9E" FontFamily="PoppinsRegular" FontSize="12" />
+                                    <Label x:Name="ResetRuleUpper"   Text="Pelo menos 1 letra maiúscula."    TextColor="#9E9E9E" FontFamily="PoppinsRegular" FontSize="12" />
+                                    <Label x:Name="ResetRuleLower"   Text="Pelo menos 1 letra minúscula."    TextColor="#9E9E9E" FontFamily="PoppinsRegular" FontSize="12" />
+                                    <Label x:Name="ResetRuleNumber"  Text="Pelo menos 1 número."             TextColor="#9E9E9E" FontFamily="PoppinsRegular" FontSize="12" />
+                                    <Label x:Name="ResetRuleSpecial" Text="Pelo menos 1 caractere especial." TextColor="#9E9E9E" FontFamily="PoppinsRegular" FontSize="12" />
+                                </VerticalStackLayout>
+
+                                <!-- Confirmar nova senha -->
+                                <Border
+                                    x:Name="ResetConfirmFieldBorder"
+                                    HeightRequest="52"
+                                    BackgroundColor="#3f3838"
+                                    StrokeThickness="0"
+                                    Margin="0,0,0,4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="26" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*,Auto" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="White"
+                                            StrokeThickness="0"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="17" />
+                                            </Border.StrokeShape>
+                                            <Image
+                                                Source="key_hole.svg"
+                                                WidthRequest="18"
+                                                HeightRequest="18"
+                                                Aspect="AspectFit"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+                                        </Border>
+                                        <Entry
+                                            Grid.Column="1"
+                                            x:Name="ResetConfirmEntry"
+                                            Placeholder="Confirme sua senha"
+                                            PlaceholderColor="#9E9E9E"
+                                            TextColor="White"
+                                            FontFamily="PoppinsRegular"
+                                            FontSize="14"
+                                            IsPassword="True"
+                                            BackgroundColor="Transparent"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center" />
+                                        <Image
+                                            Grid.Column="2"
+                                            x:Name="ResetConfirmEyeIcon"
+                                            Source="eve_crossed.svg"
+                                            WidthRequest="22"
+                                            HeightRequest="22"
+                                            Aspect="AspectFit"
+                                            VerticalOptions="Center"
+                                            Margin="0,0,14,0">
+                                            <Image.GestureRecognizers>
+                                                <TapGestureRecognizer Tapped="OnToggleResetConfirmTapped" />
+                                            </Image.GestureRecognizers>
+                                        </Image>
+                                    </Grid>
+                                </Border>
+                                <Label
+                                    x:Name="ResetConfirmError"
+                                    TextColor="#E53935"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="11"
+                                    Margin="14,0,0,24"
+                                    IsVisible="False" />
+
+                                <Button
+                                    Text="Confirmar código"
+                                    FontFamily="PoppinsBold"
+                                    FontAttributes="Bold"
+                                    FontSize="16"
+                                    TextColor="White"
+                                    BackgroundColor="#3f3838"
+                                    CornerRadius="26"
+                                    HeightRequest="52"
+                                    Margin="0,0,0,20"
+                                    Clicked="OnResetPasswordSubmitClicked" />
+
+                                <Label
+                                    Text="Já lembrei!"
+                                    TextColor="#427A5B"
+                                    FontFamily="PoppinsSemibold"
+                                    FontAttributes="Bold"
+                                    FontSize="14"
+                                    HorizontalOptions="Center">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnAlreadyRememberedTapped" />
+                                    </Label.GestureRecognizers>
+                                </Label>
+
+                            </VerticalStackLayout>
+
+                            <!-- ══════════════════════════════════════════
+                                 CONFIRMAR E-MAIL (pós-cadastro)
+                                 ══════════════════════════════════════════ -->
+                            <VerticalStackLayout x:Name="VerifyEmailPanel" IsVisible="False" Spacing="0">
+
+                                <Label
+                                    TextColor="#1A1A1A"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="14"
+                                    LineHeight="1.4"
+                                    Margin="0,0,0,6">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Estamos quase lá! Falta só confirmar seu email, ele é muito importante pra gente " FontFamily="PoppinsRegular" FontSize="14" TextColor="#1A1A1A" />
+                                            <Span Text="(assim como você)" FontFamily="PoppinsSemibold" FontSize="14" TextColor="#1A1A1A" />
+                                            <Span Text="!" FontFamily="PoppinsRegular" FontSize="14" TextColor="#1A1A1A" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+                                <Label
+                                    x:Name="VerifyEmailAddressLabel"
+                                    TextColor="#6B6B6B"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="14"
+                                    LineHeight="1.4"
+                                    Margin="0,0,0,24">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="Enviamos um código de confirmação para o seu email " FontFamily="PoppinsRegular" FontSize="14" TextColor="#6B6B6B" />
+                                            <Span x:Name="VerifyEmailAddressSpan" Text="" FontFamily="PoppinsSemibold" FontSize="14" TextColor="#3A6B4A" />
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <Border
+                                    x:Name="VerifyCodeFieldBorder"
+                                    HeightRequest="52"
+                                    BackgroundColor="#3f3838"
+                                    StrokeThickness="0"
+                                    Margin="0,0,0,4">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="26" />
+                                    </Border.StrokeShape>
+                                    <Grid ColumnDefinitions="Auto,*" VerticalOptions="Center">
+                                        <Border
+                                            Grid.Column="0"
+                                            WidthRequest="34"
+                                            HeightRequest="34"
+                                            BackgroundColor="White"
+                                            StrokeThickness="0"
+                                            Margin="10,0,0,0"
+                                            VerticalOptions="Center">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="17" />
+                                            </Border.StrokeShape>
+                                            <Image
+                                                Source="lock.svg"
+                                                WidthRequest="18"
+                                                HeightRequest="18"
+                                                Aspect="AspectFit"
+                                                HorizontalOptions="Center"
+                                                VerticalOptions="Center" />
+                                        </Border>
+                                        <Entry
+                                            Grid.Column="1"
+                                            x:Name="VerifyCodeEntry"
+                                            Placeholder="Digite o código recebido"
+                                            PlaceholderColor="#9E9E9E"
+                                            TextColor="White"
+                                            FontFamily="PoppinsRegular"
+                                            FontSize="14"
+                                            Keyboard="Numeric"
+                                            MaxLength="6"
+                                            BackgroundColor="Transparent"
+                                            Margin="10,0,14,0"
+                                            VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+                                <Label
+                                    x:Name="VerifyCodeError"
+                                    TextColor="#E53935"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="11"
+                                    Margin="14,0,0,4"
+                                    IsVisible="False" />
+
+                                <!-- Reenviar com countdown -->
+                                <Label
+                                    x:Name="ResendVerifyLabel"
+                                    TextColor="#9E9E9E"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="12"
+                                    Margin="4,0,0,24">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnResendVerifyCodeTapped" />
+                                    </Label.GestureRecognizers>
+                                </Label>
+
+                                <Button
+                                    Text="Confirmar código"
+                                    FontFamily="PoppinsBold"
+                                    FontAttributes="Bold"
+                                    FontSize="16"
+                                    TextColor="White"
+                                    BackgroundColor="#3f3838"
+                                    CornerRadius="26"
+                                    HeightRequest="52"
+                                    Margin="0,0,0,20"
+                                    Clicked="OnVerifyEmailConfirmClicked" />
+
+                                <Label
+                                    Text="Confirmo depois (prometo)"
+                                    TextColor="#427A5B"
+                                    FontFamily="PoppinsSemibold"
+                                    FontAttributes="Bold"
+                                    FontSize="14"
+                                    HorizontalOptions="Center">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnSkipVerifyEmailTapped" />
+                                    </Label.GestureRecognizers>
+                                </Label>
+
+                            </VerticalStackLayout>
+
+                        </VerticalStackLayout>
+                    </ScrollView>
+                </Border>
+
+            </Grid>
+        </Border>
+
+    </Grid>
+
+</ContentPage>
