@@ -69,6 +69,13 @@ public class CreateUserRequestDto
     [JsonPropertyName("userIsAdmin")]
     public bool? UserIsAdmin { get; set; }
 
+    /// <summary>
+    /// Whether the user has accepted the terms and conditions.
+    /// Required. Maps to <c>user_accepted_terms</c>.
+    /// </summary>
+    [JsonPropertyName("userAcceptedTerms")]
+    public required bool UserAcceptedTerms { get; set; }
+
     // ── Validation helpers ────────────────────────────────────────────────
 
     /// <summary>
@@ -78,7 +85,9 @@ public class CreateUserRequestDto
         !string.IsNullOrWhiteSpace(UserName) &&
         !string.IsNullOrWhiteSpace(UserEmail) &&
         !string.IsNullOrWhiteSpace(Password) &&
-        !string.IsNullOrWhiteSpace(ConfirmPassword);
+        !string.IsNullOrWhiteSpace(ConfirmPassword) &&
+        UserAcceptedTerms
+        ;
 
     /// <summary>
     /// Returns <c>true</c> when Password and ConfirmPassword match.

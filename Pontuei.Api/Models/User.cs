@@ -78,6 +78,23 @@ public class User : BaseEntity
     [Column("user_email_notifications_enabled"), DataMember]
     public bool UserEmailNotificationsEnabled { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the user has accepted the terms and conditions.
+    /// </summary>
+    [Column("user_accepted_terms"), DataMember]
+    public required bool UserAcceptedTerms { get; set; }
+
+    /// <summary>
+    /// Gets or sets the timestamp of when the user accepted the terms and conditions.
+    /// </summary>
+    [Column("user_accepted_terms_at"), DataMember]
+    public required DateTime UserAcceptedTermsAt { get; set; }
+
+    /// <summary>
+    /// Gets or sets the version of the terms and conditions accepted by the user.
+    /// </summary>
+    [Column("user_accepted_terms_version"), DataMember]
+    public required string UserAcceptedTermsVersion { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the user has administrative privileges.

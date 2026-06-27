@@ -69,7 +69,10 @@ public class UserRepository : BaseRepository, IUserRepository
             UserIsAdmin = requestDto.UserIsAdmin ?? false,
             UserPhoneNumber = requestDto.UserPhoneNumber,
             CreationTime = DateTime.UtcNow,
-            CreationUser = createdBy
+            CreationUser = createdBy,
+            UserAcceptedTerms = requestDto.UserAcceptedTerms,
+            UserAcceptedTermsAt = DateTime.UtcNow,
+            UserAcceptedTermsVersion = "1.0.0"
         };
 
         _dbContext.Users.Add(user);

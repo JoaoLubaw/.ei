@@ -23,6 +23,10 @@ CREATE TABLE public."user"
 	user_email_notifications_enabled boolean NOT NULL   DEFAULT True,	-- Whether the user opted in to email notifications.
 		
 	user_is_admin boolean NOT NULL   DEFAULT False,	-- Whether the user has admin privileges.
+
+	user_accepted_terms boolean NOT NULL   DEFAULT True,	-- Whether the user has accepted the terms and conditions.
+	user_accepted_terms_at timestamp NOT NULL,	-- Timestamp of terms and conditions acceptance.
+	user_accepted_terms_version varchar(20) NOT NULL,	-- Version of the terms and conditions accepted by the user.
 	
 	-- Audit columns
 	row_creation_time timestamp NOT NULL   DEFAULT CURRENT_TIMESTAMP,	-- Row creation time.
