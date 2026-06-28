@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Pontuei.App.Views.ProgramSelectionPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Pontuei.App.Views"
+    xmlns:dtos="clr-namespace:Pontuei.Shared.Dtos.Objects;assembly=Pontuei.Shared"
+    xmlns:ffimageloading="clr-namespace:FFImageLoading.Maui;assembly=FFImageLoading.Maui"
+    Shell.NavBarIsVisible="False"
+    NavigationPage.HasNavigationBar="False"
+    BackgroundColor="#000000">
+
+    <!-- Grid principal separando o fundo preto do cartão bege -->
+    <Grid RowDefinitions="Auto, *">
+        <Border
+            Grid.Row="1" 
+            BackgroundColor="#E9E2E2"
+            StrokeThickness="0">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="32,32,0,0" />
+            </Border.StrokeShape>
+
+            <!-- Grid de conteúdo: Header(0), Lista(1), Botão(2) -->
+            <Grid RowDefinitions="Auto, *, Auto" Padding="28,24,28,28">
+
+                <!-- HEADER -->
+                <VerticalStackLayout Grid.Row="0" Spacing="6" Margin="0,0,0,20">
+                    <ffimageloading:CachedImage Source="logo.svg" HeightRequest="60" HorizontalOptions="End" Aspect="AspectFit" />
+                    <Label Text="A gente precisa saber..." TextColor="#6B6B6B" FontSize="18" FontFamily="PoppinsRegular" />
+                    <Label Text="Quais os seus principais sistemas de pontuação atualmente?" 
+                           TextColor="#000000" FontSize="22" LineHeight="1.2" />
+                </VerticalStackLayout>
+
+                <!-- SCROLLVIEW COM A LISTA -->
+                <ScrollView Grid.Row="1" VerticalScrollBarVisibility="Never">
+                    <VerticalStackLayout Spacing="12">
+                        <CollectionView x:Name="ProgramsCollectionView"
+                                        SelectionMode="None"
+                                        ItemsSource="{Binding ProgramItems}"
+                                        VerticalOptions="Start"
+                                        VerticalScrollBarVisibility="Never">
+                            <CollectionView.ItemsLayout>
+                                <GridItemsLayout
+                                    Orientation="Vertical"
+                                    Span="3"
+                                    VerticalItemSpacing="12"
+                                    HorizontalItemSpacing="12" />
+                            </CollectionView.ItemsLayout>
+
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="local:ProgramSelectItem">
+                                    <Border
+                                        x:Name="ProgramBorder"
+                                        HeightRequest="84"
+                                        BackgroundColor="White"
+                                        StrokeShape="RoundRectangle 16"
+                                        StrokeThickness="2"
+                                        Stroke="Transparent">
+
+                                        <Border.GestureRecognizers>
+                                            <!-- CommandParameter passa o próprio Border para o handler -->
+                                            <TapGestureRecognizer
+                                                Tapped="OnProgramTapped"
+                                                CommandParameter="{x:Reference ProgramBorder}" />
+                                        </Border.GestureRecognizers>
+
+                                        <ffimageloading:CachedImage
+                                            Source="{Binding LogoUrl}"
+                                            Aspect="AspectFit"
+                                            Margin="14"
+                                            HorizontalOptions="Center"
+                                            VerticalOptions="Center"
+                                            InputTransparent="True" />
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                        <!-- OUTRO -->
+                        <Border
+                            x:Name="OtherOptionBorder"
+                            HeightRequest="84"
+                            BackgroundColor="White"
+                            StrokeShape="RoundRectangle 16"
+                            StrokeThickness="2"
+                            Stroke="Transparent">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnOtherTapped" />
+                            </Border.GestureRecognizers>
+                            <Label
+                                Text="Outro"
+                                TextColor="#1A1A1A"
+                                FontFamily="PoppinsSemibold"
+                                FontAttributes="Bold"
+                                FontSize="18"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center" />
+                        </Border>
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                <!-- CONTINUAR -->
+                <Button
+                    Grid.Row="2"
+                    x:Name="ContinueButton"
+                    Text="Continuar"
+                    FontFamily="PoppinsBold"
+                    FontAttributes="Bold"
+                    FontSize="16"
+                    TextColor="White"
+                    BackgroundColor="#3f3838"
+                    CornerRadius="26"
+                    HeightRequest="52"
+                    Margin="0,20,0,0"
+                    Clicked="OnContinueClicked"
+                    IsEnabled="False" />
+
+            </Grid>
+        </Border>
+    </Grid>
+</ContentPage>

@@ -2,6 +2,11 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Amazon.S3.Util;
+
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
+
 using Microsoft.AspNetCore.Http;
 using Pontuei.Api.Interfaces.Services;
 
@@ -40,15 +45,33 @@ public class MinioStorageService : IStorageService
         string fileExtension = Path.GetExtension(file.FileName);
         string uniqueFileName = $"{userId}/{transactionId}/{Guid.NewGuid()}{fileExtension}";
 
-        using MemoryStream newMemoryStream = new MemoryStream();
-        await file.CopyToAsync(newMemoryStream);
+        Stream uploadStream;
+        string contentType = file.ContentType;
+
+        try
+        {
+            using Image image = await Image.LoadAsync(file.OpenReadStream());
+
+            MemoryStream outputStream = new MemoryStream();
+            await image.SaveAsync(outputStream, new WebpEncoder());
+            outputStream.Position = 0;
+
+            uploadStream = outputStream;
+            contentType = "image/webp";
+            _logger.LogInformation("Image converted to WebP successfully.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInformation("File is not a processable image, keeping original format. Error: {Msg}", ex.Message);
+            uploadStream = file.OpenReadStream();
+        }
 
         TransferUtilityUploadRequest uploadRequest = new TransferUtilityUploadRequest
         {
-            InputStream = newMemoryStream,
+            InputStream = uploadStream,
             Key = uniqueFileName,
             BucketName = _bucketMedia,
-            ContentType = file.ContentType
+            ContentType = contentType
         };
 
         TransferUtility fileTransferUtility = new TransferUtility(_s3Client);
@@ -82,14 +105,36 @@ public class MinioStorageService : IStorageService
     {
         await EnsureBucketExistsAsync(_bucketPrograms, true);
 
-        string key = $"loyalty-programs/{fileName}";
+        Stream uploadStream = stream;
+        string finalContentType = contentType;
+        string finalFileName = fileName;
+
+        try
+        {
+            using Image image = await Image.LoadAsync(stream);
+
+            MemoryStream outputStream = new MemoryStream();
+            await image.SaveAsync(outputStream, new WebpEncoder());
+            outputStream.Position = 0;
+
+            uploadStream = outputStream;
+            finalContentType = "image/webp";
+            finalFileName = Path.ChangeExtension(fileName, ".webp");
+            _logger.LogInformation("Logo converted to WebP: {FileName}", finalFileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInformation("File is not a processable image or conversion failed. Keeping original: {Msg}", ex.Message);
+        }
+
+        string key = $"loyalty-programs/{finalFileName}";
 
         TransferUtilityUploadRequest uploadRequest = new TransferUtilityUploadRequest
         {
-            InputStream = stream,
+            InputStream = uploadStream,
             Key = key,
             BucketName = _bucketPrograms,
-            ContentType = contentType,
+            ContentType = finalContentType,
             CannedACL = S3CannedACL.PublicRead
         };
 
@@ -98,7 +143,6 @@ public class MinioStorageService : IStorageService
 
         return $"/{_bucketPrograms}/{key}";
     }
-
     private async Task EnsureBucketExistsAsync(string bucketName, bool publicRead = false)
     {
         bool exists = await AmazonS3Util.DoesS3BucketExistV2Async(_s3Client, bucketName);

@@ -16,21 +16,8 @@ public partial class AppShell : Shell
         // Tela 2: Login / Cadastro
         Routing.RegisterRoute("auth", typeof(AuthPage));
 
-        // Tela 3: Esqueci minha senha (step 1 — pedir e-mail)
-        // Routing.RegisterRoute("forgot-password", typeof(ForgotPasswordPage));
-
-        // Tela 4: Verificar código (pós forgot-password e pós-cadastro)
-        // Routing.RegisterRoute("verify-code", typeof(VerifyCodePage));
-
-        // Tela 5: Nova senha
-        // Routing.RegisterRoute("reset-password", typeof(ResetPasswordPage));
-
-        // Tela 6: Confirmar e-mail (pós-cadastro)
-        // Routing.RegisterRoute("verify-email", typeof(VerifyEmailPage));
-
         // ── Onboarding ────────────────────────────────────────────────────
-        // Tela 7: Selecionar programas de fidelidade (primeira vez)
-        // Routing.RegisterRoute("program-selection", typeof(ProgramSelectionPage));
+        Routing.RegisterRoute("program-selection", typeof(ProgramSelectionPage));
 
         // ── Fluxo principal (dentro do Shell com tab bar) ─────────────────
         // Tela 9/10: Transação — criar / editar

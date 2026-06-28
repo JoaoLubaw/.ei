@@ -3,7 +3,9 @@ services:
   # API - .NET Core
   # ============================================================
   pontuei-api:
-    build: ./Pontuei.Api
+    build:
+      context: .
+      dockerfile: ./Pontuei.Api/Dockerfile
     restart: always
     container_name: pontuei-api
     environment:

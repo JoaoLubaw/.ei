@@ -1,3 +1,4 @@
+using FFImageLoading.Maui;
 using Microsoft.Extensions.Logging;
 using Pontuei.App.Services;
 using Pontuei.App.Views;
@@ -12,6 +13,7 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
+            .UseFFImageLoading()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("Poppins/poppinsRegular.ttf", "PoppinsRegular");
@@ -27,6 +29,7 @@ public static class MauiProgram
         // Views
         builder.Services.AddTransient<SplashPage>();
         builder.Services.AddTransient<AuthPage>();
+        builder.Services.AddTransient<ProgramSelectionPage>();
 
         // PRÓXIMO PASSO: registre cada nova Page aqui conforme for criando:
         // builder.Services.AddTransient<AuthPage>();

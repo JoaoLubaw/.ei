@@ -502,13 +502,13 @@ public partial class AuthPage : ContentPage
         }
 
         // TODO: Validar e-mail na API e efetivar sessão
-        await Shell.Current.GoToAsync("//main");
+        await Shell.Current.GoToAsync("program-selection");
     }
 
     private async void OnSkipVerifyEmailTapped(object sender, TappedEventArgs e)
     {
         // Permite avançar mantendo o status pendente no backend
-        await Shell.Current.GoToAsync("//main");
+        await Shell.Current.GoToAsync("program-selection");
     }
 
     // ══════════════════════════════════════════════════════════════════════

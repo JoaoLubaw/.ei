@@ -6,18 +6,18 @@ public static class LoyaltyProgramLogoSeeder
 {
     private static readonly Dictionary<string, (string FileName, string ContentType)> LogoMap = new()
     {
-        { "Esfera",           ("Esfera.avif",            "image/avif") },
-        { "Dotz",             ("Dotz.svg",               "image/svg+xml") },
-        { "Livelo",           ("Livelo.svg",             "image/svg+xml") },
-        { "Inter Loop",       ("InterLoop.svg",          "image/svg+xml") },
-        { "XP Investimentos", ("XPInvestimentos.svg",    "image/svg+xml") },
-        { "Átomos",           ("Atomos.svg",             "image/svg+xml") },
-        { "Smiles",           ("Smiles.svg",             "image/svg+xml") },
+        { "Esfera",           ("Esfera.webp",            "image/webp") },
+        { "Dotz",             ("Dotz.webp",               "image/webp") },
+        { "Livelo",           ("Livelo.webp",             "image/webp") },
+        { "Inter Loop",       ("InterLoop.webp",          "image/webp") },
+        { "XP Investimentos", ("XPInvestimentos.webp",    "image/webp") },
+        { "Átomos",           ("Atomos.webp",             "image/webp") },
+        { "Smiles",           ("Smiles.webp",             "image/webp") },
         { "Latam Pass",       ("LatamPass.webp",         "image/webp") },
-        { "Azul Fidelidade",  ("Azul.svg",               "image/svg+xml") },
-        { "Itaú",             ("Itau.svg",               "image/svg+xml") },
-        { "Caixa",            ("Caixa.svg",              "image/svg+xml") },
-        { "Stix",             ("Stix.svg",               "image/svg+xml") },
+        { "Azul Fidelidade",  ("Azul.webp",               "image/webp") },
+        { "Itaú",             ("Itau.webp",               "image/webp") },
+        { "Caixa",            ("Caixa.webp",              "image/webp") },
+        { "Stix",             ("Stix.webp",               "image/webp") },
     };
 
     public static async Task SeedAsync(IServiceProvider services, IConfiguration config)
@@ -25,7 +25,7 @@ public static class LoyaltyProgramLogoSeeder
         using IServiceScope scope = services.CreateScope();
 
         PontueiDbContext dbContext = scope.ServiceProvider.GetRequiredService<PontueiDbContext>();
-        IStorageService storageService = scope.ServiceProvider.GetRequiredService<IStorageService>(); // ← aqui
+        IStorageService storageService = scope.ServiceProvider.GetRequiredService<IStorageService>();
         ILogger<Program> logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
         string assetsPath = Path.Combine(
