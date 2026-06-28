@@ -3,98 +3,167 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Pontuei.App.Controls.BottomNavBar">
 
-        <!-- BOTTOM NAVIGATION BAR -->
-        <Grid VerticalOptions="End" 
-          HeightRequest="104" 
+    <!-- BOTTOM NAVIGATION BAR -->
+    <Grid VerticalOptions="End"
+          HeightRequest="104"
           BackgroundColor="Transparent"
           IgnoreSafeArea="True">
 
-            <Border VerticalOptions="End"
-                    StrokeThickness="0"
-                    HeightRequest="80">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="0" />
-                </Border.StrokeShape>
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                        <GradientStop Color="#343a46" Offset="0.0" />
-                        <GradientStop Color="#4E8A61" Offset="0.5" />
-                        <GradientStop Color="#343a46" Offset="1.0" />
-                    </LinearGradientBrush>
-                </Border.Background>
-            </Border>
+        <!-- FUNDO COM GRADIENTE ANIMÁVEL -->
+        <Border x:Name="NavBarBackground"
+                VerticalOptions="End"
+                StrokeThickness="0"
+                HeightRequest="80">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="0" />
+            </Border.StrokeShape>
+            <Border.Background>
+                <!-- Estado Home (padrão): claro no centro -->
+                <LinearGradientBrush x:Name="NavGradient" StartPoint="0,0.5" EndPoint="1,0.5">
+                    <GradientStop x:Name="NavGradientLeft"  Color="#343a46" Offset="0.0" />
+                    <GradientStop                            Color="#4E8A61" Offset="0.5" />
+                    <GradientStop x:Name="NavGradientRight" Color="#343a46" Offset="1.0" />
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
 
-            <Grid VerticalOptions="End" 
-                  HeightRequest="80" 
-                  ColumnDefinitions="*, 56, *" 
-                  Padding="32,0">
+        <!-- BOTÕES LATERAIS -->
+        <Grid VerticalOptions="End"
+            HeightRequest="80"
+            ColumnDefinitions="*, 56, *"
+            Padding="20,0">
+
+            <!-- BOTÃO HISTÓRICO (esquerda) -->
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnViewPastTransactionsTapped" />
+                </Grid.GestureRecognizers>
                 
-                <Image Grid.Column="0" 
-                       Source="clock.svg" 
-                       WidthRequest="24" 
-                       HeightRequest="24" 
-                       Aspect="AspectFit" 
-                       HorizontalOptions="Center" 
-                       VerticalOptions="Center" />
+                <!-- Ícone padrão -->
+                <Image x:Name="HistoryIcon"
+                       Source="clock.svg"
+                       WidthRequest="24"
+                       HeightRequest="24"
+                       Aspect="AspectFit"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       IsVisible="True" />
+                       
+                <!-- Ícone selecionado -->
+                <Image x:Name="HistorySelectedIcon"
+                       Source="clock_selected.svg"
+                       WidthRequest="24"
+                       HeightRequest="24"
+                       Aspect="AspectFit"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       IsVisible="False" />
 
-                <Grid Grid.Column="2" HorizontalOptions="Center" VerticalOptions="Center">
-                    <Image Source="bell.svg" WidthRequest="24" HeightRequest="24" Aspect="AspectFit" />
-                    <Border x:Name="NotificationBadge"
-                            WidthRequest="18"
-                            HeightRequest="18"
-                            HorizontalOptions="End"
-                            VerticalOptions="Start"
-                            TranslationX="6"
-                            TranslationY="-4"
-                            BackgroundColor="#C0392B"
-                            StrokeThickness="0">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="9" />
-                        </Border.StrokeShape>
-                        <Label x:Name="NotificationBadgeLabel"
-                               Text="10"
-                               TextColor="White"
-                               FontFamily="PoppinsSemibold"
-                               FontSize="9"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center" />
-                    </Border>
-                </Grid>
-            </Grid>
+                       
+            <!-- BOTÃO NOTIFICAÇÕES (direita) -->
+            <Grid Grid.Column="2"
+                  x:Name="NotificationsButton"
+                  HorizontalOptions="Center"
+                  VerticalOptions="Center">
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnViewNotificationsTapped" />
+                </Grid.GestureRecognizers>
 
-            <Grid ColumnDefinitions="*, Auto, *" InputTransparent="True">
-                <Border Grid.Column="1" 
-                        x:Name="FabButton" 
-                        WidthRequest="68" 
-                        HeightRequest="68" 
-                        HorizontalOptions="Center" 
+                <!-- Ícone padrão (não selecionado) -->
+                <Image x:Name="BellIcon"
+                       Source="bell.svg"
+                       WidthRequest="24"
+                       HeightRequest="24"
+                       Aspect="AspectFit"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       IsVisible="True" />
+
+                <!-- Ícone selecionado -->
+                <Image x:Name="BellSelectedIcon"
+                       Source="bell_selected.svg"
+                       WidthRequest="24"
+                       HeightRequest="24"
+                       Aspect="AspectFit"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       IsVisible="False" />
+
+                <!-- Badge de notificações -->
+                <Border x:Name="NotificationBadge"
+                        WidthRequest="18"
+                        HeightRequest="18"
+                        HorizontalOptions="End"
                         VerticalOptions="Start"
-                        InputTransparent="False"
+                        TranslationX="6"
+                        TranslationY="-4"
+                        BackgroundColor="#C0392B"
                         StrokeThickness="0">
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="34" />
+                        <RoundRectangle CornerRadius="9" />
                     </Border.StrokeShape>
-                    <Border.Background>
-                        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                            <GradientStop Color="#4E8A61" Offset="0.0" />
-                            <GradientStop Color="#3A6B4A" Offset="0.5" />
-                            <GradientStop Color="#343a46" Offset="1.0" />
-                        </LinearGradientBrush>
-                    </Border.Background>
-                    <Border.Shadow>
-                        <Shadow Brush="Black" Offset="0,3" Radius="5" Opacity="0.3" />
-                    </Border.Shadow>
-                    <Label Text="+" 
-                           TextColor="White" 
-                           FontSize="36" 
-                           FontAttributes="Bold" 
-                           HorizontalOptions="Center" 
-                           VerticalOptions="Center" 
-                           Margin="0,-3,0,0" />
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnAddTransactionTapped" />
-                    </Border.GestureRecognizers>
+                    <Label x:Name="NotificationBadgeLabel"
+                           Text="10"
+                           TextColor="White"
+                           FontFamily="PoppinsSemibold"
+                           FontSize="9"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
                 </Border>
             </Grid>
         </Grid>
+
+        <!-- FAB (botão central flutuante) -->
+        <Grid ColumnDefinitions="*, Auto, *">
+            <Border Grid.Column="1"
+                    x:Name="FabButton"
+                    WidthRequest="68"
+                    HeightRequest="68"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Start"
+                    InputTransparent="False"
+                    StrokeThickness="0">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="34" />
+                </Border.StrokeShape>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                        <GradientStop Color="#4E8A61" Offset="0.0" />
+                        <GradientStop Color="#3A6B4A" Offset="0.5" />
+                        <GradientStop Color="#343a46" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="0,3" Radius="5" Opacity="0.3" />
+                </Border.Shadow>
+
+                <!-- Ícone "+" (tela de adicionar transação / estado home) -->
+        <Grid>
+            <!-- Ícone "+" -->
+            <Label x:Name="FabPlusLabel"
+                   Text="+"
+                   TextColor="White"
+                   FontSize="36"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   Margin="0,-3,0,0"
+                   IsVisible="True" />
+
+            <!-- Ícone Home -->
+            <Image x:Name="FabHomeIcon"
+                   Source="home.svg"
+                   WidthRequest="28"
+                   HeightRequest="28"
+                   Aspect="AspectFit"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center"
+                   IsVisible="False" />
+        </Grid>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnFabTapped" />
+                </Border.GestureRecognizers>
+            </Border>
+        </Grid>
+    </Grid>
 </ContentView>

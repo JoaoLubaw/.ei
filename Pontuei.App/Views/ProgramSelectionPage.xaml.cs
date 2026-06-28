@@ -166,7 +166,7 @@ public partial class ProgramSelectionPage : ContentPage
 
         // TODO: POST vínculo UserLoyaltyProgram (+ flag "Outro" se otherSelected)
 
-        await Shell.Current.GoToAsync("//main");
+        await Shell.Current.GoToAsync("//home");
     }
 }
 

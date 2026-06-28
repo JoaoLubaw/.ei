@@ -6,6 +6,19 @@ public partial class App : Application
 {
     public App()
     {
+        // Captura exceções não tratadas antes do crash
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+        {
+            var ex = e.ExceptionObject as Exception;
+            System.Diagnostics.Debug.WriteLine($"[CRASH] UnhandledException: {ex}");
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, e) =>
+        {
+            System.Diagnostics.Debug.WriteLine($"[CRASH] UnobservedTaskException: {e.Exception}");
+            e.SetObserved();
+        };
+
         InitializeComponent();
     }
 
@@ -17,10 +30,14 @@ public partial class App : Application
     protected override async void OnStart()
     {
         base.OnStart();
-
-        // Loads the JWT and session data from SecureStorage into memory.
-        // This is necessary because the SplashPage checks if the user is logged in
-        // and we need to have the session data available before any page is shown.
-        await AuthService.InitializeAsync();
+        try
+        {
+            await AuthService.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[AuthService] Falhou na init: {ex.Message}");
+            // Continua mesmo assim — estamos mockando
+        }
     }
 }

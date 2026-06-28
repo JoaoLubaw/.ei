@@ -251,7 +251,7 @@ public partial class AuthPage : ContentPage
         await LoginButton.ScaleTo(1.0, 80);
 
         // TODO: AuthService.LoginAsync(EmailEntry.Text, PasswordEntry.Text)
-        await Shell.Current.GoToAsync("//main");
+        await Shell.Current.GoToAsync("//home");
     }
 
     private void OnTogglePasswordTapped(object sender, TappedEventArgs e)

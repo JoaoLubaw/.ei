@@ -1,17 +1,40 @@
-<?xml version="1.0" encoding="UTF-8" ?>
 <Shell
     x:Class="Pontuei.App.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:Pontuei.App.Views"
     Shell.FlyoutBehavior="Disabled"
-    Shell.TabBarBackgroundColor="#E9E2E2"
-    Shell.TabBarForegroundColor="#3A6B4A"
-    Shell.TabBarUnselectedColor="#9E9E9E">
+    Shell.NavBarIsVisible="False">
 
-    <!-- Initial Screen: Splash -->
+    <!-- Tab group principal: Home e Notifications são irmãs.
+         A troca entre elas não usa push/pop, então o footer do BasePage
+         fica completamente estático — não entra na animação do Shell. -->
+<!-- Adicione Shell.TabBarIsVisible="False" no seu TabBar -->
+    <TabBar Shell.NavBarIsVisible="False" Shell.TabBarIsVisible="False">
+        <Tab>
+            <ShellContent
+                Route="home"
+                ContentTemplate="{DataTemplate views:HomePage}"
+                Shell.NavBarIsVisible="False" />
+        </Tab>
+
+        <Tab>
+            <ShellContent
+                Route="history"
+                ContentTemplate="{DataTemplate views:HistoryPage}"
+                Shell.NavBarIsVisible="False" />
+        </Tab>
+        
+        <Tab>
+            <ShellContent
+                Route="notifications"
+                ContentTemplate="{DataTemplate views:NotificationsPage}"
+                Shell.NavBarIsVisible="False" />
+        </Tab>
+    </TabBar>
+    
+    <!-- Auth flow — acessíveis via GoToAsync("//auth") etc quando necessário -->
     <ShellContent
-        x:Name="SplashContent"
         Route="splash"
         ContentTemplate="{DataTemplate views:SplashPage}"
         Shell.NavBarIsVisible="False" />
@@ -20,15 +43,5 @@
         Route="auth"
         ContentTemplate="{DataTemplate views:AuthPage}"
         Shell.NavBarIsVisible="False" />
-
-    <!-- Fluxo principal com tab bar -->
-    <TabBar Route="main">
-        <ShellContent
-            Title="Início"
-            Icon="clock.svg"
-            Route="home"
-            ContentTemplate="{DataTemplate views:HomePage}"
-            Shell.NavBarIsVisible="False" />
-    </TabBar>
 
 </Shell>

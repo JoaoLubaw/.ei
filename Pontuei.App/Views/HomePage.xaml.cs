@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using PanCardView.EventArgs;
 using Pontuei.App.Services;
 using Pontuei.Shared.Dtos.Objects;
@@ -9,7 +10,7 @@ using Pontuei.Shared.Enums;
 
 namespace Pontuei.App.Views;
 
-public partial class HomePage : ContentPage, INotifyPropertyChanged
+public partial class HomePage : BasePage, INotifyPropertyChanged
 {
     private bool _isCensored;
 
@@ -32,17 +33,29 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
     // A lista simples fica visível quando não há grupos
     public bool HasSimpleList => !_hasGroups;
 
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
     public HomePage()
     {
-        InitializeComponent();
-        BindingContext = this;
-        LoadDashboardMock();
+        try
+        {
+            InitializeComponent();
+            BindingContext = this;
+            LoadDashboardMock();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ERRO HomePage] {ex}");
+            throw;
+        }
     }
-
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        // TODO: substituir mock por GET /users/{userId}/dashboard
+        BottomNav.SetActiveTab(Controls.BottomNavBar.NavTab.Home, animate: false);
     }
 
     private void LoadDashboardMock()
@@ -221,6 +234,12 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
     private async void OnViewPastTransactionsTapped(object sender, TappedEventArgs e)
     => await DisplayAlert("Em breve", "Histórico ainda não implementado.", "OK");
 
+    private async void OnCardTapped(object sender, TappedEventArgs e)
+    {
+        // Navega para a tela de reorganizar passando por cima das abas
+        await Shell.Current.GoToAsync("reorder-programs");
+    }
+
 }
 
 // Fix 7: grupo de transações para a seção Outros
@@ -369,6 +388,5 @@ public sealed class DashboardTransactionItem : INotifyPropertyChanged
             IsOverdue = dto.TransactionPurchaseDate < DateOnly.FromDateTime(DateTime.Now)
         };
     }
-
 }
 

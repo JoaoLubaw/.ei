@@ -12,26 +12,11 @@ public partial class AppShell : Shell
 
     private static void RegisterRoutes()
     {
-        // ── Fluxo de autenticação ──────────────────────────────────────────
-        // Tela 2: Login / Cadastro
-        // ── Onboarding ────────────────────────────────────────────────────
-        Routing.RegisterRoute("program-selection", typeof(ProgramSelectionPage));
+        Routing.RegisterRoute("reorder-programs", typeof(ReorderProgramsPage));
 
-        // ── Fluxo principal (dentro do Shell com tab bar) ─────────────────
-        // Tela 9/10: Transação — criar / editar
+        // Home e Notifications navegam via //home e //notifications (tab switch)
+        // Rotas futuras de push:
+        // Routing.RegisterRoute("program-selection", typeof(ProgramSelectionPage));
         // Routing.RegisterRoute("transaction-form", typeof(TransactionFormPage));
-
-        // Tela 13: Picker de programa de pontuação (modal)
-        // Routing.RegisterRoute("program-picker", typeof(ProgramPickerPage));
-
-        // Tela 14: Mídias da transação
-        // Routing.RegisterRoute("transaction-media", typeof(TransactionMediaPage));
-
-        // ── Configurações ─────────────────────────────────────────────────
-        // Tela 17: Configurações / Perfil
-        // Routing.RegisterRoute("settings", typeof(SettingsPage));
-
-        // NOTA: As linhas acima estão comentadas pois as pages ainda não existem.
-        // Descomente cada uma conforme for criando as telas correspondentes.
     }
 }

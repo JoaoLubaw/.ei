@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Pontuei.App.Views.HistoryPage"
+             xmlns:views="clr-namespace:Pontuei.App.Views"
+             xmlns:local="clr-namespace:Pontuei.App.Views"
+             Shell.NavBarIsVisible="False"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="#EDE8E8">
+
+    <ScrollView VerticalScrollBarVisibility="Never" Padding="0,0,0,110">
+        <VerticalStackLayout Spacing="0">
+
+            <!-- HEADER (Apenas Logo) -->
+            <Grid Padding="24,56,24,16">
+                <Image Source="logo.svg" HeightRequest="48" WidthRequest="80" HorizontalOptions="Start" Aspect="AspectFit" />
+            </Grid>
+
+            <!-- TÍTULO -->
+            <Label Text="Histórico de transações confirmadas:"
+                   Margin="24,0,24,12" TextColor="#1A1A1A" FontFamily="PoppinsSemibold" 
+                   FontAttributes="Bold" FontSize="18" />
+
+            <!-- FILTROS & SWITCHER DE PROGRAMA NO MESMO NÍVEL -->
+            <Grid ColumnDefinitions="*, Auto" Margin="24,0,24,16">
+                
+                <!-- Esquerda: Filtros (Bolinhas Animadas) -->
+                <ScrollView Grid.Column="0" Orientation="Horizontal" HorizontalScrollBarVisibility="Never" VerticalOptions="Center">
+                    <HorizontalStackLayout x:Name="FiltersStack" BindableLayout.ItemsSource="{Binding Filters}" Spacing="12">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="local:StatusFilterItem">
+                                <!-- Inicia como um círculo de 24x24 -->
+                                <Border BackgroundColor="{Binding Color}" 
+                                        StrokeThickness="0" 
+                                        HeightRequest="24" 
+                                        WidthRequest="24"
+                                        VerticalOptions="Center"
+                                        HorizontalOptions="Start">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="12" />
+                                    </Border.StrokeShape>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnFilterTapped" CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    
+                                    <Label Text="{Binding Name}" 
+                                           TextColor="White" FontSize="12" FontFamily="PoppinsSemibold"
+                                           VerticalOptions="Center" HorizontalOptions="Center"
+                                           IsVisible="False" Opacity="0" />
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </HorizontalStackLayout>
+                </ScrollView>
+
+                <!-- Direita: Program Switcher com Gradiente -->
+                <Border Grid.Column="1" HeightRequest="24" StrokeThickness="0" VerticalOptions="Center" Margin="12,0,0,0">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                            <GradientStop Color="#E4002B" Offset="0.0" />
+                            <GradientStop Color="#B8001F" Offset="0.5" />
+                            <GradientStop Color="#E4002B" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnChangeProgramTapped" />
+                    </Border.GestureRecognizers>
+                    <HorizontalStackLayout Padding="12,0" Spacing="6" VerticalOptions="Center">
+                        <Label Text="Livelo" TextColor="White" FontSize="11" FontFamily="PoppinsSemibold" VerticalOptions="Center" />
+                        <Image Source="change.svg" WidthRequest="14" HeightRequest="14" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- LISTA DE TRANSAÇÕES -->
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Transactions}" Spacing="0">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="local:HistoryTransactionItem">
+                        <Grid Margin="24,0,24,12">
+                            <!-- Borda dinâmica espelhando a cor do status -->
+                            <Border BackgroundColor="White" 
+                                    Stroke="{Binding StatusColor}"
+                                    StrokeThickness="1.5" 
+                                    Padding="0">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="16" />
+                                </Border.StrokeShape>
+                                <Border.Shadow>
+                                    <Shadow Brush="Black" Offset="0,4" Radius="8" Opacity="0.08" />
+                                </Border.Shadow>
+
+                                <!-- Novo Layout IDÊNTICO ao Protótipo -->
+                                <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto, Auto" Padding="16,14,16,14">
+                                    
+                                    <!-- Linha 0: Título (Esq) / Logo e Pontos (Dir) -->
+                                    <Label Grid.Row="0" Grid.Column="0" Text="{Binding Description}" 
+                                           FontFamily="PoppinsSemibold" FontAttributes="Bold" FontSize="15" TextColor="#1A1A1A" />
+                                           
+                                    <HorizontalStackLayout Grid.Row="0" Grid.Column="1" Spacing="4" HorizontalOptions="End" VerticalOptions="Center">
+                                        <Image Source="{Binding ProgramLogo}" HeightRequest="14" Aspect="AspectFit" VerticalOptions="Center"/>
+                                        <Label Text="{Binding FormattedPoints}" 
+                                               FontFamily="PoppinsSemibold" FontAttributes="Bold" FontSize="14" TextColor="#1A1A1A" VerticalOptions="Center"/>
+                                    </HorizontalStackLayout>
+                                           
+                                    <!-- Linha 1: Loja -->
+                                    <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding Store}" 
+                                           FontFamily="PoppinsRegular" FontSize="13" TextColor="#6B6B6B" Margin="0,4,0,12" />
+                                           
+                                    <!-- Linha 2: Esperado -->
+                                    <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding FormattedExpected}" 
+                                           FontFamily="PoppinsRegular" FontSize="12" TextColor="#9E9E9E" />
+                                           
+                                    <!-- Linha 3: Recebido (Opcional) -->
+                                    <Label Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding FormattedReceived}" 
+                                           FontFamily="PoppinsRegular" FontSize="12" TextColor="#9E9E9E" Margin="0,2,0,0" IsVisible="{Binding HasReceivedDate}" />
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <BoxView HeightRequest="1" Color="#D0C8C8" Margin="24,12,24,12" />
+            
+            <Label Text="Ver transações aguardadas"
+                   TextColor="#9E9E9E" FontFamily="PoppinsRegular" FontSize="14"
+                   HorizontalOptions="Center" Margin="0,0,0,24">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnViewPendingTapped" />
+                </Label.GestureRecognizers>
+            </Label>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>
