@@ -18,6 +18,8 @@ public class TransactionService : ITransactionService
     private readonly ILoyaltyProgramRepository _loyaltyProgramRepository;
     private readonly ITransactionMediaRepository _transactionMediaRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IStorageService _storageService;
+    private readonly IConfiguration _configuration;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<TransactionService> _logger;
 
@@ -27,6 +29,8 @@ public class TransactionService : ITransactionService
         ILoyaltyProgramRepository loyaltyProgramRepository,
         ITransactionMediaRepository transactionMediaRepository,
         IUserRepository userRepository,
+        IStorageService storageService,
+        IConfiguration configuration,
         IUnitOfWork unitOfWork,
         ILogger<TransactionService> logger)
     {
@@ -35,6 +39,8 @@ public class TransactionService : ITransactionService
         _loyaltyProgramRepository = loyaltyProgramRepository;
         _transactionMediaRepository = transactionMediaRepository;
         _userRepository = userRepository;
+        _storageService = storageService;
+        _configuration = configuration;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -149,10 +155,17 @@ public class TransactionService : ITransactionService
                 null);
         }
 
+        TransactionDetailResponseDto responseDto = transaction.Adapt<TransactionDetailResponseDto>();
+
+        if (responseDto.Medias != null)
+        {
+            SignMediaUrls(responseDto.Medias);
+        }
+
         return new ApiResult<TransactionDetailResponseDto>(
             InternalResultCode.NO_ERROR,
             HttpStatusCode.OK,
-            transaction.Adapt<TransactionDetailResponseDto>()
+            responseDto
         );
     }
 
@@ -657,13 +670,16 @@ public class TransactionService : ITransactionService
             );
 
         IEnumerable<TransactionMedia> savedMedias = await _transactionMediaRepository.GetByTransactionIdAsync(transactionId).ToListAsync();
+        IEnumerable<TransactionMediaDto> mediaDtos = savedMedias.Adapt<IEnumerable<TransactionMediaDto>>().ToList();
+
+        SignMediaUrls(mediaDtos);
 
         _logger.LogInformation("Successfully replaced media for transaction {TransactionId} for user {UserId} by user {CurrentUserId}.", transactionId, userId, currentUserId);
 
         return new ApiResult<IEnumerable<TransactionMediaDto>>(
             InternalResultCode.NO_ERROR,
             HttpStatusCode.OK,
-            savedMedias.Adapt<IEnumerable<TransactionMediaDto>>()
+            mediaDtos
         );
     }
 
@@ -726,5 +742,18 @@ public class TransactionService : ITransactionService
             HttpStatusCode.OK,
             null
         );
+    }
+
+    private void SignMediaUrls(IEnumerable<TransactionMediaDto> mediaDtos)
+    {
+        string bucket = _configuration["Storage:BucketMedia"] ?? throw new ArgumentNullException("Storage:BucketMedia is not configured.");
+
+        foreach (TransactionMediaDto media in mediaDtos)
+        {
+            if (!string.IsNullOrEmpty(media.TransactionMediaFileUrl) && !media.TransactionMediaFileUrl.StartsWith("http"))
+            {
+                media.TransactionMediaFileUrl = _storageService.GeneratePreSignedUrl(bucket, media.TransactionMediaFileUrl);
+            }
+        }
     }
 }

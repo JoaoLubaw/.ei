@@ -19,17 +19,20 @@ public class LoyaltyProgramService : ILoyaltyProgramService
     private readonly ILoyaltyProgramRepository _loyaltyProgramRepository;
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<LoyaltyProgramService> _logger;
 
     public LoyaltyProgramService(
         ILoyaltyProgramRepository loyaltyProgramRepository,
         IUserRepository userRepository,
         IUnitOfWork unitOfWork,
+        IConfiguration configuration,
         ILogger<LoyaltyProgramService> logger)
     {
         _loyaltyProgramRepository = loyaltyProgramRepository;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -56,6 +59,10 @@ public class LoyaltyProgramService : ILoyaltyProgramService
                 HttpStatusCode.NotFound,
                 null);
         }
+
+        LoyaltyProgramDto programDto = program.Adapt<LoyaltyProgramDto>();
+
+        ResolveLogoUrl(programDto);
 
         return new ApiResult<LoyaltyProgramDto>(
             InternalResultCode.NO_ERROR,
@@ -100,6 +107,13 @@ public class LoyaltyProgramService : ILoyaltyProgramService
             .Take(dto.Size)
             .ToListAsync();
 
+        List<LoyaltyProgramDto> programsDtos = programs.Adapt<List<LoyaltyProgramDto>>();
+
+        foreach (LoyaltyProgramDto programDto in programsDtos)
+        {
+            ResolveLogoUrl(programDto);
+        }
+
         return new ApiResult<GetLoyaltyProgramsResponseDto>(
             InternalResultCode.NO_ERROR,
             HttpStatusCode.OK,
@@ -109,7 +123,7 @@ public class LoyaltyProgramService : ILoyaltyProgramService
                 Size = dto.Size,
                 TotalElements = totalElements,
                 TotalPages = totalPages,
-                LoyaltyPrograms = programs.Adapt<List<LoyaltyProgramDto>>()
+                LoyaltyPrograms = programsDtos
             }
         );
     }
@@ -311,5 +325,18 @@ public class LoyaltyProgramService : ILoyaltyProgramService
             HttpStatusCode.OK,
             program.LoyaltyProgramIsActive
         );
+    }
+
+    private void ResolveLogoUrl(LoyaltyProgramDto dto)
+    {
+        if (string.IsNullOrEmpty(dto.LoyaltyProgramLogoUrl)) return;
+
+        if (dto.LoyaltyProgramLogoUrl.StartsWith("http")) return;
+
+        string endpoint = _configuration["Storage:Endpoint"];
+        string bucket = _configuration["Storage:BucketPrograms"];
+
+        string path = dto.LoyaltyProgramLogoUrl.TrimStart('/');
+        dto.LoyaltyProgramLogoUrl = $"{endpoint.TrimEnd('/')}/{bucket}/{path}";
     }
 }

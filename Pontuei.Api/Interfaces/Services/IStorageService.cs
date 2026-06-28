@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http;
-
 namespace Pontuei.Api.Interfaces.Services;
 
 public interface IStorageService
@@ -29,4 +27,13 @@ public interface IStorageService
     /// <param name="contentType"></param>
     /// <returns></returns>
     Task<string> UploadFileFromStreamAsync(Stream stream, string fileName, string contentType);
+
+    /// <summary>
+    /// Generates a pre-signed URL for accessing a file in the storage bucket.
+    /// </summary>
+    /// <param name="bucketName"></param>
+    /// <param name="objectKey"></param>
+    /// <param name="expirationInMinutes"></param>
+    /// <returns></returns>
+    string GeneratePreSignedUrl(string bucketName, string objectKey, int expirationInMinutes = 60);
 }
