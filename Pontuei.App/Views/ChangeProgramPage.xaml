@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="Pontuei.App.Views.ChangeProgramPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:Pontuei.App.Views"
+    xmlns:ffimageloading="clr-namespace:FFImageLoading.Maui;assembly=FFImageLoading.Maui"
+    Shell.NavBarIsVisible="False"
+    NavigationPage.HasNavigationBar="False"
+    BackgroundColor="#EDE8E8">
+
+    <ScrollView VerticalScrollBarVisibility="Never" Padding="0,0,0,110">
+        <VerticalStackLayout Spacing="0" Padding="24">
+            
+            <!-- ── HEADER (Logo e Settings) ── -->
+            <Grid ColumnDefinitions="*, Auto, *" Margin="0,32,0,40">
+                <Image Grid.Column="1"
+                       Source="logo.svg"
+                       HeightRequest="48"
+                       WidthRequest="80"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       Aspect="AspectFit" />
+                
+                <Border Grid.Column="2" 
+                        WidthRequest="40"
+                        HeightRequest="40"
+                        BackgroundColor="Transparent"
+                        StrokeThickness="0"
+                        HorizontalOptions="End">
+                    <Image Source="settings.svg" WidthRequest="24" HeightRequest="24" Aspect="AspectFit" />
+                </Border>
+            </Grid>
+
+            <!-- ── TÍTULO ── -->
+            <Label Text="PROGRAMA DE PONTUAÇÃO"
+                   TextColor="#1A1A1A"
+                   FontSize="14"
+                   FontFamily="PoppinsRegular"
+                   Margin="0,0,0,16" />
+
+            <!-- ── GRID DE PROGRAMAS ── -->
+            <CollectionView x:Name="ProgramsCollectionView"
+                            SelectionMode="None"
+                            ItemsSource="{Binding ProgramItems}"
+                            VerticalOptions="Start"
+                            VerticalScrollBarVisibility="Never">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="3" VerticalItemSpacing="12" HorizontalItemSpacing="12" />
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="views:ProgramSelectItem">
+                        <!-- Usamos DataTrigger para acender a borda caso IsSelected seja True -->
+                        <Border HeightRequest="90"
+                                BackgroundColor="White"
+                                StrokeShape="RoundRectangle 16"
+                                StrokeThickness="2"
+                                Stroke="Transparent">
+                            <Border.Triggers>
+                                <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="Stroke" Value="#3A6B4A" />
+                                </DataTrigger>
+                            </Border.Triggers>
+                            
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnProgramTapped" CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+
+                            <ffimageloading:CachedImage Source="{Binding LogoUrl}"
+                                                        Aspect="AspectFit"
+                                                        Margin="14"
+                                                        HorizontalOptions="Center"
+                                                        VerticalOptions="Center"
+                                                        InputTransparent="True" />
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- ── BOTÃO "OUTRO" ── -->
+            <Border x:Name="OtherOptionBorder"
+                    HeightRequest="64"
+                    BackgroundColor="White"
+                    StrokeShape="RoundRectangle 16"
+                    StrokeThickness="2"
+                    Stroke="Transparent"
+                    Margin="0,12,0,0">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnOtherTapped" />
+                </Border.GestureRecognizers>
+                <Label Text="Outro"
+                       TextColor="#1A1A1A"
+                       FontFamily="PoppinsRegular"
+                       FontSize="18"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center" />
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

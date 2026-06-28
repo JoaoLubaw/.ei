@@ -14,7 +14,6 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
 {
     private bool _isCensored;
 
-    // Fix 7: lista de grupos para o card Outros
     public ObservableCollection<DashboardCardItem> Cards { get; } = [];
     public ObservableCollection<DashboardTransactionItem> CurrentTransactions { get; } = [];
     public ObservableCollection<DashboardTransactionGroup> CurrentGroups { get; } = [];
@@ -30,7 +29,6 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
             OnPropertyChanged(nameof(HasSimpleList));
         }
     }
-    // A lista simples fica visível quando não há grupos
     public bool HasSimpleList => !_hasGroups;
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -52,6 +50,7 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
             throw;
         }
     }
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
@@ -105,7 +104,6 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
             Others = new DashboardOthersCardDto
             {
                 TotalPendingPoints = 2500,
-                // Fix 7: transações Outros com fonte especificada para demonstrar agrupamento
                 PendingTransactions =
                 [
                     CreateTransaction(99, "Fone Bluetooth", "Magazine Luiza", "Meliuz", 2500, new DateOnly(2025, 7, 10)),
@@ -157,7 +155,6 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
             UpdateSelectedCard(Cards[0]);
     }
 
-    // Fix 2: Loop infinito — o índice agora faz wrap usando módulo
     private void OnCardSwiped(object sender, ItemSwipedEventArgs e)
     {
         if (e.Item is DashboardCardItem)
@@ -169,10 +166,8 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
 
     private void UpdateSelectedCard(DashboardCardItem card)
     {
-        // Fix 6: label sem count
         ExpectedCountLabel.Text = "Transações esperadas:";
 
-        // Fix 7: se for card Outros, exibe lista agrupada; senão, exibe lista simples
         if (card.IsOthersCard && card.Groups.Count > 0)
         {
             CurrentTransactions.Clear();
@@ -210,12 +205,10 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
         }
     }
 
-    // Fix 1: Animação de fade + troca de ícone ao censurar
     private async void OnToggleVisibilityTapped(object sender, TappedEventArgs e)
     {
         _isCensored = !_isCensored;
 
-        // Animação: fade out, troca ícone, fade in em todos os cards
         var eyeFadeTasks = Cards.Select(card =>
         {
             card.IsCensored = _isCensored;
@@ -232,17 +225,31 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
     }
 
     private async void OnViewPastTransactionsTapped(object sender, TappedEventArgs e)
-    => await DisplayAlert("Em breve", "Histórico ainda não implementado.", "OK");
+        => await Shell.Current.GoToAsync("//history");
 
     private async void OnCardTapped(object sender, TappedEventArgs e)
-    {
-        // Navega para a tela de reorganizar passando por cima das abas
-        await Shell.Current.GoToAsync("reorder-programs");
-    }
+        => await Shell.Current.GoToAsync("reorder-programs");
 
+    // ── [NOVO] Tap em qualquer transação da lista → abre detalhes ────────
+    private async void OnTransactionTapped(object sender, TappedEventArgs e)
+    {
+        if (e.Parameter is not DashboardTransactionItem item) return;
+
+        // Passa o id da transação como query parameter.
+        // TransactionDetailPage lê o parâmetro em QueryProperty e
+        // carrega os dados via serviço.
+        // Durante o mock, abre a tela em modo View com dados stub.
+        var navParams = new Dictionary<string, object>
+        {
+            { "transactionId", item.TransactionId.ToString() }
+        };
+
+        await Shell.Current.GoToAsync("transaction-detail", navParams);
+    }
 }
 
-// Fix 7: grupo de transações para a seção Outros
+// ── Modelos (sem alteração) ───────────────────────────────────────────────
+
 public sealed class DashboardTransactionGroup
 {
     public required string GroupName { get; init; }
@@ -257,7 +264,6 @@ public sealed class DashboardCardItem : INotifyPropertyChanged
     public required Color SecondaryColor { get; init; }
     public required decimal TotalPendingPoints { get; init; }
     public required List<DashboardTransactionItem> Transactions { get; init; }
-    // Fix 7: grupos para o card Outros
     public List<DashboardTransactionGroup> Groups { get; init; } = [];
     public bool IsOthersCard { get; init; }
 
@@ -269,7 +275,6 @@ public sealed class DashboardCardItem : INotifyPropertyChanged
         {
             _isCensored = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FormattedPoints)));
-            // Fix 1: notifica as propriedades dos ícones
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsEyeOpenVisible)));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsEyeClosedVisible)));
         }
@@ -278,8 +283,6 @@ public sealed class DashboardCardItem : INotifyPropertyChanged
     public string FormattedPoints => IsCensored ? "••••••" : FormatPoints(TotalPendingPoints);
     public bool HasLogo => !IsOthersCard && !string.IsNullOrWhiteSpace(LogoUrl);
     public bool ShowProgramName => IsOthersCard || string.IsNullOrWhiteSpace(LogoUrl);
-
-    // Fix 1: propriedades para controlar qual ícone de olho exibir
     public bool IsEyeOpenVisible => !IsCensored;
     public bool IsEyeClosedVisible => IsCensored;
 
@@ -300,12 +303,10 @@ public sealed class DashboardCardItem : INotifyPropertyChanged
         };
     }
 
-    // Fix 7: FromOthersCard agrupa por fonte (TransactionSource)
     public static DashboardCardItem FromOthersCard(DashboardOthersCardDto card)
     {
         var allItems = card.PendingTransactions.Select(DashboardTransactionItem.FromDto).ToList();
 
-        // Agrupa por fonte; transações sem fonte ficam num grupo "Outros"
         var groups = allItems
             .GroupBy(t => string.IsNullOrWhiteSpace(t.Source) ? "Outros" : t.Source)
             .Select(g => new DashboardTransactionGroup
@@ -322,7 +323,7 @@ public sealed class DashboardCardItem : INotifyPropertyChanged
             PrimaryColor = Color.FromArgb("#6B6B6B"),
             SecondaryColor = Color.FromArgb("#4A4A4A"),
             TotalPendingPoints = card.TotalPendingPoints,
-            Transactions = allItems,  // lista plana para fallback
+            Transactions = allItems,
             Groups = groups,
             IsOthersCard = true
         };
@@ -346,13 +347,12 @@ public sealed class DashboardTransactionItem : INotifyPropertyChanged
     public bool IsOverdue { get; init; }
     public Color OverdueBorderColor => IsOverdue ? Color.FromArgb("#C0392B") : Colors.Transparent;
     public double OverdueThickness => IsOverdue ? 2 : 0;
-
     public required DateOnly PurchaseDate { get; init; }
-    // Fix 7: fonte da transação (ex: "Meliuz", "Ame Digital")
     public string? Source { get; init; }
-
-    // Fix 7: exibe "Loja • Fonte" quando há fonte diferente, ou só "Loja"
     public string StoreDisplay => string.IsNullOrWhiteSpace(Source) ? Store : $"{Store} • {Source}";
+
+    // [NOVO] Id para navegação
+    public Guid TransactionId { get; init; }
 
     private Color _accentColor = Color.FromArgb("#C0392B");
     public Color AccentColor
@@ -381,6 +381,8 @@ public sealed class DashboardTransactionItem : INotifyPropertyChanged
     {
         return new DashboardTransactionItem
         {
+            // [NOVO] propaga o id
+            TransactionId = dto.TransactionId,
             Description = dto.TransactionDescription,
             Store = dto.TransactionStore,
             EstimatedPoints = dto.TransactionEstimatedPoints,
@@ -389,4 +391,3 @@ public sealed class DashboardTransactionItem : INotifyPropertyChanged
         };
     }
 }
-

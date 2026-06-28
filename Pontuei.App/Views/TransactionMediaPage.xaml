@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Pontuei.App.Views.TransactionMediaPage"
+             xmlns:views="clr-namespace:Pontuei.App.Views"
+             Shell.NavBarIsVisible="False"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="#EDE8E8">
+
+    <ScrollView VerticalScrollBarVisibility="Never" Padding="0,0,0,110">
+        <VerticalStackLayout Spacing="0" Padding="24">
+
+            <!-- ── HEADER (Logo e Settings) ── -->
+            <Grid ColumnDefinitions="*, Auto, *" Margin="0,32,0,40">
+                <Image Grid.Column="1" Source="logo.svg" HeightRequest="48" WidthRequest="80" HorizontalOptions="Center" VerticalOptions="Center" Aspect="AspectFit" />
+                <Border Grid.Column="2" WidthRequest="40" HeightRequest="40" BackgroundColor="Transparent" StrokeThickness="0" HorizontalOptions="End">
+                    <Image Source="settings.svg" WidthRequest="24" HeightRequest="24" Aspect="AspectFit" />
+                </Border>
+            </Grid>
+
+            <!-- ── TÍTULO E LINHA ── -->
+            <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,4">
+                <Label Grid.Column="0" Text="MÍDIAS" TextColor="#1A1A1A" FontSize="20" FontFamily="PoppinsSemibold" VerticalOptions="Center" />
+                <Image Grid.Column="1" Source="pen.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center" />
+            </Grid>
+            <BoxView HeightRequest="1" Color="#1A1A1A" Margin="0,0,0,12" />
+
+            <!-- ── DESCRIÇÃO ── -->
+            <Label Text="Essa seção é reservada para que você mantenha visão de possíveis prints ou comprovantes de sua compra bonificada. Assim, caso precise solicitar diretamente a sua pontuação (em casos de atraso ou demais problemas), conseguirá encontrar mais facilmente."
+                   TextColor="#4A4A4A" FontSize="11" FontFamily="PoppinsRegular" LineHeight="1.2" Margin="0,0,0,24" />
+
+            <!-- ── GALERIA (Grid 3x3) ── -->
+            <Grid ColumnDefinitions="*, *, *" RowDefinitions="160, 160, 120" ColumnSpacing="12" RowSpacing="12">
+                 
+                 <!-- Mídia 1 (Maior, ocupa 2 linhas e 2 colunas) -->
+                 <Border Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2" BackgroundColor="White" StrokeShape="RoundRectangle 12" Stroke="#D0C8C8" StrokeThickness="1">
+                     <Grid>
+                         <!-- A imagem real virá do binding depois -->
+                         <Image Source="https://via.placeholder.com/400x500" Aspect="AspectFill" />
+                         <!-- Lixeira sobreposta -->
+                         <Image Source="trash.svg" WidthRequest="64" IsVisible="{Binding IsEditable}" HeightRequest="64" HorizontalOptions="Center" VerticalOptions="Center" Opacity="0.6">
+                             <Image.GestureRecognizers>
+                                 <TapGestureRecognizer Tapped="OnRemoveMediaTapped" />
+                             </Image.GestureRecognizers>
+                         </Image>
+                     </Grid>
+                 </Border>
+                 
+                 <!-- Mídia 2 (Menor, Topo Direita) -->
+                 <Border Grid.Row="0" Grid.Column="2" BackgroundColor="White" StrokeShape="RoundRectangle 12" Stroke="#D0C8C8" StrokeThickness="1">
+                     <Grid>
+                         <Image Source="https://via.placeholder.com/200x200" Aspect="AspectFill" />
+                         <Image Source="trash.svg" WidthRequest="40" IsVisible="{Binding IsEditable}" HeightRequest="40" HorizontalOptions="Center" VerticalOptions="Center" Opacity="0.6">
+                             <Image.GestureRecognizers>
+                                 <TapGestureRecognizer Tapped="OnRemoveMediaTapped" />
+                             </Image.GestureRecognizers>
+                         </Image>
+                     </Grid>
+                 </Border>
+                 
+                 <!-- Mídia 3 (Menor, Meio Direita) -->
+                 <Border Grid.Row="1" Grid.Column="2" BackgroundColor="White" StrokeShape="RoundRectangle 12" Stroke="#D0C8C8" StrokeThickness="1">
+                     <Grid>
+                         <Image Source="https://via.placeholder.com/200x200" Aspect="AspectFill" />
+                         <Image Source="trash.svg" WidthRequest="40" IsVisible="{Binding IsEditable}" HeightRequest="40" HorizontalOptions="Center" VerticalOptions="Center" Opacity="0.6">
+                             <Image.GestureRecognizers>
+                                 <TapGestureRecognizer Tapped="OnRemoveMediaTapped" />
+                             </Image.GestureRecognizers>
+                         </Image>
+                     </Grid>
+                 </Border>
+                 
+                 <!-- Slot Adicionar 1 -->
+                 <Border IsVisible="{Binding IsEditable}" Grid.Row="2" Grid.Column="0" BackgroundColor="#E2DDDD" StrokeShape="RoundRectangle 12" Stroke="#AFA8A8" StrokeThickness="1">
+                     <Border.GestureRecognizers>
+                         <TapGestureRecognizer Tapped="OnAddMediaTapped" />
+                     </Border.GestureRecognizers>
+                     <Label Text="+" TextColor="#6B6B6B" FontSize="36" FontFamily="PoppinsRegular" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,-4,0,0"/>
+                 </Border>
+                 
+                 <!-- Slot Adicionar 2 -->
+                 <Border IsVisible="{Binding IsEditable}" Grid.Row="2" Grid.Column="1" BackgroundColor="#E2DDDD" StrokeShape="RoundRectangle 12" Stroke="#AFA8A8" StrokeThickness="1">
+                     <Border.GestureRecognizers>
+                         <TapGestureRecognizer Tapped="OnAddMediaTapped" />
+                     </Border.GestureRecognizers>
+                     <Label Text="+" TextColor="#6B6B6B" FontSize="36" FontFamily="PoppinsRegular" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,-4,0,0"/>
+                 </Border>
+                 
+                 <!-- Slot Adicionar 3 -->
+                 <Border IsVisible="{Binding IsEditable}" Grid.Row="2" Grid.Column="2" BackgroundColor="#E2DDDD" StrokeShape="RoundRectangle 12" Stroke="#AFA8A8" StrokeThickness="1">
+                     <Border.GestureRecognizers>
+                         <TapGestureRecognizer Tapped="OnAddMediaTapped" />
+                     </Border.GestureRecognizers>
+                     <Label Text="+" TextColor="#6B6B6B" FontSize="36" FontFamily="PoppinsRegular" HorizontalOptions="Center" VerticalOptions="Center" Margin="0,-4,0,0"/>
+                 </Border>
+            </Grid>
+
+            <!-- ── SEPARADOR ── -->
+            <BoxView HeightRequest="1" Color="#D0C8C8" Margin="0,48,0,32" />
+
+<!-- ── BOTÕES CANCELAR / SALVAR (Apenas Edição/Criação) ── -->
+            <Grid ColumnDefinitions="*, 16, *" IsVisible="{Binding IsEditable}">
+                <!-- CANCELAR -->
+                <Border Grid.Column="0" StrokeThickness="0" HeightRequest="52" BackgroundColor="#965D5C">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                    <Border.GestureRecognizers><TapGestureRecognizer Tapped="OnCancelTapped" /></Border.GestureRecognizers>
+                    <Label Text="Cancelar" TextColor="White" FontFamily="PoppinsSemibold" FontSize="15" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+
+                <!-- SALVAR -->
+                <Border Grid.Column="2" StrokeThickness="0" HeightRequest="52" BackgroundColor="#528F65">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+                    <Border.GestureRecognizers><TapGestureRecognizer Tapped="OnSaveTapped" /></Border.GestureRecognizers>
+                    <Label Text="Salvar" TextColor="White" FontFamily="PoppinsSemibold" FontSize="15" HorizontalOptions="Center" VerticalOptions="Center" />
+                </Border>
+            </Grid>
+
+            <!-- ── BOTÃO VOLTAR (Apenas Visualização) ── -->
+            <Border StrokeThickness="0" HeightRequest="52" BackgroundColor="#343a46" IsVisible="{Binding IsReadOnly}">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnCancelTapped" />
+                </Border.GestureRecognizers>
+                <Label Text="Voltar" TextColor="White" FontFamily="PoppinsSemibold" FontSize="15" HorizontalOptions="Center" VerticalOptions="Center" />
+            </Border>
+            
+        </VerticalStackLayout>
+    </ScrollView>
+</views:BasePage>

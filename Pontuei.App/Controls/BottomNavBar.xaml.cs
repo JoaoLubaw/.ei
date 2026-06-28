@@ -10,7 +10,7 @@ public partial class BottomNavBar : ContentView
     private NavTab _currentTab = NavTab.Home;
     private bool _isAnimating;
 
-    public enum NavTab { Home, Notifications, History }
+    public enum NavTab { Home, Notifications, History, Details }
 
     public BottomNavBar()
     {
@@ -31,12 +31,10 @@ public partial class BottomNavBar : ContentView
 
         if (_currentTab == NavTab.Home)
         {
-            if (CurrentPage != null)
-                await CurrentPage.DisplayAlertAsync("Em breve", "...", "OK");
+            await Shell.Current.GoToAsync("transaction-detail");
         }
         else
         {
-            // Força a navegação e o estado
             await NavigateToTab(NavTab.Home);
         }
     }

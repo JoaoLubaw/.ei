@@ -11,7 +11,6 @@
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="#EDE8E8">
 
-    <!-- FILHO ÚNICO DO BasePage: ScrollView com todo o conteúdo -->
     <ScrollView VerticalScrollBarVisibility="Never"
                 Padding="0,0,0,110">
 
@@ -69,8 +68,8 @@
                                 </Border.Shadow>
 
                                 <Border.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnCardTapped" />
-                                    </Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnCardTapped" />
+                                </Border.GestureRecognizers>
 
                                 <AbsoluteLayout>
 
@@ -212,28 +211,33 @@
                        FontSize="18" />
 
                 <!-- Lista simples (programas individuais) -->
-<VerticalStackLayout x:Name="TransactionsList"
-                     BindableLayout.ItemsSource="{Binding CurrentTransactions}"
-                     IsVisible="{Binding HasSimpleList}"
-                     Spacing="0">
-    <BindableLayout.ItemTemplate>
-        <DataTemplate x:DataType="local:DashboardTransactionItem">
-            <Grid Margin="24,0,24,12">
-                <Border BackgroundColor="White"
-                        Stroke="{Binding OverdueBorderColor}"
-                        StrokeThickness="{Binding OverdueThickness}"
-                        Padding="0">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="16" />
-                    </Border.StrokeShape>
-                    <Border.Shadow>
-                        <Shadow Brush="Black" Offset="0,4" Radius="8" Opacity="0.1" />
-                    </Border.Shadow>
-                    <Grid Padding="16,14,16,14"
-                          ColumnDefinitions="*, Auto"
-                          RowDefinitions="Auto, Auto">
-                        <Label Grid.Row="0" Grid.Column="0"
-                               Text="{Binding Description}"
+                <VerticalStackLayout x:Name="TransactionsList"
+                                     BindableLayout.ItemsSource="{Binding CurrentTransactions}"
+                                     IsVisible="{Binding HasSimpleList}"
+                                     Spacing="0">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="local:DashboardTransactionItem">
+                            <Grid Margin="24,0,24,12">
+                                <!-- [ALTERADO] TapGestureRecognizer no Grid raiz para capturar toque em toda a área -->
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnTransactionTapped"
+                                                          CommandParameter="{Binding .}" />
+                                </Grid.GestureRecognizers>
+                                <Border BackgroundColor="White"
+                                        Stroke="{Binding OverdueBorderColor}"
+                                        StrokeThickness="{Binding OverdueThickness}"
+                                        Padding="0">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="16" />
+                                    </Border.StrokeShape>
+                                    <Border.Shadow>
+                                        <Shadow Brush="Black" Offset="0,4" Radius="8" Opacity="0.1" />
+                                    </Border.Shadow>
+                                    <Grid Padding="16,14,16,14"
+                                          ColumnDefinitions="*, Auto"
+                                          RowDefinitions="Auto, Auto">
+                                        <Label Grid.Row="0" Grid.Column="0"
+                                               Text="{Binding Description}"
                                                TextColor="#1A1A1A"
                                                FontFamily="PoppinsSemibold"
                                                FontAttributes="Bold"
@@ -285,6 +289,11 @@
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="local:DashboardTransactionItem">
                                             <Grid Margin="24,0,24,12">
+                                                <!-- [ALTERADO] mesmo gesto no template agrupado -->
+                                                <Grid.GestureRecognizers>
+                                                    <TapGestureRecognizer Tapped="OnTransactionTapped"
+                                                                          CommandParameter="{Binding .}" />
+                                                </Grid.GestureRecognizers>
                                                 <Border BackgroundColor="White"
                                                         Stroke="{Binding OverdueBorderColor}"
                                                         StrokeThickness="{Binding OverdueThickness}"

@@ -30,34 +30,36 @@ public partial class HistoryPage : BasePage
 
         Transactions.Add(new HistoryTransactionItem
         {
-            Description = "Tv",
-            Store = "Casas Bahia",
-            ProgramLogo = "livelo_logo.png", // Ajuste para o nome da imagem da sua logo
-            Points = 10000,
-            ExpectedDate = new DateOnly(2025, 8, 19),
-            ReceivedDate = new DateOnly(2025, 8, 20),
-            StatusColor = Color.FromArgb("#C0392B") // Vermelho - Atrasada
-        });
-
-        Transactions.Add(new HistoryTransactionItem
-        {
+            TransactionId = Guid.NewGuid(),
             Description = "Tv",
             Store = "Casas Bahia",
             ProgramLogo = "livelo_logo.png",
             Points = 10000,
             ExpectedDate = new DateOnly(2025, 8, 19),
             ReceivedDate = new DateOnly(2025, 8, 20),
-            StatusColor = Color.FromArgb("#4E8A61") // Verde - Recebida
+            StatusColor = Color.FromArgb("#C0392B")
+        });
+
+        Transactions.Add(new HistoryTransactionItem
+        {
+            TransactionId = Guid.NewGuid(),
+            Description = "Tv",
+            Store = "Casas Bahia",
+            ProgramLogo = "livelo_logo.png",
+            Points = 10000,
+            ExpectedDate = new DateOnly(2025, 8, 19),
+            ReceivedDate = new DateOnly(2025, 8, 20),
+            StatusColor = Color.FromArgb("#4E8A61")
         });
     }
 
-    // Lógica de expansão e animação das pílulas de filtro
+    // ── Filtros ───────────────────────────────────────────────────────────
+
     private void OnFilterTapped(object sender, TappedEventArgs e)
     {
         if (sender is not Border tappedBorder || e.Parameter is not StatusFilterItem tappedItem) return;
         var stack = (HorizontalStackLayout)tappedBorder.Parent;
 
-        // Fecha todas as outras pílulas que estiverem abertas
         foreach (View child in stack.Children)
         {
             if (child is Border border && border.BindingContext is StatusFilterItem item && item.IsSelected && item != tappedItem)
@@ -67,7 +69,6 @@ public partial class HistoryPage : BasePage
             }
         }
 
-        // Alterna o estado da clicada e anima
         tappedItem.IsSelected = !tappedItem.IsSelected;
         AnimatePill(tappedBorder, expand: tappedItem.IsSelected);
     }
@@ -76,44 +77,58 @@ public partial class HistoryPage : BasePage
     {
         if (border.Content is Label label)
         {
-            // Se for expandir, deixa o texto visível antes de animar a opacidade
             if (expand) label.IsVisible = true;
 
             var targetWidth = expand ? 115.0 : 24.0;
             var targetOpacity = expand ? 1.0 : 0.0;
 
             var animation = new Animation();
-
-            // Anima a largura da borda
             animation.Add(0, 1, new Animation(v => border.WidthRequest = v, border.WidthRequest, targetWidth, Easing.CubicOut));
-            // Anima o surgimento/desaparecimento do texto
             animation.Add(0, 1, new Animation(v => label.Opacity = v, label.Opacity, targetOpacity, Easing.CubicOut));
 
             animation.Commit(border, "PillAnimation", length: 250, finished: (v, c) =>
             {
-                // Esconde o texto da árvore visual para evitar clicks quando estiver colapsado
                 if (!expand) label.IsVisible = false;
             });
         }
     }
+
+    // ── Navegação ─────────────────────────────────────────────────────────
 
     private async void OnViewPendingTapped(object sender, TappedEventArgs e)
         => await Shell.Current.GoToAsync("//home");
 
     private async void OnChangeProgramTapped(object sender, TappedEventArgs e)
         => await DisplayAlert("Em breve", "Seletor de programa.", "OK");
+
+    // ── [NOVO] Tap em transação → abre detalhes ───────────────────────────
+    private async void OnTransactionTapped(object sender, TappedEventArgs e)
+    {
+        if (e.Parameter is not HistoryTransactionItem item) return;
+
+        var navParams = new Dictionary<string, object>
+        {
+            { "transactionId", item.TransactionId }
+        };
+
+        await Shell.Current.GoToAsync("transaction-detail", navParams);
+    }
 }
 
-// Modelos limpos, sem lógica visual vazada
+// ── Modelos ───────────────────────────────────────────────────────────────
+
 public class StatusFilterItem
 {
     public required string Name { get; init; }
     public required Color Color { get; init; }
-    public bool IsSelected { get; set; } // Agora o controle de estado é apenas lógico
+    public bool IsSelected { get; set; }
 }
 
 public class HistoryTransactionItem
 {
+    // [NOVO] Id para navegação
+    public Guid TransactionId { get; init; }
+
     public required string Description { get; init; }
     public required string Store { get; init; }
     public required string ProgramLogo { get; init; }
