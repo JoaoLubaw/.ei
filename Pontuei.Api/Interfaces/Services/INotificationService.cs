@@ -1,7 +1,7 @@
-using Pontuei.Api.Dtos;
-using Pontuei.Api.Dtos.Objects;
-using Pontuei.Api.Dtos.Requests;
-using Pontuei.Api.Dtos.Responses;
+using Pontuei.Shared.Dtos;
+using Pontuei.Shared.Dtos.Objects;
+using Pontuei.Shared.Dtos.Requests;
+using Pontuei.Shared.Dtos.Responses;
 using Pontuei.Api.Models;
 
 namespace Pontuei.Api.Interfaces.Services;

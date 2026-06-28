@@ -1,18 +1,15 @@
 using System.Net;
-using System.Security.Cryptography;
-using System.Text;
-using BCrypt.Net;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using Pontuei.Api.Common;
 
-using Pontuei.Api.Dtos.Objects;
-using Pontuei.Api.Dtos.Requests;
-using Pontuei.Api.Dtos.Responses;
-using Pontuei.Api.Enums;
+using Pontuei.Shared.Dtos.Objects;
+using Pontuei.Shared.Dtos.Requests;
+using Pontuei.Shared.Dtos.Responses;
+using Pontuei.Shared.Enums;
 using Pontuei.Api.Interfaces.Repositories;
 using Pontuei.Api.Interfaces.Services;
 using Pontuei.Api.Models;
+using Pontuei.Shared.Common;
 
 namespace Pontuei.Api.Services;
 

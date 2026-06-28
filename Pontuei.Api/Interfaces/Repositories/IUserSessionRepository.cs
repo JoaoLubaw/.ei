@@ -1,5 +1,5 @@
-using Pontuei.Api.Dtos;
-using Pontuei.Api.Enums;
+using Pontuei.Shared.Dtos;
+using Pontuei.Shared.Enums;
 using Pontuei.Api.Models;
 
 namespace Pontuei.Api.Interfaces.Repositories;

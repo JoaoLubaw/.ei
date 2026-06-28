@@ -1,4 +1,4 @@
-using Pontuei.Api.Dtos.Objects;
+using Pontuei.Shared.Dtos.Objects;
 
 namespace Pontuei.Api.Commons;
 

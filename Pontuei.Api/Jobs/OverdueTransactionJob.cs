@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Pontuei.Api.Data;
-using Pontuei.Api.Dtos.Objects;
-using Pontuei.Api.Enums;
+using Pontuei.Shared.Dtos.Objects;
+using Pontuei.Shared.Enums;
 using Pontuei.Api.Interfaces.Jobs;
 using Pontuei.Api.Interfaces.Repositories;
 using Pontuei.Api.Interfaces.Services;

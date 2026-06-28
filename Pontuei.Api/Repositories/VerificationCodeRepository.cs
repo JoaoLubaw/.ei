@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Pontuei.Api.Data;
 
-using Pontuei.Api.Enums;
+using Pontuei.Shared.Enums;
 using Pontuei.Api.Interfaces.Repositories;
 using Pontuei.Api.Models;
 

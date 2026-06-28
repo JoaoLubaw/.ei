@@ -6,14 +6,12 @@ secrets.yaml
 *.diff
 .git
 
-Pontuei.Api/obj
-Pontuei.App/obj
+*/obj
 *.Development.json
 
-/Pontuei.Api/bin
-/Pontuei.App/bin
-/Pontuei.App/.idea
-/Pontuei.App/.cursor
+*/bin
+*/.idea
+*/.cursor
 
 undefined
 *.csproj.user

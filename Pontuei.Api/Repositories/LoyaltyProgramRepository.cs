@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Pontuei.Api.Data;
 
-using Pontuei.Api.Dtos;
-using Pontuei.Api.Dtos.Requests;
+using Pontuei.Shared.Dtos;
+using Pontuei.Shared.Dtos.Requests;
 using Pontuei.Api.Interfaces.Repositories;
 
 using Pontuei.Api.Models;

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
 
-using Pontuei.Api.Enums;
+using Pontuei.Shared.Enums;
 
 namespace Pontuei.Api.Models;
 

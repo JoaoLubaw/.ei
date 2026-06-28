@@ -2,7 +2,7 @@ using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Pontuei.Api.Commons;
-using Pontuei.Api.Dtos.Objects;
+using Pontuei.Shared.Dtos.Objects;
 
 namespace Pontuei.Api.Controllers;
 
