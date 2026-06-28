@@ -52,11 +52,11 @@ public partial class SplashPage : ContentPage
         await StartButton.ScaleTo(1.0, 80);
 
         // Navega para a tela de login
-        await Shell.Current.GoToAsync("program-selection");
+        await Shell.Current.GoToAsync("//main");
     }
 
     private static async Task NavigateToMain()
     {
-        await Shell.Current.GoToAsync("//main");
+        await Shell.Current.GoToAsync("//home");
     }
 }

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Pontuei.App.Controls.BottomNavBar">
+
+        <!-- BOTTOM NAVIGATION BAR -->
+        <Grid VerticalOptions="End" 
+          HeightRequest="104" 
+          BackgroundColor="Transparent"
+          IgnoreSafeArea="True">
+
+            <Border VerticalOptions="End"
+                    StrokeThickness="0"
+                    HeightRequest="80">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="0" />
+                </Border.StrokeShape>
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                        <GradientStop Color="#343a46" Offset="0.0" />
+                        <GradientStop Color="#4E8A61" Offset="0.5" />
+                        <GradientStop Color="#343a46" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Border.Background>
+            </Border>
+
+            <Grid VerticalOptions="End" 
+                  HeightRequest="80" 
+                  ColumnDefinitions="*, 56, *" 
+                  Padding="32,0">
+                
+                <Image Grid.Column="0" 
+                       Source="clock.svg" 
+                       WidthRequest="24" 
+                       HeightRequest="24" 
+                       Aspect="AspectFit" 
+                       HorizontalOptions="Center" 
+                       VerticalOptions="Center" />
+
+                <Grid Grid.Column="2" HorizontalOptions="Center" VerticalOptions="Center">
+                    <Image Source="bell.svg" WidthRequest="24" HeightRequest="24" Aspect="AspectFit" />
+                    <Border x:Name="NotificationBadge"
+                            WidthRequest="18"
+                            HeightRequest="18"
+                            HorizontalOptions="End"
+                            VerticalOptions="Start"
+                            TranslationX="6"
+                            TranslationY="-4"
+                            BackgroundColor="#C0392B"
+                            StrokeThickness="0">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="9" />
+                        </Border.StrokeShape>
+                        <Label x:Name="NotificationBadgeLabel"
+                               Text="10"
+                               TextColor="White"
+                               FontFamily="PoppinsSemibold"
+                               FontSize="9"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <Grid ColumnDefinitions="*, Auto, *" InputTransparent="True">
+                <Border Grid.Column="1" 
+                        x:Name="FabButton" 
+                        WidthRequest="68" 
+                        HeightRequest="68" 
+                        HorizontalOptions="Center" 
+                        VerticalOptions="Start"
+                        InputTransparent="False"
+                        StrokeThickness="0">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="34" />
+                    </Border.StrokeShape>
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                            <GradientStop Color="#4E8A61" Offset="0.0" />
+                            <GradientStop Color="#3A6B4A" Offset="0.5" />
+                            <GradientStop Color="#343a46" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,3" Radius="5" Opacity="0.3" />
+                    </Border.Shadow>
+                    <Label Text="+" 
+                           TextColor="White" 
+                           FontSize="36" 
+                           FontAttributes="Bold" 
+                           HorizontalOptions="Center" 
+                           VerticalOptions="Center" 
+                           Margin="0,-3,0,0" />
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAddTransactionTapped" />
+                    </Border.GestureRecognizers>
+                </Border>
+            </Grid>
+        </Grid>
+</ContentView>

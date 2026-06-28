@@ -4,16 +4,10 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:views="clr-namespace:Pontuei.App.Views"
-    Shell.FlyoutBehavior="Disabled">
-
-    <!--
-        =========================================================
-        Navigation routes for the app's main flow (non-modal):
-          - splash
-          - auth
-          - main
-        =========================================================
-    -->
+    Shell.FlyoutBehavior="Disabled"
+    Shell.TabBarBackgroundColor="#E9E2E2"
+    Shell.TabBarForegroundColor="#3A6B4A"
+    Shell.TabBarUnselectedColor="#9E9E9E">
 
     <!-- Initial Screen: Splash -->
     <ShellContent
@@ -26,5 +20,15 @@
         Route="auth"
         ContentTemplate="{DataTemplate views:AuthPage}"
         Shell.NavBarIsVisible="False" />
+
+    <!-- Fluxo principal com tab bar -->
+    <TabBar Route="main">
+        <ShellContent
+            Title="Início"
+            Icon="clock.svg"
+            Route="home"
+            ContentTemplate="{DataTemplate views:HomePage}"
+            Shell.NavBarIsVisible="False" />
+    </TabBar>
 
 </Shell>

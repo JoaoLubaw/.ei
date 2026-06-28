@@ -1,5 +1,7 @@
 using FFImageLoading.Maui;
+
 using Microsoft.Extensions.Logging;
+using PanCardView;
 using Pontuei.App.Services;
 using Pontuei.App.Views;
 
@@ -14,6 +16,7 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .UseFFImageLoading()
+            .UseCardsView()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("Poppins/poppinsRegular.ttf", "PoppinsRegular");
@@ -30,12 +33,7 @@ public static class MauiProgram
         builder.Services.AddTransient<SplashPage>();
         builder.Services.AddTransient<AuthPage>();
         builder.Services.AddTransient<ProgramSelectionPage>();
-
-        // PRÓXIMO PASSO: registre cada nova Page aqui conforme for criando:
-        // builder.Services.AddTransient<AuthPage>();
-        // builder.Services.AddTransient<ForgotPasswordPage>();
-        // builder.Services.AddTransient<HomePage>();
-        // etc.
+        builder.Services.AddTransient<HomePage>();
 
         // ── Inicialização assíncrona ──────────────────────────────────────
         // AuthService precisa carregar o token do SecureStorage antes de qualquer

@@ -162,9 +162,8 @@
                         <RoundRectangle CornerRadius="32,32,0,0" />
                     </Border.StrokeShape>
 
-                    <ScrollView>
-                        <VerticalStackLayout Padding="28,28,28,36" Spacing="0">
-
+                    <ScrollView VerticalScrollBarVisibility="Never">
+                            <VerticalStackLayout Spacing="0">
                             <!-- LOGIN -->
                             <VerticalStackLayout x:Name="LoginPanel" Spacing="0">
 

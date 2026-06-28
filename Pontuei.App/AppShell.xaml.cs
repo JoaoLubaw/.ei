@@ -14,8 +14,6 @@ public partial class AppShell : Shell
     {
         // ── Fluxo de autenticação ──────────────────────────────────────────
         // Tela 2: Login / Cadastro
-        Routing.RegisterRoute("auth", typeof(AuthPage));
-
         // ── Onboarding ────────────────────────────────────────────────────
         Routing.RegisterRoute("program-selection", typeof(ProgramSelectionPage));
 
