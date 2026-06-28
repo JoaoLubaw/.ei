@@ -10,7 +10,7 @@ public partial class BottomNavBar : ContentView
     private NavTab _currentTab = NavTab.Home;
     private bool _isAnimating;
 
-    public enum NavTab { Home, Notifications, History, Details }
+    public enum NavTab { Home, Notifications, History, Details, Settings }
 
     public BottomNavBar()
     {

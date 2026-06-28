@@ -16,35 +16,6 @@
 
         <VerticalStackLayout Spacing="0">
 
-            <!-- ── HEADER ─────────────────────────────────────────────── -->
-            <Grid Padding="28,56,28,24"
-                  ColumnDefinitions="*, Auto, Auto">
-
-                <Image Grid.Column="0"
-                       Source="logo.svg"
-                       HeightRequest="48"
-                       WidthRequest="80"
-                       HorizontalOptions="Start"
-                       VerticalOptions="Center"
-                       Aspect="AspectFit" />
-
-                <Border Grid.Column="2"
-                        WidthRequest="40"
-                        HeightRequest="40"
-                        BackgroundColor="Transparent"
-                        StrokeThickness="0">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="20" />
-                    </Border.StrokeShape>
-                    <Image Source="settings.svg"
-                           WidthRequest="24"
-                           HeightRequest="24"
-                           Aspect="AspectFit"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center" />
-                </Border>
-            </Grid>
-
             <!-- ── CAROUSEL DE CARDS ──────────────────────────────────── -->
             <cards:CardsView
                 x:Name="ProgramsCarousel"

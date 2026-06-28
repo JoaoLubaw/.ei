@@ -13,35 +13,6 @@
 
         <VerticalStackLayout Spacing="0">
 
-            <!-- ── HEADER ──────────────────────────────────────────────── -->
-            <Grid Padding="28,56,28,24"
-                  ColumnDefinitions="*, Auto">
-
-                <Image Grid.Column="0"
-                       Source="logo.svg"
-                       HeightRequest="48"
-                       WidthRequest="80"
-                       HorizontalOptions="Start"
-                       VerticalOptions="Center"
-                       Aspect="AspectFit" />
-
-                <Border Grid.Column="1" 
-                        WidthRequest="40"
-                        HeightRequest="40"
-                        BackgroundColor="Transparent"
-                        StrokeThickness="0">
-                    <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="20" />
-                    </Border.StrokeShape>
-                    <Image Source="settings.svg"
-                           WidthRequest="24"
-                           HeightRequest="24"
-                           Aspect="AspectFit"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center" />
-                </Border>
-            </Grid>
-
             <!-- ── SEPARADOR ──────────────────────────────────────────── -->
             <BoxView HeightRequest="1" Color="#D0C8C8" Margin="24,0,24,20" />
 

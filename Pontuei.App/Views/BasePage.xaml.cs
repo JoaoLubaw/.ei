@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Microsoft.Maui.Controls.Shapes;
 using Pontuei.App.Controls;
 
 namespace Pontuei.App.Views;
@@ -26,38 +27,96 @@ public partial class BasePage : ContentPage
             InputTransparent = false,
         };
 
-        // Grid sem RowDefinitions cria o comportamento de "camadas" (Z-Index).
-        _rootGrid = new Grid();
+        // ─── 1. CRIANDO O HEADER GLOBAL FLUTUANTE ───
+        var headerGrid = new Grid
+        {
+            Padding = new Thickness(24, 48, 24, 16),
+            VerticalOptions = LayoutOptions.Start, // Garante que o grid ocupe apenas o topo, sem bloquear o toque na tela toda
+            ColumnDefinitions =
+            {
+                new ColumnDefinition { Width = GridLength.Star },
+                new ColumnDefinition { Width = GridLength.Auto }
+            }
+        };
 
-        // 1º Camada (Fundo): O conteúdo da tela
+        // Logo sem fundo
+        var logoImage = new Image
+        {
+            Source = "logo.svg",
+            HeightRequest = 48,
+            WidthRequest = 80,
+            HorizontalOptions = LayoutOptions.Start,
+            VerticalOptions = LayoutOptions.Center,
+            Aspect = Aspect.AspectFit
+        };
+
+        // Botão de Configurações em formato de círculo
+        var settingsBorder = new Border
+        {
+            WidthRequest = 44,
+            HeightRequest = 44,
+            StrokeThickness = 0,
+            StrokeShape = new RoundRectangle { CornerRadius = new CornerRadius(22) },
+            // Uma sombra bem suave para dar profundidade e destacar que é um botão flutuante
+            Shadow = new Shadow { Brush = Brush.Black, Offset = new Point(0, 4), Radius = 8, Opacity = 0.05f }
+        };
+
+        var settingsIcon = new Image
+        {
+            Source = "settings.svg",
+            WidthRequest = 24,
+            HeightRequest = 24,
+            Aspect = Aspect.AspectFit,
+            HorizontalOptions = LayoutOptions.Center,
+            VerticalOptions = LayoutOptions.Center
+        };
+        settingsBorder.Content = settingsIcon;
+
+        var settingsTap = new TapGestureRecognizer();
+        settingsTap.Tapped += async (s, e) => await Shell.Current.GoToAsync("settings");
+        settingsBorder.GestureRecognizers.Add(settingsTap);
+
+        headerGrid.Add(logoImage, 0);
+        headerGrid.Add(settingsBorder, 1);
+
+        // ─── 2. MONTANDO O LAYOUT BASE EM CAMADAS SOBREPOSTAS ───
+        _rootGrid = new Grid(); // Removi as RowDefinitions! Tudo agora compartilha o mesmo espaço.
+
+        // Camada 1 (Fundo): O conteúdo rolável da tela
         _rootGrid.Children.Add(_pageContent);
 
-        // 2º Camada (Frente): A Navbar flutuante alinhada no rodapé
+        // Camada 2 (Topo): Header flutuando sobre o conteúdo
+        _rootGrid.Children.Add(headerGrid);
+
+        // Camada 3 (Rodapé): Navbar flutuando embaixo
         _rootGrid.Children.Add(_navBar);
 
-        // Define o rootGrid como o conteúdo inicial base
         base.Content = _rootGrid;
     }
 
-    // Essa é a grande jogada: interceptamos quando o MAUI tentar definir 
-    // o ScrollView da HomePage como conteúdo da tela.
     protected override void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         base.OnPropertyChanged(propertyName);
 
-        // Se a propriedade alterada for o Content da página...
         if (propertyName == nameof(Content))
         {
-            // E se esse conteúdo for diferente do nosso Grid base (como o ScrollView do XAML)
             if (base.Content != _rootGrid && base.Content != null)
             {
-                // 1. Salvamos o conteúdo que veio do XAML
                 var xamlContent = base.Content;
 
-                // 2. Restauramos o nosso layout base com a NavBar
-                base.Content = _rootGrid;
+                // ─── O TRUQUE MÁGICO DO PADDING ───
+                // Empurra o conteúdo do ScrollView para baixo do header flutuante, 
+                // para que a tela inicie limpa, mas permitindo rolar por trás dele!
+                if (xamlContent is ScrollView scroll)
+                {
+                    var currentPadding = scroll.Padding;
+                    if (currentPadding.Top < 100) // Evita adicionar o espaço repetidas vezes
+                    {
+                        scroll.Padding = new Thickness(currentPadding.Left, currentPadding.Top + 110, currentPadding.Right, currentPadding.Bottom);
+                    }
+                }
 
-                // 3. Jogamos o conteúdo da tela para trás da NavBar
+                base.Content = _rootGrid;
                 _pageContent.Content = xamlContent;
             }
         }

@@ -11,11 +11,6 @@
     <ScrollView VerticalScrollBarVisibility="Never" Padding="0,0,0,110">
         <VerticalStackLayout Spacing="0">
 
-            <!-- HEADER -->
-            <Grid Padding="24,56,24,16">
-                <Image Source="logo.svg" HeightRequest="48" WidthRequest="80" HorizontalOptions="Start" Aspect="AspectFit" />
-            </Grid>
-
             <!-- TÍTULO -->
             <Label Text="Histórico de transações confirmadas:"
                    Margin="24,0,24,12" TextColor="#1A1A1A" FontFamily="PoppinsSemibold"

@@ -39,6 +39,7 @@ public static class MauiProgram
         builder.Services.AddTransient<TransactionDetailPage>();
         builder.Services.AddTransient<ChangeProgramPage>();
         builder.Services.AddTransient<TransactionMediaPage>();
+        builder.Services.AddTransient<SettingsPage>();
 
         // ── Inicialização assíncrona ──────────────────────────────────────
         // AuthService precisa carregar o token do SecureStorage antes de qualquer

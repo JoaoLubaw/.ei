@@ -112,9 +112,6 @@ public partial class NotificationsPage : BasePage, INotifyPropertyChanged
         RefreshState();
     }
 
-    private async void OnSettingsTapped(object sender, TappedEventArgs e)
-        => await DisplayAlert("Em breve", "Configurações ainda não implementadas.", "OK");
-
     // ── Helpers ───────────────────────────────────────────────────────────
 
     private void RefreshState()

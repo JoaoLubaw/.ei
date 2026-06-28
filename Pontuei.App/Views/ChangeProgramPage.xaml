@@ -12,26 +12,6 @@
     <ScrollView VerticalScrollBarVisibility="Never" Padding="0,0,0,110">
         <VerticalStackLayout Spacing="0" Padding="24">
             
-            <!-- ── HEADER (Logo e Settings) ── -->
-            <Grid ColumnDefinitions="*, Auto, *" Margin="0,32,0,40">
-                <Image Grid.Column="1"
-                       Source="logo.svg"
-                       HeightRequest="48"
-                       WidthRequest="80"
-                       HorizontalOptions="Center"
-                       VerticalOptions="Center"
-                       Aspect="AspectFit" />
-                
-                <Border Grid.Column="2" 
-                        WidthRequest="40"
-                        HeightRequest="40"
-                        BackgroundColor="Transparent"
-                        StrokeThickness="0"
-                        HorizontalOptions="End">
-                    <Image Source="settings.svg" WidthRequest="24" HeightRequest="24" Aspect="AspectFit" />
-                </Border>
-            </Grid>
-
             <!-- ── TÍTULO ── -->
             <Label Text="PROGRAMA DE PONTUAÇÃO"
                    TextColor="#1A1A1A"

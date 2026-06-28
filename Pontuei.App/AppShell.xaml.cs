@@ -16,6 +16,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("transaction-detail", typeof(TransactionDetailPage));
         Routing.RegisterRoute("change-program", typeof(ChangeProgramPage));
         Routing.RegisterRoute("transaction-media", typeof(TransactionMediaPage));
+        Routing.RegisterRoute("settings", typeof(SettingsPage));
 
         // Home e Notifications navegam via //home e //notifications (tab switch)
         // Rotas futuras de push:
