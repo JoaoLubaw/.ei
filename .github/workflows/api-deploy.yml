@@ -81,8 +81,9 @@ jobs:
         name: Deploy to Server
         runs-on: ubuntu-latest
         needs: build-and-push
+        # Dynamically resolves to the right GitHub Environment (production or develop)
         environment:
-            name: production
+            name: ${{ github.ref == 'refs/heads/main' && 'production' || 'develop' }}
 
         steps:
             - name: Checkout (for docker-compose.yml)
@@ -96,8 +97,10 @@ jobs:
                     echo "env_file=.env.production" >> $GITHUB_OUTPUT
                   else
                     echo "name=develop" >> $GITHUB_OUTPUT
+                    # develop branch reuses the production env file (single server setup)
                     echo "env_file=.env.production" >> $GITHUB_OUTPUT
                   fi
+
             - name: Deploy via SSH
               uses: appleboy/ssh-action@v1.0.3
               with:
@@ -109,14 +112,15 @@ jobs:
                       set -e
 
                       DEPLOY_DIR="${{ secrets.DEPLOY_DIR || '/opt/pontuei' }}"
+                      # Use env_file output — NOT $ENV — to avoid .env.develop not found
+                      ENV_FILE="${{ steps.env_name.outputs.env_file }}"
                       ENV="${{ steps.env_name.outputs.name }}"
                       REGISTRY="ghcr.io"
                       IMAGE="${{ env.IMAGE_NAME }}"
                       SHA="${{ needs.build-and-push.outputs.short_sha }}"
 
-                      echo ">>> Deploying [$ENV] — sha-$SHA"
+                      echo ">>> Deploying [$ENV] using [$ENV_FILE] — sha-$SHA"
 
-                      # Navigate to deploy dir (must exist on server)
                       cd "$DEPLOY_DIR"
 
                       # Log in to GHCR on the server
@@ -125,15 +129,15 @@ jobs:
                       # Pull the new image
                       docker pull $REGISTRY/$IMAGE:sha-$SHA
 
-                      # Point compose to the exact new image
+                      # Pass the exact image to compose via env var (used by docker-compose.prod.yml)
                       export API_IMAGE="$REGISTRY/$IMAGE:sha-$SHA"
 
-                      # Bring up (or update) services — only API is replaced here
-                      # The --no-deps flag avoids restarting db/redis/minio needlessly
-                      docker compose --env-file .env.$ENV up -d --no-deps --pull never pontuei-api
+                      # Update only the API container — db/redis/minio/seq are untouched
+                      docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+                        --env-file "$ENV_FILE" \
+                        up -d --no-deps --pull never pontuei-api
 
-                      # Clean up dangling images (keep last 3)
+                      # Clean up dangling images
                       docker image prune -f
 
                       echo ">>> Deploy [$ENV] complete — sha-$SHA"
-
