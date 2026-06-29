@@ -14,7 +14,7 @@ on:
 
 env:
     REGISTRY: ghcr.io
-    IMAGE_NAME: ${{ github.repository_owner }}/pontuei-api
+    IMAGE_NAME: joaolubaw/pontuei-api
 
 jobs:
     # ─────────────────────────────────────────────────
