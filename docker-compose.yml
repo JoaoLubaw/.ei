@@ -1,5 +1,23 @@
 services:
   # ============================================================
+  # MAUI APP BUILDER - Android APK Generator
+  # ============================================================
+  pontuei-app-builder:
+    image: pontuei-app-builder:local
+    build:
+      context: .
+      dockerfile: ./Pontuei.App/Build/Android/Dockerfile
+      args:
+        - MAUI_API_BASE_URL=${MAUI_API_BASE_URL}
+        - MAUI_STORAGE_BASE_URL=${MAUI_STORAGE_BASE_URL}
+        - MAUI_GOOGLE_WEB_CLIENT_ID=${MAUI_GOOGLE_WEB_CLIENT_ID}
+        - GOOGLE_SERVICES_BASE64=${GOOGLE_SERVICES_BASE64}
+    container_name: pontuei-app-builder
+    command: sh -c "cp -R /artifacts/* /out/"
+    volumes:
+      - ./dist/app:/out
+
+  # ============================================================
   # API - .NET Core
   # ============================================================
   pontuei-api:
@@ -27,7 +45,7 @@ services:
       EmailSettings__Username: ${EMAIL_USERNAME}
       EmailSettings__Password: ${EMAIL_PASSWORD}
       EmailSettings__From: ${EMAIL_FROM}
-      FIREBASE_CREDENTIALS_JSON: ${FIREBASE_CREDENTIALS_JSON}
+      FIREBASE_CREDENTIALS_BASE64: ${FIREBASE_CREDENTIALS_BASE64}
       AdminSeed__Email: ${ADMIN_EMAIL}
       AdminSeed__Password: ${ADMIN_PASSWORD}
     ports:
@@ -71,11 +89,6 @@ services:
 
   # ============================================================
   # CACHE & PUB/SUB - Redis 7
-  # Responsabilities:
-  #   - Count of unread notifications per user
-  #     Chave: notification:unread:{user_id}  →  integer
-  #   - Session data for logged-in users (JWT token, user_id, etc.) and their expiration time
-  #     Chave: session:{user_id}              →  JSON
   # ============================================================
   pontuei-redis:
     image: redis:7-alpine
@@ -101,11 +114,6 @@ services:
 
   # ============================================================
   # OBJECT STORAGE - MinIO (S3-compatible)
-  # Two buckets are created for the API:
-  #   - pontuei-media    → documents/medias of transactions (privado)
-  #   - pontuei-programs → programs logos (público)
-  #
-  # Console web: http://localhost:9001
   # ============================================================
   pontuei-minio:
     image: minio/minio:latest
@@ -131,7 +139,6 @@ services:
 
   # ============================================================
   # LOGGING - Seq
-  # Console web: http://localhost:5341
   # ============================================================
   pontuei-seq:
     image: datalust/seq:latest
@@ -147,18 +154,12 @@ services:
     volumes:
       - seq_data:/data
 
-# ============================================================
-# VOLUMES
-# ============================================================
 volumes:
   postgres_app_data:
   redis_data:
   minio_data:
   seq_data:
 
-# ============================================================
-# NETWORKS
-# ============================================================
 networks:
   compose_net:
     driver: bridge

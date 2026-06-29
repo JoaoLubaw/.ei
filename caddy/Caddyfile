@@ -1,0 +1,16 @@
+api.pontoei.app {
+    reverse_proxy pontuei-api:5000
+}
+
+storage.pontoei.app {
+    reverse_proxy pontuei-minio:9000
+}
+
+seq.pontoei.app {
+    reverse_proxy pontuei-seq:80
+}
+
+# Future landing-page
+pontoei.app, www.pontoei.app {
+    respond "Em breve - Pontoei!" 200
+}

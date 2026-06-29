@@ -30,25 +30,27 @@ try
     // Used for sending push notifications via FCM (Firebase Cloud Messaging)
     // and to login users via Google OAuth.
     // =========================================================
-    string firebaseCredentialsJson = Environment.GetEnvironmentVariable("FIREBASE_CREDENTIALS_JSON")
-        ?? builder.Configuration["Firebase:CredentialsJson"]
-        ?? throw new InvalidOperationException(
-            "Firebase credentials not found. Set FIREBASE_CREDENTIALS_JSON environment variable.");
+    string? base64Str = Environment.GetEnvironmentVariable("FIREBASE_CREDENTIALS_BASE64");
 
-    using MemoryStream credentialStream = new MemoryStream(Encoding.UTF8.GetBytes(firebaseCredentialsJson));
-
-    ServiceAccountCredential serviceAccountCredential =
-        ServiceAccountCredential.FromServiceAccountData(credentialStream);
-
-    FirebaseApp.Create(new AppOptions
+    if (!string.IsNullOrEmpty(base64Str))
     {
-        Credential = GoogleCredential
-            .FromServiceAccountCredential(serviceAccountCredential)
-            .CreateScoped("https://www.googleapis.com/auth/firebase.messaging")
-    });
+        byte[] jsonBytes = Convert.FromBase64String(base64Str);
+        string jsonString = System.Text.Encoding.UTF8.GetString(jsonBytes);
 
+        GoogleCredential credential = CredentialFactory.FromJson<GoogleCredential>(jsonString)
+            .CreateScoped("https://www.googleapis.com/auth/firebase.messaging");
 
-    Log.Information("Firebase Admin SDK inicializado com sucesso.");
+        FirebaseApp.Create(new AppOptions
+        {
+            Credential = credential
+        });
+
+        Log.Information("Firebase Admin SDK successfully initialized via Base64 (CredentialFactory).");
+    }
+    else
+    {
+        throw new InvalidOperationException("The environment variable FIREBASE_CREDENTIALS_BASE64 is not configured.");
+    }
 
     // =========================================================
     // DATABASE — Entity Framework Core + PostgreSQL

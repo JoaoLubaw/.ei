@@ -1,0 +1,47 @@
+services:
+  # ============================================================
+  # API - Production server configuration
+  # ============================================================
+  pontuei-api:
+    image: ${API_IMAGE:-ghcr.io/seu-usuario-github/pontuei-api:latest}
+    build: !reset null
+    ports: !reset []
+
+  pontuei-minio:
+    ports:
+      - "9001:9001"
+      - !reset []
+
+  pontuei-seq:
+    ports:
+      - !reset []
+
+  # ============================================================
+  # APP BUILDER - Deactivated in production, only used for local builds
+  # ============================================================
+  pontuei-app-builder:
+    profiles:
+      - build-only
+
+  # ============================================================
+  # Reverse Proxy - Caddy Server (HTTPS)
+  # ============================================================
+  pontuei-caddy:
+    image: caddy:latest
+    restart: always
+    container_name: pontuei-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - compose_net
+    depends_on:
+      - pontuei-api
+
+volumes:
+  caddy_data:
+  caddy_config:

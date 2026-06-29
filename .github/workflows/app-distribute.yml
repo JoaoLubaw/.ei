@@ -1,0 +1,87 @@
+name: App · Build & Distribute (Android)
+
+on:
+    push:
+        branches:
+            - main
+            - develop
+        paths:
+            - "Pontuei.App/**"
+            - "Pontuei.Shared/**"
+            - ".github/workflows/app-distribute.yml"
+    workflow_dispatch:
+        inputs:
+            release_notes:
+                description: "Release notes for testers"
+                required: false
+                default: "New build from manual trigger."
+
+jobs:
+    build-android:
+        name: Build Android APK
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: read
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            # The Android Dockerfile already handles everything:
+            # restore → build → publish → copy APK to /artifacts
+            - name: Build APK via Docker
+              run: |
+                  docker build \
+                    --file ./Pontuei.App/Build/Android/Dockerfile \
+                    --build-arg MAUI_API_BASE_URL=${{ secrets.MAUI_API_BASE_URL }} \
+                    --build-arg MAUI_STORAGE_BASE_URL=${{ secrets.MAUI_STORAGE_BASE_URL }} \
+                    --build-arg MAUI_GOOGLE_WEB_CLIENT_ID=${{ secrets.MAUI_GOOGLE_WEB_CLIENT_ID }} \
+                    --build-arg GOOGLE_SERVICES_BASE64=${{ secrets.GOOGLE_SERVICES_BASE64 }} \
+                    --output type=local,dest=./dist/app \
+                    --target build-env \
+                    .
+
+            # The Dockerfile outputs to /artifacts inside the image.
+            # We use a container to copy them out:
+            - name: Extract APK from image
+              run: |
+                  mkdir -p ./dist/app
+                  CONTAINER_ID=$(docker create pontuei-app-builder-ci 2>/dev/null || true)
+                  # Alternative: use the exported layer above; fallback below
+                  find ./dist/app -name "*.apk" | head -5
+
+            - name: Upload APK as artifact (GitHub)
+              uses: actions/upload-artifact@v4
+              with:
+                  name: pontuei-android-${{ github.ref_name }}-${{ github.run_number }}
+                  path: dist/app/*.apk
+                  retention-days: 30
+
+            # ── Firebase App Distribution ───────────────────────────────
+            # Sends the APK directly to testers defined in Firebase console.
+            # Free tier — no limits on internal testing.
+            - name: Set release notes
+              id: notes
+              run: |
+                  if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+                    echo "notes=${{ github.event.inputs.release_notes }}" >> $GITHUB_OUTPUT
+                  else
+                    COMMIT_MSG=$(git log -1 --pretty=%s)
+                    BRANCH="${{ github.ref_name }}"
+                    SHA=$(git rev-parse --short HEAD)
+                    echo "notes=[$BRANCH] $COMMIT_MSG ($SHA)" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Upload to Firebase App Distribution
+              uses: wzieba/Firebase-Distribution-Github-Action@v1
+              with:
+                  appId: ${{ secrets.FIREBASE_APP_ID }}
+                  serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_BASE64 }}
+                  groups: ${{ github.ref == 'refs/heads/main' && 'internal-testers' || 'dev-testers' }}
+                  file: dist/app/*.apk
+                  releaseNotes: ${{ steps.notes.outputs.notes }}
+
