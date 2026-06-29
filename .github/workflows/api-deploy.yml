@@ -129,11 +129,9 @@ jobs:
                       # Pull the new image
                       docker pull $REGISTRY/$IMAGE:sha-$SHA
 
-                      # Pass the exact image to compose via env var (used by docker-compose.prod.yml)
-                      export API_IMAGE="$REGISTRY/$IMAGE:sha-$SHA"
+                      FULL_IMAGE="$REGISTRY/$IMAGE:sha-$SHA"
 
-                      # Update only the API container — db/redis/minio/seq are untouched
-                      docker compose -f docker-compose.yml -f docker-compose.prod.yml \
+                      API_IMAGE="$FULL_IMAGE" docker compose -f docker-compose.yml -f docker-compose.prod.yml \
                         --env-file "$ENV_FILE" \
                         up -d --no-deps --pull never pontuei-api
 
