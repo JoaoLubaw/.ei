@@ -26,6 +26,14 @@ Console.Out.Flush();
 
 try
 {
+    Console.WriteLine("=== TRY BLOCK ===");
+    Console.Out.Flush();
+
+    Log.Information("Iniciando a API do Pontuei...");
+
+    Console.WriteLine("=== FIREBASE INIT ===");
+    Console.Out.Flush();
+
     Log.Information("Iniciando a API do Pontuei...");
 
     // =========================================================
@@ -285,6 +293,8 @@ try
 }
 catch (Exception ex)
 {
+    Console.WriteLine($"=== FATAL EXCEPTION: {ex.GetType().Name}: {ex.Message} ===");
+    Console.Out.Flush();
     Log.Fatal(ex, "Failed to start the application.");
 }
 finally
