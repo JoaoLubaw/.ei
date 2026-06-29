@@ -160,7 +160,7 @@ public class AuthService : IAuthService
 
         DateTime expiration = dto.RememberMe ? DateTime.UtcNow.AddDays(30) : DateTime.UtcNow.AddDays(1);
 
-        await _userSessionRepository.CreateAsync(
+        UserSession session = await _userSessionRepository.CreateAsync(
             userId: user.UserId,
             refreshTokenHash: hashedRefreshToken,
             refreshTokenExpiresAt: expiration,
@@ -213,6 +213,7 @@ public class AuthService : IAuthService
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 RefreshTokenExpiresAt = expiration,
+                SessionId = session.UserSessionId,
                 User = user.Adapt<UserDto>()
             }
         );
@@ -253,7 +254,7 @@ public class AuthService : IAuthService
 
         _logger.LogInformation("Refresh token used for user: {UserId}. New session created.", user.UserId);
 
-        await _userSessionRepository.CreateAsync(
+        activeSession = await _userSessionRepository.CreateAsync(
             user.UserId,
             hashedNewRefreshToken,
             expiration,
@@ -273,6 +274,7 @@ public class AuthService : IAuthService
                 AccessToken = newAccessToken,
                 RefreshToken = newRefreshToken,
                 RefreshTokenExpiresAt = expiration,
+                SessionId = activeSession.UserSessionId,
                 User = user.Adapt<UserDto>()
             }
         );
@@ -635,7 +637,7 @@ public class AuthService : IAuthService
 
         DateTime expiration = DateTime.UtcNow.AddDays(30);
 
-        await _userSessionRepository.CreateAsync(
+        UserSession activeSession = await _userSessionRepository.CreateAsync(
             userId: user.UserId,
             refreshTokenHash: hashedRefreshToken,
             refreshTokenExpiresAt: expiration,
@@ -677,6 +679,7 @@ public class AuthService : IAuthService
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 RefreshTokenExpiresAt = expiration,
+                SessionId = activeSession.UserSessionId,
                 User = user.Adapt<UserDto>()
             }
         );

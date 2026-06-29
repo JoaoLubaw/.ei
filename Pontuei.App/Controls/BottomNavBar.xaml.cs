@@ -9,6 +9,7 @@ public partial class BottomNavBar : ContentView
     // ── Estado ────────────────────────────────────────────────────────────
     private NavTab _currentTab = NavTab.Home;
     private bool _isAnimating;
+    private int _unreadCount = 0;
 
     public enum NavTab { Home, Notifications, History, Details, Settings }
 
@@ -75,23 +76,16 @@ public partial class BottomNavBar : ContentView
     {
         bool isNotifications = _currentTab == NavTab.Notifications;
 
-        // Gradiente: claro no lado onde está a tab ativa
         NavGradientLeft.Color = isNotifications ? GradientDark : GradientDark;
         NavGradientRight.Color = isNotifications ? GradientLight : GradientDark;
 
-        // Na Home o centro do gradiente já é claro pela stop do meio (#4E8A61 offset 0.5)
-        // Não alteramos a stop do meio para preservar o brilho central quando na home.
-
-        // Ícones da campainha
         BellIcon.IsVisible = !isNotifications;
         BellSelectedIcon.IsVisible = isNotifications;
 
-        // FAB
         FabPlusLabel.IsVisible = !isNotifications;
         FabHomeIcon.IsVisible = isNotifications;
 
-        // Badge: esconde quando está na tela de notificações
-        NotificationBadge.IsVisible = !isNotifications;
+        RefreshBadgeVisibility();
     }
 
     /// <summary>
@@ -110,7 +104,7 @@ public partial class BottomNavBar : ContentView
 
         FabPlusLabel.IsVisible = _currentTab == NavTab.Home;
         FabHomeIcon.IsVisible = _currentTab != NavTab.Home;
-        NotificationBadge.IsVisible = !isNotifications; // se existir badge
+        RefreshBadgeVisibility();
 
         // Cores alvo do gradiente - History acende o lado ESQUERDO
         var targetLeft = isHistory ? GradientLight : GradientDark;
@@ -173,4 +167,21 @@ public partial class BottomNavBar : ContentView
         await ApplyTabStateAsync(animate);
     }
 
+    public void UpdateUnreadBadge(int count)
+    {
+        _unreadCount = count;
+        RefreshBadgeVisibility();
+    }
+
+    private void RefreshBadgeVisibility()
+    {
+        // Só mostra se NÃO estiver na aba de notificações E a contagem for maior que 0
+        bool isNotifications = _currentTab == NavTab.Notifications;
+        NotificationBadge.IsVisible = !isNotifications && _unreadCount > 0;
+
+        if (_unreadCount > 0)
+        {
+            NotificationBadgeLabel.Text = _unreadCount > 99 ? "99+" : _unreadCount.ToString();
+        }
+    }
 }

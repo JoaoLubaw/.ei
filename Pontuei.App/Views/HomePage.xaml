@@ -11,8 +11,18 @@
              NavigationPage.HasNavigationBar="False"
              BackgroundColor="#EDE8E8">
 
+    <!-- Overlay de carregamento — visível enquanto IsLoading=True -->
+    <Grid>
+    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                       IsVisible="{Binding IsLoading}"
+                       Color="#3A6B4A"
+                       VerticalOptions="Center"
+                       HorizontalOptions="Center"
+                       ZIndex="10" />
+
     <ScrollView VerticalScrollBarVisibility="Never"
-                Padding="0,0,0,110">
+                Padding="0,0,0,110"
+                IsVisible="{Binding IsNotLoading}">
 
         <VerticalStackLayout Spacing="0">
 
@@ -20,7 +30,7 @@
             <cards:CardsView
                 x:Name="ProgramsCarousel"
                 ItemsSource="{Binding Cards}"
-                Margin="24,0,24,0"
+                Margin="24,48,24,0"
                 HeightRequest="260"
                 IsCyclical="True"
                 ItemSwiped="OnCardSwiped">
@@ -43,8 +53,6 @@
                                 </Border.GestureRecognizers>
 
                                 <AbsoluteLayout>
-
-                                    <!-- Camada 1: gradiente horizontal -->
                                     <Border AbsoluteLayout.LayoutFlags="All"
                                             AbsoluteLayout.LayoutBounds="0,0,1,1"
                                             StrokeThickness="0">
@@ -52,111 +60,91 @@
                                             <RoundRectangle CornerRadius="24" />
                                         </Border.StrokeShape>
                                         <Border.Background>
-                                            <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
-                                                <GradientStop Color="{Binding PrimaryColor}" Offset="0.0" />
-                                                <GradientStop Color="{Binding SecondaryColor}" Offset="0.5" />
+                                            <RadialGradientBrush Center="0.5,0.5" Radius="0.85">
+                                                <GradientStop Color="{Binding SecundaryColor}" Offset="0.0" />
                                                 <GradientStop Color="{Binding PrimaryColor}" Offset="1.0" />
-                                            </LinearGradientBrush>
+                                            </RadialGradientBrush>
                                         </Border.Background>
-                                        <BoxView BackgroundColor="Transparent" />
-                                    </Border>
-
-                                    <!-- Camada 2: vinheta vertical -->
-                                    <Border AbsoluteLayout.LayoutFlags="All"
-                                            AbsoluteLayout.LayoutBounds="0,0,1,1"
-                                            StrokeThickness="0">
-                                        <Border.StrokeShape>
-                                            <RoundRectangle CornerRadius="24" />
-                                        </Border.StrokeShape>
-                                        <Border.Background>
-                                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                                <GradientStop Color="#55000000" Offset="0.0" />
-                                                <GradientStop Color="#00000000" Offset="0.35" />
-                                                <GradientStop Color="#00000000" Offset="0.65" />
-                                                <GradientStop Color="#55000000" Offset="1.0" />
-                                            </LinearGradientBrush>
-                                        </Border.Background>
-                                        <BoxView BackgroundColor="Transparent" />
                                     </Border>
 
                                     <!-- Conteúdo do card -->
-                                    <Grid AbsoluteLayout.LayoutFlags="All"
-                                          AbsoluteLayout.LayoutBounds="0,0,1,1"
-                                          Padding="24,20"
-                                          RowDefinitions="Auto, *, Auto">
+                                        <Grid AbsoluteLayout.LayoutFlags="All"
+                                            AbsoluteLayout.LayoutBounds="0,0,1,1"
+                                            Padding="24,20"
+                                            RowDefinitions="Auto, *, Auto">
 
-                                        <!-- Row 0: botão olho -->
-                                        <Border Grid.Row="0"
-                                                HorizontalOptions="End"
-                                                VerticalOptions="Start"
-                                                WidthRequest="36"
-                                                HeightRequest="36"
-                                                BackgroundColor="#33FFFFFF"
-                                                StrokeThickness="0">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="18" />
-                                            </Border.StrokeShape>
-                                            <Grid>
-                                                <Image Source="eye.svg"
-                                                       WidthRequest="18"
-                                                       HeightRequest="18"
-                                                       Aspect="AspectFit"
-                                                       HorizontalOptions="Center"
-                                                       VerticalOptions="Center"
-                                                       IsVisible="{Binding IsEyeOpenVisible}" />
-                                                <Image Source="eye_crossed.svg"
-                                                       WidthRequest="18"
-                                                       HeightRequest="18"
-                                                       Aspect="AspectFit"
-                                                       HorizontalOptions="Center"
-                                                       VerticalOptions="Center"
-                                                       IsVisible="{Binding IsEyeClosedVisible}" />
+                                            <!-- Row 0: botão olho -->
+                                            <Border Grid.Row="0"
+                                                    HorizontalOptions="End"
+                                                    VerticalOptions="Start"
+                                                    WidthRequest="36"
+                                                    HeightRequest="36"
+                                                    BackgroundColor="#33FFFFFF"
+                                                    StrokeThickness="0">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="18" />
+                                                </Border.StrokeShape>
+                                                <Grid>
+                                                    <Image Source="eye.svg"
+                                                        WidthRequest="18"
+                                                        HeightRequest="18"
+                                                        Aspect="AspectFit"
+                                                        HorizontalOptions="Center"
+                                                        VerticalOptions="Center"
+                                                        IsVisible="{Binding IsEyeOpenVisible}" />
+                                                    <Image Source="eye_crossed.svg"
+                                                        WidthRequest="18"
+                                                        HeightRequest="18"
+                                                        Aspect="AspectFit"
+                                                        HorizontalOptions="Center"
+                                                        VerticalOptions="Center"
+                                                        IsVisible="{Binding IsEyeClosedVisible}" />
+                                                </Grid>
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Tapped="OnToggleVisibilityTapped" />
+                                                </Border.GestureRecognizers>
+                                            </Border>
+
+                                            <!-- Row 1: pontos -->
+                                            <VerticalStackLayout Grid.Row="1"
+                                                                VerticalOptions="Center"
+                                                                HorizontalOptions="Center"
+                                                                Spacing="2">
+                                                <Label Text="{Binding FormattedPoints}"
+                                                    TextColor="White"
+                                                    FontFamily="BricolageGrotesqueBold"
+                                                    FontAttributes="Bold"
+                                                    FontSize="42"
+                                                    HorizontalOptions="Center" />
+                                                <Label Text="Pontos a receber"
+                                                    TextColor="#DDFFFFFF"
+                                                    FontFamily="PoppinsRegular"
+                                                    FontSize="14"
+                                                    HorizontalOptions="Center" />
+                                            </VerticalStackLayout>
+
+                                            <!-- Row 2: logo ou nome -->
+                                            <Grid Grid.Row="2" VerticalOptions="End">
+                                                <ffimageloading:CachedImage
+                                                    Source="{Binding LogoUrl}"
+                                                    HeightRequest="32"
+                                                    WidthRequest="90"
+                                                    Aspect="AspectFit"
+                                                    HorizontalOptions="Center"
+                                                    VerticalOptions="End"
+                                                    IsVisible="{Binding HasLogo}" />
+                                                <Label Text="{Binding ProgramName}"
+                                                    TextColor="White"
+                                                    FontFamily="PoppinsSemibold"
+                                                    FontAttributes="Bold"
+                                                    FontSize="16"
+                                                    HorizontalOptions="Center"
+                                                    VerticalOptions="End"
+                                                    IsVisible="{Binding ShowProgramName}" />
                                             </Grid>
-                                            <Border.GestureRecognizers>
-                                                <TapGestureRecognizer Tapped="OnToggleVisibilityTapped" />
-                                            </Border.GestureRecognizers>
-                                        </Border>
 
-                                        <!-- Row 1: pontos -->
-                                        <VerticalStackLayout Grid.Row="1"
-                                                             VerticalOptions="Center"
-                                                             HorizontalOptions="Center"
-                                                             Spacing="2">
-                                            <Label Text="{Binding FormattedPoints}"
-                                                   TextColor="White"
-                                                   FontFamily="BricolageGrotesqueBold"
-                                                   FontAttributes="Bold"
-                                                   FontSize="42"
-                                                   HorizontalOptions="Center" />
-                                            <Label Text="Pontos a receber"
-                                                   TextColor="#DDFFFFFF"
-                                                   FontFamily="PoppinsRegular"
-                                                   FontSize="14"
-                                                   HorizontalOptions="Center" />
-                                        </VerticalStackLayout>
-
-                                        <!-- Row 2: logo ou nome -->
-                                        <Grid Grid.Row="2" VerticalOptions="End">
-                                            <ffimageloading:CachedImage
-                                                Source="{Binding LogoUrl}"
-                                                HeightRequest="32"
-                                                WidthRequest="90"
-                                                Aspect="AspectFit"
-                                                HorizontalOptions="Center"
-                                                VerticalOptions="End"
-                                                IsVisible="{Binding HasLogo}" />
-                                            <Label Text="{Binding ProgramName}"
-                                                   TextColor="White"
-                                                   FontFamily="PoppinsSemibold"
-                                                   FontAttributes="Bold"
-                                                   FontSize="16"
-                                                   HorizontalOptions="Center"
-                                                   VerticalOptions="End"
-                                                   IsVisible="{Binding ShowProgramName}" />
                                         </Grid>
-
-                                    </Grid>
-                                </AbsoluteLayout>
+                                    </AbsoluteLayout>
                             </Border>
                         </ContentView>
                     </DataTemplate>
@@ -186,6 +174,7 @@
                                      BindableLayout.ItemsSource="{Binding CurrentTransactions}"
                                      IsVisible="{Binding HasSimpleList}"
                                      Spacing="0">
+
                     <BindableLayout.ItemTemplate>
                         <DataTemplate x:DataType="local:DashboardTransactionItem">
                             <Grid Margin="24,0,24,12">
@@ -333,5 +322,6 @@
 
         </VerticalStackLayout>
     </ScrollView>
+    </Grid>
 
 </views:BasePage>

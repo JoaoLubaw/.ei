@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using PanCardView.EventArgs;
 using Pontuei.App.Services;
+using Pontuei.App.Services.Api;
 using Pontuei.Shared.Dtos.Objects;
 using Pontuei.Shared.Dtos.Responses;
 using Pontuei.Shared.Enums;
@@ -12,12 +13,33 @@ namespace Pontuei.App.Views;
 
 public partial class HomePage : BasePage, INotifyPropertyChanged
 {
+    // ── Serviços ──────────────────────────────────────────────────────────
+    private readonly TransactionApiService _transactionApi;
+    private readonly LoyaltyProgramsApiService _loyaltyProgramsApi;
+
+    // ── Guard de onboarding ───────────────────────────────────────────────
+    // static: sobrevive à re-criação da página pelo Shell sem fazer nova
+    // chamada de rede a cada retorno à home.
+    private static bool _programCheckDone;
+
+    // ── Estado de censura ─────────────────────────────────────────────────
     private bool _isCensored;
 
+    // ── Estado de carregamento ────────────────────────────────────────────
+    private bool _isLoading;
+    public bool IsLoading
+    {
+        get => _isLoading;
+        private set { _isLoading = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsNotLoading)); }
+    }
+    public bool IsNotLoading => !_isLoading;
+
+    // ── Coleções bindadas ─────────────────────────────────────────────────
     public ObservableCollection<DashboardCardItem> Cards { get; } = [];
     public ObservableCollection<DashboardTransactionItem> CurrentTransactions { get; } = [];
     public ObservableCollection<DashboardTransactionGroup> CurrentGroups { get; } = [];
 
+    // ── HasGroups / HasSimpleList ─────────────────────────────────────────
     private bool _hasGroups;
     public bool HasGroups
     {
@@ -25,24 +47,27 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
         set
         {
             _hasGroups = value;
-            OnPropertyChanged(nameof(HasGroups));
+            OnPropertyChanged();
             OnPropertyChanged(nameof(HasSimpleList));
         }
     }
     public bool HasSimpleList => !_hasGroups;
 
+    // ── INotifyPropertyChanged ────────────────────────────────────────────
     public event PropertyChangedEventHandler? PropertyChanged;
+    private void OnPropertyChanged([CallerMemberName] string? name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-    public HomePage()
+    // ── Construtor ────────────────────────────────────────────────────────
+    public HomePage(TransactionApiService transactionApi,
+                    LoyaltyProgramsApiService loyaltyProgramsApi)
     {
         try
         {
             InitializeComponent();
             BindingContext = this;
-            LoadDashboardMock();
+            _transactionApi = transactionApi;
+            _loyaltyProgramsApi = loyaltyProgramsApi;
         }
         catch (Exception ex)
         {
@@ -51,94 +76,110 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
         }
     }
 
-    protected override void OnAppearing()
+    // ════════════════════════════════════════════════════════════════════════
+    // CICLO DE VIDA
+    // ════════════════════════════════════════════════════════════════════════
+
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         BottomNav.SetActiveTab(Controls.BottomNavBar.NavTab.Home, animate: false);
-    }
 
-    private void LoadDashboardMock()
-    {
-        var livelo = new LoyaltyProgramDto
+        // Guard de onboarding — só roda uma vez por sessão de app
+        if (!_programCheckDone)
         {
-            LoyaltyProgramId = 3,
-            LoyaltyProgramName = "Livelo",
-            LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/Livelo.webp",
-            LoyaltyProgramBrandPrimaryColor = "#E4002B",
-            LoyaltyProgramBrandSecondaryColor = "#B8001F",
-            LoyaltyProgramIsActive = true
-        };
-
-        var dotz = new LoyaltyProgramDto
-        {
-            LoyaltyProgramId = 2,
-            LoyaltyProgramName = "Dotz",
-            LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/Dotz.webp",
-            LoyaltyProgramBrandPrimaryColor = "#FF6B00",
-            LoyaltyProgramBrandSecondaryColor = "#CC5500",
-            LoyaltyProgramIsActive = true
-        };
-
-        var esfera = new LoyaltyProgramDto
-        {
-            LoyaltyProgramId = 1,
-            LoyaltyProgramName = "Esfera",
-            LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/Esfera.webp",
-            LoyaltyProgramBrandPrimaryColor = "#003366",
-            LoyaltyProgramBrandSecondaryColor = "#001F3F",
-            LoyaltyProgramIsActive = true
-        };
-
-        var liveloTransactions = CreateMockTransactions(livelo.LoyaltyProgramId, 3);
-        var dotzTransactions = CreateMockTransactions(dotz.LoyaltyProgramId, 2);
-        var esferaTransactions = CreateMockTransactions(esfera.LoyaltyProgramId, 1);
-
-        var summary = new GetDashboardSummaryResponseDto
-        {
-            TopPrograms =
-            [
-                new DashboardProgramCardDto { LoyaltyProgram = livelo, TotalPendingPoints = 30000, PendingTransactions = liveloTransactions },
-                new DashboardProgramCardDto { LoyaltyProgram = dotz, TotalPendingPoints = 15000, PendingTransactions = dotzTransactions },
-                new DashboardProgramCardDto { LoyaltyProgram = esfera, TotalPendingPoints = 5000, PendingTransactions = esferaTransactions }
-            ],
-            Others = new DashboardOthersCardDto
-            {
-                TotalPendingPoints = 2500,
-                PendingTransactions =
-                [
-                    CreateTransaction(99, "Fone Bluetooth", "Magazine Luiza", "Meliuz", 2500, new DateOnly(2025, 7, 10)),
-                    CreateTransaction(99, "Tênis Running", "Netshoes", "Meliuz", 1200, new DateOnly(2025, 7, 15)),
-                    CreateTransaction(99, "Notebook", "Amazon", "Ame Digital", 8000, new DateOnly(2025, 7, 20)),
-                ]
-            }
-        };
-
-        ApplyDashboardSummary(summary);
-    }
-
-    private static List<TransactionDto> CreateMockTransactions(int programId, int count)
-    {
-        var transactions = new List<TransactionDto>();
-        for (int i = 0; i < count; i++)
-        {
-            transactions.Add(CreateTransaction(programId, "Tv", "Casas Bahia", null, 10_000, new DateOnly(2026, 8, 19)));
-            transactions.Add(CreateTransaction(programId, "PC", "Magalu", null, 10_000, new DateOnly(2024, 8, 19)));
+            _programCheckDone = true;
+            bool hasProgramas = await CheckUserProgramsAsync();
+            if (!hasProgramas) return;   // navegou para program-selection; para aqui
         }
-        return transactions;
+
+        // Carrega o dashboard real a cada vez que a tela aparece, garantindo
+        // que adições/remoções de transações se reflitam ao voltar para a home.
+        await LoadDashboardAsync();
     }
 
-    private static TransactionDto CreateTransaction(int programId, string description, string store, string? source, int points, DateOnly purchaseDate)
+    // ════════════════════════════════════════════════════════════════════════
+    // GUARD DE ONBOARDING
+    // ════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Verifica se o usuário já tem programas vinculados.
+    /// Retorna <c>true</c> se tem (ou se a chamada falhou — vai para a home mesmo assim).
+    /// Retorna <c>false</c> se não tem — navega para a seleção de programas.
+    /// </summary>
+    private async Task<bool> CheckUserProgramsAsync()
     {
-        return new TransactionDto
+        Guid? userId = AuthService.CurrentUserId;
+        if (userId is null) return true;
+
+        try
         {
-            TransactionId = Guid.NewGuid(),
-            LoyaltyProgramId = programId,
-            TransactionDescription = description,
-            TransactionStore = store,
-            TransactionEstimatedPoints = points,
-            TransactionPurchaseDate = purchaseDate,
-            TransactionStatus = TransactionStatus.Pending
-        };
+            var response = await _loyaltyProgramsApi.GetUserProgramsAsync(
+                userId.Value,
+                new Pontuei.Shared.Dtos.Requests.GetUserLoyaltyProgramsRequestDto
+                {
+                    Page = 1,
+                    Size = 1   // só precisamos saber se existe ao menos um
+                });
+
+            if (response.IsSuccess && response.Data?.TotalElements == 0)
+            {
+                await Shell.Current.GoToAsync("program-selection", animate: false);
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            // Falha silenciosa — não bloqueia o acesso à home
+            System.Diagnostics.Debug.WriteLine($"[HomePage] CheckUserProgramsAsync falhou: {ex.Message}");
+        }
+
+        return true;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // CARREGAMENTO DO DASHBOARD VIA API
+    // ════════════════════════════════════════════════════════════════════════
+
+    private async Task LoadDashboardAsync()
+    {
+        Guid? userId = AuthService.CurrentUserId;
+        if (userId is null) return;
+
+        IsLoading = true;
+        Cards.Clear();
+        CurrentTransactions.Clear();
+        CurrentGroups.Clear();
+
+        try
+        {
+            ApiResponse<GetDashboardSummaryResponseDto> response =
+                await _transactionApi.GetDashboardSummaryAsync(userId.Value);
+
+            if (response.IsSuccess && response.Data != null)
+            {
+                ApplyDashboardSummary(response.Data);
+
+                if (Cards.Count == 0)
+                {
+                    await Shell.Current.GoToAsync("program-selection", animate: false);
+                    return;
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[HomePage] Dashboard falhou: {response.ErrorMessage}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[HomePage] LoadDashboardAsync erro: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     private void ApplyDashboardSummary(GetDashboardSummaryResponseDto summary)
@@ -155,11 +196,15 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
             UpdateSelectedCard(Cards[0]);
     }
 
+    // ════════════════════════════════════════════════════════════════════════
+    // INTERAÇÕES DO CAROUSEL
+    // ════════════════════════════════════════════════════════════════════════
+
     private void OnCardSwiped(object sender, ItemSwipedEventArgs e)
     {
         if (e.Item is DashboardCardItem)
         {
-            var nextIndex = (e.Index + 1) % Cards.Count;
+            int nextIndex = (e.Index + 1) % Cards.Count;
             UpdateSelectedCard(Cards[nextIndex]);
         }
     }
@@ -205,16 +250,16 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
         }
     }
 
+    // ════════════════════════════════════════════════════════════════════════
+    // HANDLERS DE UI
+    // ════════════════════════════════════════════════════════════════════════
+
     private async void OnToggleVisibilityTapped(object sender, TappedEventArgs e)
     {
         _isCensored = !_isCensored;
 
-        var eyeFadeTasks = Cards.Select(card =>
-        {
+        foreach (var card in Cards)
             card.IsCensored = _isCensored;
-            return Task.CompletedTask;
-        });
-        await Task.WhenAll(eyeFadeTasks);
 
         foreach (var transaction in CurrentTransactions)
             transaction.IsCensored = _isCensored;
@@ -222,6 +267,8 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
         foreach (var group in CurrentGroups)
             foreach (var transaction in group.Transactions)
                 transaction.IsCensored = _isCensored;
+
+        await Task.CompletedTask;
     }
 
     private async void OnViewPastTransactionsTapped(object sender, TappedEventArgs e)
@@ -230,15 +277,10 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
     private async void OnCardTapped(object sender, TappedEventArgs e)
         => await Shell.Current.GoToAsync("reorder-programs");
 
-    // ── [NOVO] Tap em qualquer transação da lista → abre detalhes ────────
     private async void OnTransactionTapped(object sender, TappedEventArgs e)
     {
         if (e.Parameter is not DashboardTransactionItem item) return;
 
-        // Passa o id da transação como query parameter.
-        // TransactionDetailPage lê o parâmetro em QueryProperty e
-        // carrega os dados via serviço.
-        // Durante o mock, abre a tela em modo View com dados stub.
         var navParams = new Dictionary<string, object>
         {
             { "transactionId", item.TransactionId.ToString() }
@@ -246,9 +288,27 @@ public partial class HomePage : BasePage, INotifyPropertyChanged
 
         await Shell.Current.GoToAsync("transaction-detail", navParams);
     }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // HELPERS ESTÁTICOS (chamados por ProgramSelectionPage)
+    // ════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Chamado pela <see cref="ProgramSelectionPage"/> após salvar os programas,
+    /// para que a home não repita o guard imediatamente.
+    /// </summary>
+    public static void MarkProgramCheckDone() => _programCheckDone = true;
+
+    /// <summary>
+    /// Deve ser chamado no logout para que o próximo usuário
+    /// passe pelo guard normalmente.
+    /// </summary>
+    public static void ResetProgramCheck() => _programCheckDone = false;
 }
 
-// ── Modelos (sem alteração) ───────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════════════
+// VIEW MODELS (DashboardCardItem, DashboardTransactionItem, etc.)
+// ════════════════════════════════════════════════════════════════════════════
 
 public sealed class DashboardTransactionGroup
 {
@@ -280,7 +340,10 @@ public sealed class DashboardCardItem : INotifyPropertyChanged
         }
     }
 
-    public string FormattedPoints => IsCensored ? "••••••" : FormatPoints(TotalPendingPoints);
+    public string FormattedPoints => IsCensored
+        ? "••••••"
+        : TotalPendingPoints.ToString("N0", CultureInfo.GetCultureInfo("pt-BR"));
+
     public bool HasLogo => !IsOthersCard && !string.IsNullOrWhiteSpace(LogoUrl);
     public bool ShowProgramName => IsOthersCard || string.IsNullOrWhiteSpace(LogoUrl);
     public bool IsEyeOpenVisible => !IsCensored;
@@ -288,26 +351,32 @@ public sealed class DashboardCardItem : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    // ── Factories ─────────────────────────────────────────────────────────
+
     public static DashboardCardItem FromProgramCard(DashboardProgramCardDto card)
     {
-        LoyaltyProgramDto program = card.LoyaltyProgram;
+        LoyaltyProgramDto p = card.LoyaltyProgram;
         return new DashboardCardItem
         {
-            ProgramName = program.LoyaltyProgramName,
-            LogoUrl = AppConstants.ResolveStorageUrl(program.LoyaltyProgramLogoUrl),
-            PrimaryColor = ParseColor(program.LoyaltyProgramBrandPrimaryColor, "#3A6B4A"),
-            SecondaryColor = ParseColor(program.LoyaltyProgramBrandSecondaryColor, "#2A5138"),
+            ProgramName = p.LoyaltyProgramName,
+            LogoUrl = AppConstants.ResolveStorageUrl(p.LoyaltyProgramLogoUrl),
+            PrimaryColor = ParseColor(p.LoyaltyProgramBrandPrimaryColor, "#3A6B4A"),
+            SecondaryColor = ParseColor(p.LoyaltyProgramBrandSecondaryColor, "#2A5138"),
             TotalPendingPoints = card.TotalPendingPoints,
-            Transactions = card.PendingTransactions.Select(DashboardTransactionItem.FromDto).ToList(),
+            Transactions = card.PendingTransactions
+                .Select(DashboardTransactionItem.FromDto)
+                .ToList(),
             IsOthersCard = false
         };
     }
 
     public static DashboardCardItem FromOthersCard(DashboardOthersCardDto card)
     {
-        var allItems = card.PendingTransactions.Select(DashboardTransactionItem.FromDto).ToList();
+        List<DashboardTransactionItem> allItems = card.PendingTransactions
+            .Select(DashboardTransactionItem.FromDto)
+            .ToList();
 
-        var groups = allItems
+        List<DashboardTransactionGroup> groups = allItems
             .GroupBy(t => string.IsNullOrWhiteSpace(t.Source) ? "Outros" : t.Source)
             .Select(g => new DashboardTransactionGroup
             {
@@ -335,26 +404,24 @@ public sealed class DashboardCardItem : INotifyPropertyChanged
         try { return Color.FromArgb(hex.StartsWith('#') ? hex : $"#{hex}"); }
         catch { return Color.FromArgb(fallback); }
     }
-
-    private static string FormatPoints(decimal points) => points.ToString("N0", CultureInfo.GetCultureInfo("pt-BR"));
 }
 
 public sealed class DashboardTransactionItem : INotifyPropertyChanged
 {
+    public Guid TransactionId { get; init; }
     public required string Description { get; init; }
     public required string Store { get; init; }
     public required int EstimatedPoints { get; init; }
     public bool IsOverdue { get; init; }
+    public required DateOnly PurchaseDate { get; init; }
+    public string? Source { get; init; }   // nome do programa — usado no card "Outros"
+
     public Color OverdueBorderColor => IsOverdue ? Color.FromArgb("#C0392B") : Colors.Transparent;
     public double OverdueThickness => IsOverdue ? 2 : 0;
-    public required DateOnly PurchaseDate { get; init; }
-    public string? Source { get; init; }
     public string StoreDisplay => string.IsNullOrWhiteSpace(Source) ? Store : $"{Store} • {Source}";
+    public string FormattedDate => PurchaseDate.ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("pt-BR"));
 
-    // [NOVO] Id para navegação
-    public Guid TransactionId { get; init; }
-
-    private Color _accentColor = Color.FromArgb("#C0392B");
+    private Color _accentColor = Color.FromArgb("#3A6B4A");
     public Color AccentColor
     {
         get => _accentColor;
@@ -372,22 +439,20 @@ public sealed class DashboardTransactionItem : INotifyPropertyChanged
         }
     }
 
-    public string FormattedPoints => IsCensored ? "••••" : $"{EstimatedPoints.ToString("N0", CultureInfo.GetCultureInfo("pt-BR"))} pts";
-    public string FormattedDate => PurchaseDate.ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("pt-BR"));
+    public string FormattedPoints => IsCensored
+        ? "••••"
+        : $"{EstimatedPoints.ToString("N0", CultureInfo.GetCultureInfo("pt-BR"))} pts";
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public static DashboardTransactionItem FromDto(TransactionDto dto)
-    {
-        return new DashboardTransactionItem
+    public static DashboardTransactionItem FromDto(TransactionDto dto) =>
+        new()
         {
-            // [NOVO] propaga o id
             TransactionId = dto.TransactionId,
             Description = dto.TransactionDescription,
             Store = dto.TransactionStore,
             EstimatedPoints = dto.TransactionEstimatedPoints,
             PurchaseDate = dto.TransactionPurchaseDate,
-            IsOverdue = dto.TransactionPurchaseDate < DateOnly.FromDateTime(DateTime.Now)
+            IsOverdue = dto.IsOverdue
         };
-    }
 }

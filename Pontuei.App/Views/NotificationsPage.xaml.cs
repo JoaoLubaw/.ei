@@ -2,114 +2,155 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using Pontuei.App.Services;
+using Pontuei.App.Services.Api;
+using Pontuei.Shared.Dtos.Objects;
+using Pontuei.Shared.Dtos.Requests;
 
 namespace Pontuei.App.Views;
 
 public partial class NotificationsPage : BasePage, INotifyPropertyChanged
 {
+    private readonly NotificationApiService _notificationApi;
+
+    // ── Estado de Loading e Notificações ──────────────────────────────────
+    private bool _isLoading;
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set { _isLoading = value; OnPropertyChanged(); }
+    }
+
     public ObservableCollection<NotificationItem> Notifications { get; } = [];
 
     private bool _hasNotifications;
     public bool HasNotifications
     {
         get => _hasNotifications;
-        set { _hasNotifications = value; OnPropertyChanged(nameof(HasNotifications)); OnPropertyChanged(nameof(HasNoNotifications)); }
+        set { _hasNotifications = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasNoNotifications)); }
     }
 
-    public bool HasNoNotifications => !_hasNotifications;
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    public bool HasNoNotifications => !_hasNotifications && !IsLoading;
 
     private bool _hasUnread;
     public bool HasUnread
     {
         get => _hasUnread;
-        set { _hasUnread = value; OnPropertyChanged(nameof(HasUnread)); }
+        set { _hasUnread = value; OnPropertyChanged(); }
     }
 
-    public NotificationsPage()
+    public event PropertyChangedEventHandler? PropertyChanged;
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    // ── Construtor ────────────────────────────────────────────────────────
+    public NotificationsPage(NotificationApiService notificationApi)
     {
         InitializeComponent();
         BindingContext = this;
-        LoadMockNotifications();
+        _notificationApi = notificationApi;
     }
 
-    protected override void OnAppearing()
+    // ── Ciclo de Vida ─────────────────────────────────────────────────────
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         BottomNav.SetActiveTab(Controls.BottomNavBar.NavTab.Notifications, animate: false);
+
+        // Carrega as notificações reais da API toda vez que a tela abrir
+        await LoadNotificationsAsync();
     }
 
-    // ── Mock ──────────────────────────────────────────────────────────────
+    // ── Integração com a API ──────────────────────────────────────────────
 
-    private void LoadMockNotifications()
+    private async Task LoadNotificationsAsync()
     {
-        var items = new List<NotificationItem>
+        Guid? userId = AuthService.CurrentUserId;
+        if (userId == null) return;
+
+        IsLoading = true;
+
+        try
         {
-            new()
-            {
-                NotificationId = Guid.NewGuid(),
-                Message = "O prazo de receber seus pontos Livelo expirou, que tal atualizar o status?",
-                Points = 10_000,
-                ProgramName = "Livelo",
-                Date = new DateOnly(2025, 8, 19),
-                IsRead = false
-            },
-            new()
-            {
-                NotificationId = Guid.NewGuid(),
-                Message = "O prazo de receber seus pontos Livelo expirou, que tal atualizar o status?",
-                Points = 10_000,
-                ProgramName = "Livelo",
-                Date = new DateOnly(2025, 8, 19),
-                IsRead = false
-            },
-            new()
-            {
-                NotificationId = Guid.NewGuid(),
-                Message = "O prazo de receber seus pontos Livelo expirou, que tal atualizar o status?",
-                Points = 10_000,
-                ProgramName = "Livelo",
-                Date = new DateOnly(2025, 8, 19),
-                IsRead = true
-            },
-            new()
-            {
-                NotificationId = Guid.NewGuid(),
-                Message = "O prazo de receber seus pontos Livelo expirou, que tal atualizar o status?",
-                Points = 10_000,
-                ProgramName = "Livelo",
-                Date = new DateOnly(2025, 8, 19),
-                IsRead = true
-            },
-        };
+            // Busca a primeira página de notificações (ajuste o tamanho conforme precisar)
+            var request = new GetNotificationsRequestDto { Page = 1, Size = 50 };
+            var response = await _notificationApi.GetNotificationsAsync(userId.Value, request);
 
-        foreach (var item in items)
-            Notifications.Add(item);
+            if (response.IsSuccess && response.Data != null)
+            {
+                Notifications.Clear();
 
-        RefreshState();
+                foreach (var dto in response.Data.Notifications)
+                {
+                    Notifications.Add(NotificationItem.FromDto(dto));
+                }
+
+                RefreshState();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[API Erro] Falha ao carregar notificações: {response.ErrorMessage}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Erro] LoadNotificationsAsync: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+            OnPropertyChanged(nameof(HasNoNotifications)); // Re-avalia o estado vazio após o loading terminar
+        }
     }
 
     // ── Handlers ──────────────────────────────────────────────────────────
 
-    private void OnNotificationTapped(object sender, TappedEventArgs e)
+    private async void OnNotificationTapped(object sender, TappedEventArgs e)
     {
         if (e.Parameter is NotificationItem item && !item.IsRead)
         {
-            item.IsRead = true;
-            RefreshState();
+            try
+            {
+                // Dispara a chamada para a API para marcar como lida
+                var response = await _notificationApi.MarkAsReadAsync(item.NotificationId);
+
+                if (response.IsSuccess)
+                {
+                    item.IsRead = true;
+                    RefreshState();
+                    // Opcional: Aqui você pode disparar um evento global para atualizar a bolinha do menu inferior
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Erro] OnNotificationTapped: {ex.Message}");
+            }
         }
     }
 
-    private void OnMarkAllReadTapped(object sender, TappedEventArgs e)
+    private async void OnMarkAllReadTapped(object sender, TappedEventArgs e)
     {
-        foreach (var n in Notifications)
-            n.IsRead = true;
+        Guid? userId = AuthService.CurrentUserId;
+        if (userId == null) return;
 
-        RefreshState();
+        try
+        {
+            var request = new GetNotificationsRequestDto { Page = 1, Size = 50 };
+            var response = await _notificationApi.MarkAllAsReadAsync(userId.Value, request);
+
+            if (response.IsSuccess)
+            {
+                foreach (var n in Notifications)
+                {
+                    n.IsRead = true;
+                }
+                RefreshState();
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Erro] OnMarkAllReadTapped: {ex.Message}");
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
@@ -127,9 +168,7 @@ public sealed class NotificationItem : INotifyPropertyChanged
 {
     public required Guid NotificationId { get; init; }
     public required string Message { get; init; }
-    public required int Points { get; init; }
-    public required string ProgramName { get; init; }
-    public required DateOnly Date { get; init; }
+    public required decimal Points { get; init; }
 
     private bool _isRead;
     public bool IsRead
@@ -139,19 +178,26 @@ public sealed class NotificationItem : INotifyPropertyChanged
         {
             _isRead = value;
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsRead)));
-            // Notifica a tela para mudar a transparência quando for lida
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CardOpacity)));
         }
     }
 
-    // Se não lida, opacidade 100% (1.0). Se lida, fica mais apagada (ex: 50% = 0.5)
     public double CardOpacity => IsRead ? 0.5 : 1.0;
 
     public string FormattedPoints =>
         $"{Points.ToString("N0", CultureInfo.GetCultureInfo("pt-BR"))} pts";
 
-    public string FormattedDate =>
-        Date.ToString("dd/MM/yyyy", CultureInfo.GetCultureInfo("pt-BR"));
-
     public event PropertyChangedEventHandler? PropertyChanged;
+
+    // Factory method para converter o DTO que vem da API no modelo da tela
+    public static NotificationItem FromDto(NotificationDto dto)
+    {
+        return new NotificationItem
+        {
+            NotificationId = dto.NotificationId,
+            Message = dto.NotificationMessage ?? "Você tem uma nova notificação.",
+            Points = dto.NotificationPointsAmount ?? 0,
+            IsRead = dto.NotificationIsRead
+        };
+    }
 }

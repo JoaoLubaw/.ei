@@ -90,6 +90,7 @@
 
                 <!-- Badge de notificações -->
                 <Border x:Name="NotificationBadge"
+                        IsVisible="False" 
                         WidthRequest="18"
                         HeightRequest="18"
                         HorizontalOptions="End"
@@ -102,12 +103,12 @@
                         <RoundRectangle CornerRadius="9" />
                     </Border.StrokeShape>
                     <Label x:Name="NotificationBadgeLabel"
-                           Text="10"
-                           TextColor="White"
-                           FontFamily="PoppinsSemibold"
-                           FontSize="9"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center" />
+                        Text="0"
+                        TextColor="White"
+                        FontFamily="PoppinsSemibold"
+                        FontSize="9"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center" />
                 </Border>
             </Grid>
         </Grid>

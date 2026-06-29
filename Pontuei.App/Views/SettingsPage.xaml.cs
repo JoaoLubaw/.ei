@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Pontuei.App.Services;
 
 namespace Pontuei.App.Views;
 
@@ -55,11 +56,15 @@ public partial class SettingsPage : BasePage, INotifyPropertyChanged
     public new event PropertyChangedEventHandler? PropertyChanged;
     protected new void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-    public SettingsPage()
+    private readonly AuthApiService _authApi;
+
+    public SettingsPage(
+        AuthApiService authApi
+    )
     {
         InitializeComponent();
         BindingContext = this;
-
+        _authApi = authApi;
         UnverifiedEmailCard.IsVisible = _isEmailUnverified;
     }
 
@@ -224,6 +229,17 @@ public partial class SettingsPage : BasePage, INotifyPropertyChanged
 
     private async void OnLogoutClicked(object sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync("//auth");
+        bool confirm = await DisplayAlert("Sair", "Tem certeza que deseja sair da sua conta?", "Sim", "Cancelar");
+
+        if (confirm)
+        {
+            await _authApi.LogoutAsync();
+
+            HomePage.ResetProgramCheck();
+
+            await Shell.Current.GoToAsync("//auth");
+        }
     }
+
 }
+

@@ -2,6 +2,9 @@ using System.Runtime.CompilerServices;
 using Microsoft.Maui.Controls.Shapes;
 using Pontuei.App.Controls;
 
+using Pontuei.App.Services;
+using Pontuei.App.Services.Api;
+
 namespace Pontuei.App.Views;
 
 public partial class BasePage : ContentPage
@@ -30,7 +33,7 @@ public partial class BasePage : ContentPage
         // ─── 1. CRIANDO O HEADER GLOBAL FLUTUANTE ───
         var headerGrid = new Grid
         {
-            Padding = new Thickness(24, 48, 24, 16),
+            Padding = new Thickness(24, 16, 16, 16),
             VerticalOptions = LayoutOptions.Start, // Garante que o grid ocupe apenas o topo, sem bloquear o toque na tela toda
             ColumnDefinitions =
             {
@@ -119,6 +122,43 @@ public partial class BasePage : ContentPage
                 base.Content = _rootGrid;
                 _pageContent.Content = xamlContent;
             }
+        }
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        // Sempre que uma página baseada na BasePage aparecer, vamos buscar a contagem atualizada
+        await LoadUnreadBadgeCountAsync();
+    }
+
+    private async Task LoadUnreadBadgeCountAsync()
+    {
+        // Verifica se o usuário está logado
+        Guid? userId = AuthService.CurrentUserId;
+        if (userId == null) return;
+
+        try
+        {
+            // Resolve o serviço de API através da injeção de dependência do MAUI
+            var apiService = Handler?.MauiContext?.Services.GetService<NotificationApiService>();
+
+            if (apiService != null)
+            {
+                // Essa chamada bate no Redis da sua arquitetura e retorna rápido
+                var response = await apiService.GetUnreadCountAsync();
+
+                if (response.IsSuccess)
+                {
+                    // Atualiza a interface
+                    _navBar.UpdateUnreadBadge(response.Data);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[BasePage] Erro ao carregar badge: {ex.Message}");
         }
     }
 

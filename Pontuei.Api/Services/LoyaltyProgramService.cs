@@ -330,13 +330,10 @@ public class LoyaltyProgramService : ILoyaltyProgramService
     private void ResolveLogoUrl(LoyaltyProgramDto dto)
     {
         if (string.IsNullOrEmpty(dto.LoyaltyProgramLogoUrl)) return;
-
         if (dto.LoyaltyProgramLogoUrl.StartsWith("http")) return;
 
-        string endpoint = _configuration["Storage:Endpoint"];
-        string bucket = _configuration["Storage:BucketPrograms"];
-
+        string endpoint = _configuration["Storage:Endpoint"]!;
         string path = dto.LoyaltyProgramLogoUrl.TrimStart('/');
-        dto.LoyaltyProgramLogoUrl = $"{endpoint.TrimEnd('/')}/{bucket}/{path}";
+        dto.LoyaltyProgramLogoUrl = $"{endpoint.TrimEnd('/')}/{path}";
     }
 }

@@ -13,14 +13,16 @@ public partial class SplashPage : ContentPage
     {
         base.OnAppearing();
 
-        // Verifica se já tem sessão ativa (JWT salvo) — se sim, pula direto pro Shell
-        if (await AuthService.IsLoggedInAsync())
+        // 1. Garantees that the AuthService is initialized before checking IsAuthenticated
+        await AuthService.InitializeAsync();
+
+        //2. If the user is already authenticated, navigate directly to the main page
+        if (AuthService.IsAuthenticated)
         {
             await NavigateToMain();
             return;
         }
 
-        // Dispara a sequência de animação de entrada
         await PlayEntranceAnimation();
     }
 
@@ -28,31 +30,31 @@ public partial class SplashPage : ContentPage
     {
         await Task.Delay(200);
 
-        var logoFade = LogoLabel.FadeTo(1, 600, Easing.CubicOut);
-        var logoSlide = LogoLabel.TranslateTo(0, 0, 600, Easing.CubicOut);
+        Task<bool> logoFade = LogoLabel.FadeToAsync(1, 600, Easing.CubicOut);
+        Task<bool> logoSlide = LogoLabel.TranslateToAsync(0, 0, 600, Easing.CubicOut);
         await Task.WhenAll(logoFade, logoSlide);
 
         await Task.Delay(150);
 
-        var headlineFade = HeadlineLabel.FadeTo(1, 500, Easing.CubicOut);
-        var headlineSlide = HeadlineLabel.TranslateTo(0, 0, 500, Easing.CubicOut);
+        Task<bool> headlineFade = HeadlineLabel.FadeToAsync(1, 500, Easing.CubicOut);
+        Task<bool> headlineSlide = HeadlineLabel.TranslateToAsync(0, 0, 500, Easing.CubicOut);
         await Task.WhenAll(headlineFade, headlineSlide);
 
         await Task.Delay(100);
 
-        var btnFade = StartButton.FadeTo(1, 400, Easing.CubicOut);
-        var btnSlide = StartButton.TranslateTo(0, 0, 400, Easing.CubicOut);
+        Task<bool> btnFade = StartButton.FadeToAsync(1, 400, Easing.CubicOut);
+        Task<bool> btnSlide = StartButton.TranslateToAsync(0, 0, 400, Easing.CubicOut);
         await Task.WhenAll(btnFade, btnSlide);
     }
 
     private async void OnStartClicked(object sender, EventArgs e)
     {
-        // Feedback visual no botão
-        await StartButton.ScaleTo(0.96, 80);
-        await StartButton.ScaleTo(1.0, 80);
+        // Visual feedback for the button click
+        await StartButton.ScaleToAsync(0.96, 80);
+        await StartButton.ScaleToAsync(1.0, 80);
 
-        // Navega para a tela de login
-        await Shell.Current.GoToAsync("program-selection");
+        // Navegate to the program selection page if the user is not authenticated
+        await Shell.Current.GoToAsync("//auth");
     }
 
     private static async Task NavigateToMain()

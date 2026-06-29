@@ -1,10 +1,22 @@
+using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
+using Plugin.Firebase.CloudMessaging;
+using Plugin.Firebase.Auth;
+using Plugin.Firebase.Auth.Platforms.Android;
 using Pontuei.App.Services;
+using Pontuei.App.Services.Api;
+using Pontuei.Shared.Common;
+using Pontuei.Shared.Dtos.Objects;
+using Pontuei.Shared.Dtos.Requests;
+using Pontuei.Shared.Dtos.Responses;
+using Android.App;
+using AndroidX.Credentials.Exceptions;
 
 namespace Pontuei.App.Views;
 
 public partial class AuthPage : ContentPage
 {
-    // ── Enums de Estado ───────────────────────────────────────────────────
+    // ── State Enum ───────────────────────────────────────────────────
     private enum AuthMode
     {
         Login,
@@ -15,22 +27,21 @@ public partial class AuthPage : ContentPage
         VerifyEmail
     }
 
-    // ── Cores da tab ──────────────────────────────────────────────────────
+    // ── Tab Colors ──────────────────────────────────────────────────────
     private static readonly Color TabGreenLight = Color.FromArgb("#4E8A61");
     private static readonly Color TabGreenDark = Color.FromArgb("#343a46");
     private static readonly Color TabActiveText = Color.FromArgb("#3A6B4A");
 
-    // ── Cores de validação ────────────────────────────────────────────────
+    // ── Validation Colors ────────────────────────────────────────────────
     private static readonly Color ErrorRed = Color.FromArgb("#E53935");
     private static readonly Color NormalBg = Color.FromArgb("#3f3838");
 
-    // ── Estado ────────────────────────────────────────────────────────────
+    // ── State ────────────────────────────────────────────────────────────
     private bool _passwordVisible;
     private bool _registerPasswordVisible;
     private bool _confirmPasswordVisible;
     private bool _resetPasswordVisible;
     private bool _resetConfirmVisible;
-
     private bool _termsAccepted;
     private bool _emailNotificationsAccepted;
     private bool _isLoginTab = true;
@@ -39,13 +50,18 @@ public partial class AuthPage : ContentPage
     private AuthMode _currentMode = AuthMode.Login;
     private BoxView _radialBgView;
 
-    public AuthPage()
+    private readonly AuthApiService _authApi;
+
+    // ── Temp variables ────────────────────────────────────────────────────────────
+    private string _tempEmail = string.Empty;
+    private string _tempResetToken = string.Empty;
+
+    public AuthPage(AuthApiService authApi)
     {
         InitializeComponent();
+        _authApi = authApi;
 
-        // 1. Cria a camada radial. 
-        // Deslocamos o 'Center' para o topo (Y=0.06) para o centro claro não ficar 
-        // escondido atrás do cartão bege, criando um brilho em volta da Pill!
+        // 1. Creates the radial background. 
         _radialBgView = new BoxView
         {
             Opacity = 0,
@@ -63,15 +79,13 @@ public partial class AuthPage : ContentPage
             }
         };
 
-        // 2. Embrulhamos os conteúdos em um novo Grid para evitar que 
-        // o Padding (0,20,0,0) corte as bordas arredondadas do BoxView.
         if (FormBlock.Content is Grid originalInnerGrid)
         {
             FormBlock.Content = null;
 
-            var wrapperGrid = new Grid();
-            wrapperGrid.Children.Add(_radialBgView);       // Fundo Radial
-            wrapperGrid.Children.Add(originalInnerGrid);   // Cartão Bege (acima)
+            Grid wrapperGrid = new Grid();
+            wrapperGrid.Children.Add(_radialBgView);
+            wrapperGrid.Children.Add(originalInnerGrid);
 
             FormBlock.Content = wrapperGrid;
         }
@@ -80,14 +94,13 @@ public partial class AuthPage : ContentPage
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // CONTROLE DE MODOS (NAVEGAÇÃO INTERNA)
+    // MODE CONTROL
     // ══════════════════════════════════════════════════════════════════════
 
     private void SwitchMode(AuthMode mode, bool animate = false)
     {
         _currentMode = mode;
 
-        // Oculta todos os painéis
         LoginPanel.IsVisible = false;
         RegisterPanel.IsVisible = false;
         ForgotPasswordPanel.IsVisible = false;
@@ -116,8 +129,7 @@ public partial class AuthPage : ContentPage
 
             UpdateTabState(animate);
 
-            // Animação de saída do fundo radial (volta suavemente pro linear)
-            if (animate) _ = _radialBgView.FadeTo(0, 300, Easing.CubicInOut);
+            if (animate) _ = _radialBgView.FadeToAsync(0, 300, Easing.CubicInOut);
             else _radialBgView.Opacity = 0;
         }
         else
@@ -146,14 +158,13 @@ public partial class AuthPage : ContentPage
                     break;
             }
 
-            // Animação de entrada do fundo radial
-            if (animate) _ = _radialBgView.FadeTo(1, 300, Easing.CubicInOut);
+            if (animate) _ = _radialBgView.FadeToAsync(1, 300, Easing.CubicInOut);
             else _radialBgView.Opacity = 1;
         }
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // TABS (LOGIN / REGISTER)
+    // TABS SWITCH 
     // ══════════════════════════════════════════════════════════════════════
 
     private void OnLoginTabTapped(object sender, TappedEventArgs e)
@@ -176,9 +187,9 @@ public partial class AuthPage : ContentPage
 
     private async void UpdateTabState(bool animate)
     {
-        var targetX = _isLoginTab ? 0d : (TabContainer.Width > 0 ? TabContainer.Width / 2 : 0);
-        var targetLeft = _isLoginTab ? TabGreenLight : TabGreenDark;
-        var targetRight = _isLoginTab ? TabGreenDark : TabGreenLight;
+        double targetX = _isLoginTab ? 0d : (TabContainer.Width > 0 ? TabContainer.Width / 2 : 0);
+        Color targetLeft = _isLoginTab ? TabGreenLight : TabGreenDark;
+        Color targetRight = _isLoginTab ? TabGreenDark : TabGreenLight;
 
         ApplyTabLabelStyles();
 
@@ -200,12 +211,12 @@ public partial class AuthPage : ContentPage
 
         _isAnimatingTab = true;
 
-        var startLeft = BlockGradientLeft.Color;
-        var startRight = BlockGradientRight.Color;
-        var startX = ActiveTabPill.TranslationX;
+        Color startLeft = BlockGradientLeft.Color;
+        Color startRight = BlockGradientRight.Color;
+        double startX = ActiveTabPill.TranslationX;
 
-        var tcs = new TaskCompletionSource<bool>();
-        var animation = new Animation(progress =>
+        TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+        Animation animation = new Animation(progress =>
         {
             BlockGradientLeft.Color = InterpolateColor(startLeft, targetLeft, progress);
             BlockGradientRight.Color = InterpolateColor(startRight, targetRight, progress);
@@ -247,11 +258,40 @@ public partial class AuthPage : ContentPage
 
     private async void OnLoginClicked(object sender, EventArgs e)
     {
-        await LoginButton.ScaleTo(0.96, 80);
-        await LoginButton.ScaleTo(1.0, 80);
+        await LoginButton.ScaleToAsync(0.96, 80);
+        await LoginButton.ScaleToAsync(1.0, 80);
 
-        // TODO: AuthService.LoginAsync(EmailEntry.Text, PasswordEntry.Text)
-        await Shell.Current.GoToAsync("//home");
+        ClearFieldError(LoginEmailBorder, null);
+        ClearFieldError(LoginPasswordBorder, LoginError);
+
+        string email = EmailEntry.Text?.Trim() ?? string.Empty;
+        string password = PasswordEntry.Text ?? string.Empty;
+
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        {
+            ShowFieldError(LoginEmailBorder, null, string.Empty);
+            ShowFieldError(LoginPasswordBorder, LoginError, "Preencha o e-mail e a senha.");
+            return;
+        }
+
+        LoginRequestDto request = new LoginRequestDto
+        {
+            UserEmail = EmailEntry.Text?.Trim() ?? string.Empty,
+            Password = PasswordEntry.Text ?? string.Empty,
+            RememberMe = RememberMeSwitch.IsToggled,
+        };
+
+        ApiResponse<LoginResponseDto> response = await _authApi.LoginAsync(request);
+
+        if (response.IsSuccess)
+        {
+            await Shell.Current.GoToAsync("//home");
+        }
+        else
+        {
+            ShowFieldError(LoginEmailBorder, null, string.Empty);
+            ShowFieldError(LoginPasswordBorder, LoginError, response.ErrorMessage ?? "Usuário ou senha inválidos. Tente novamente.");
+        }
     }
 
     private void OnTogglePasswordTapped(object sender, TappedEventArgs e)
@@ -268,8 +308,39 @@ public partial class AuthPage : ContentPage
 
     private async void OnGoogleLoginTapped(object sender, TappedEventArgs e)
     {
-        // TODO: implementar OAuth Google
-        await Task.CompletedTask;
+        try
+        {
+#if ANDROID
+            Activity? activity = Platform.CurrentActivity;
+            if (activity is null) return;
+
+            string? idToken = await Pontuei.App.Platforms.Android.GoogleAuthService.GetGoogleIdTokenAsync(activity);
+
+            if (string.IsNullOrEmpty(idToken))
+            {
+                await Toast.Make("Não foi possível obter credencial do Google.", ToastDuration.Long, 14).Show();
+                return;
+            }
+
+            GoogleLoginRequestDto request = new GoogleLoginRequestDto { IdToken = idToken };
+            ApiResponse<LoginResponseDto> response = await _authApi.GoogleLoginAsync(request);
+
+            if (!response.IsSuccess) return;
+
+            _ = TryRegisterPushTokenAsync();
+            await Shell.Current.GoToAsync("//home");
+#else
+            await Toast.Make("Login com Google não suportado nesta plataforma.", ToastDuration.Long, 14).Show();
+#endif
+        }
+        catch (GetCredentialCancellationException)
+        {
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[GoogleSSO] Error: {ex}");
+            await Toast.Make("Login com Google falhou. Verifique se está conectado em uma conta google e tente novamente.", ToastDuration.Long, 14).Show();
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -344,18 +415,18 @@ public partial class AuthPage : ContentPage
 
         if (string.IsNullOrWhiteSpace(NameEntry.Text))
         {
-            ShowFieldError(NameFieldBorder, NameError, "Informe seu nome completo.");
+            ShowFieldError(NameFieldBorder, NameError, "Informe seu nome.");
             hasError = true;
         }
 
-        var email = RegisterEmailEntry.Text?.Trim() ?? string.Empty;
-        if (string.IsNullOrEmpty(email) || !email.Contains('@'))
+        string email = RegisterEmailEntry.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(email) || !ValidationUtils.IsValidEmail(email))
         {
             ShowFieldError(RegisterEmailFieldBorder, RegisterEmailError, "Digite um e-mail válido.");
             hasError = true;
         }
 
-        var pwd = RegisterPasswordEntry.Text ?? string.Empty;
+        string pwd = RegisterPasswordEntry.Text ?? string.Empty;
         if (!IsPasswordValid(pwd))
         {
             ShowFieldError(RegisterPasswordFieldBorder, null, string.Empty);
@@ -376,41 +447,100 @@ public partial class AuthPage : ContentPage
 
         if (hasError) return;
 
-        // TODO: AuthService.RegisterAsync(...)
-        await Task.CompletedTask;
+        email = RegisterEmailEntry.Text!.Trim();
+        CreateUserRequestDto request = new CreateUserRequestDto
+        {
+            UserName = NameEntry.Text!.Trim(),
+            UserEmail = email,
+            Password = RegisterPasswordEntry.Text!,
+            ConfirmPassword = ConfirmPasswordEntry.Text!,
+            UserAcceptedTerms = _termsAccepted,
+            UserPushNotificationsEnabled = false,
+            UserIsAdmin = false,
+            UserEmailNotificationsEnabled = _emailNotificationsAccepted
+        };
 
-        VerifyEmailAddressSpan.Text = email;
-        SwitchMode(AuthMode.VerifyEmail, animate: true);
+        ApiResponse<LoginResponseDto> response = await _authApi.RegisterAsync(request);
+
+        if (response.IsSuccess)
+        {
+            _tempEmail = email;
+            VerifyEmailAddressSpan.Text = email;
+
+            _ = TryRegisterPushTokenAsync();
+
+            SwitchMode(AuthMode.VerifyEmail, animate: true);
+        }
+    }
+
+    private async Task TryRegisterPushTokenAsync()
+    {
+        try
+        {
+            PermissionStatus status = await Permissions.RequestAsync<Permissions.PostNotifications>();
+            if (status != PermissionStatus.Granted) return;
+
+            string? token = await CrossFirebaseCloudMessaging.Current.GetTokenAsync();
+            if (string.IsNullOrEmpty(token)) return;
+
+            await _authApi.UpdatePushTokenAsync(new UpdatePushNotificationTokenRequestDto
+            {
+                PushNotificationToken = token
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[FCM] Push token registration failed: {ex.Message}");
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // ESQUECI MINHA SENHA
+    // FORGOT PASSWORD
     // ══════════════════════════════════════════════════════════════════════
 
-    private void OnForgotPasswordSendClicked(object sender, EventArgs e)
+    private async void OnForgotPasswordSendClicked(object sender, EventArgs e)
     {
         ClearFieldError(ForgotEmailFieldBorder, ForgotEmailError);
-        var email = ForgotEmailEntry.Text?.Trim() ?? string.Empty;
+        string email = ForgotEmailEntry.Text?.Trim() ?? string.Empty;
 
-        if (string.IsNullOrEmpty(email) || !email.Contains('@'))
+        if (string.IsNullOrEmpty(email) || !ValidationUtils.IsValidEmail(email))
         {
             ShowFieldError(ForgotEmailFieldBorder, ForgotEmailError, "Digite um e-mail válido.");
             return;
         }
 
-        // TODO: Disparar API para enviar código
-        SwitchMode(AuthMode.ForgotPasswordCode, animate: true);
+        _tempEmail = email;
+        ApiResponse<EmptyDto> response = await _authApi.ForgotPasswordAsync(new ForgotPasswordRequestDto { UserEmail = email });
+
+        if (response.IsSuccess)
+        {
+            SwitchMode(AuthMode.ForgotPasswordCode, animate: true);
+        }
+        else
+        {
+            ShowFieldError(ForgotEmailFieldBorder, ForgotEmailError, response.ErrorMessage!);
+        }
     }
 
-    private void OnResendForgotCodeTapped(object sender, TappedEventArgs e)
+    private async void OnResendForgotCodeTapped(object sender, TappedEventArgs e)
     {
-        // TODO: Lógica para reenviar código de recuperação
+        ApiResponse<EmptyDto> response = await _authApi.ForgotPasswordAsync(new ForgotPasswordRequestDto { UserEmail = _tempEmail });
+
+        if (response.IsSuccess)
+        {
+            await Toast.Make("Código reenviado!", ToastDuration.Short).Show();
+            _ = StartCooldownAsync(ResendForgotLabel, "Reenviar código");
+        }
+        else
+        {
+            await Toast.Make(response.ErrorMessage ?? "Erro ao reenviar.", ToastDuration.Short).Show();
+        }
     }
 
-    private void OnForgotPasswordConfirmCodeClicked(object sender, EventArgs e)
+    private async void OnForgotPasswordConfirmCodeClicked(object sender, EventArgs e)
     {
         ClearFieldError(ForgotCodeFieldBorder, ForgotCodeError);
-        var code = ForgotCodeEntry.Text?.Trim() ?? string.Empty;
+        string code = ForgotCodeEntry.Text?.Trim() ?? string.Empty;
 
         if (code.Length < 6)
         {
@@ -418,8 +548,18 @@ public partial class AuthPage : ContentPage
             return;
         }
 
-        // TODO: Validar código na API
-        SwitchMode(AuthMode.ResetPassword, animate: true);
+        VerifyResetCodeRequestDto request = new VerifyResetCodeRequestDto { UserEmail = _tempEmail, Code = code };
+        ApiResponse<VerifyResetCodeResponseDto> response = await _authApi.VerifyResetCodeAsync(request);
+
+        if (response.IsSuccess && response.Data != null)
+        {
+            _tempResetToken = response.Data.ResetToken;
+            SwitchMode(AuthMode.ResetPassword, animate: true);
+        }
+        else
+        {
+            ShowFieldError(ForgotCodeFieldBorder, ForgotCodeError, response.ErrorMessage!);
+        }
     }
 
     private void OnAlreadyRememberedTapped(object sender, TappedEventArgs e)
@@ -459,41 +599,69 @@ public partial class AuthPage : ContentPage
         ResetConfirmEyeIcon.Source = _resetConfirmVisible ? "eye.svg" : "eve_crossed.svg";
     }
 
-    private void OnResetPasswordSubmitClicked(object sender, EventArgs e)
+    private async void OnResetPasswordSubmitClicked(object sender, EventArgs e)
     {
         ClearFieldError(ResetPasswordFieldBorder, null);
         ClearFieldError(ResetConfirmFieldBorder, ResetConfirmError);
 
-        var pwd = ResetPasswordEntry.Text ?? string.Empty;
+        string pwd = ResetPasswordEntry.Text ?? string.Empty;
         if (!IsPasswordValid(pwd))
         {
             ShowFieldError(ResetPasswordFieldBorder, null, string.Empty);
             return;
         }
 
-        if (pwd != ResetConfirmEntry.Text)
+        string confirmPwd = ResetConfirmEntry.Text ?? string.Empty;
+        if (pwd != confirmPwd)
         {
             ShowFieldError(ResetConfirmFieldBorder, ResetConfirmError, "As senhas não correspondem.");
             return;
         }
 
-        // TODO: Consumir API para trocar senha
-        SwitchMode(AuthMode.Login, animate: true);
+        ResetPasswordRequestDto request = new ResetPasswordRequestDto
+        {
+            ResetToken = _tempResetToken,
+            NewPassword = ResetPasswordEntry.Text!,
+            ConfirmNewPassword = ResetConfirmEntry.Text!
+        };
+
+        ApiResponse<EmptyDto> response = await _authApi.ResetPasswordAsync(request);
+
+        if (response.IsSuccess)
+        {
+            await Toast.Make("Sua senha foi redefinida. Faça o login para continuar.", ToastDuration.Long, 14).Show();
+            SwitchMode(AuthMode.Login, animate: true);
+        }
+        else
+        {
+            ShowFieldError(ResetConfirmFieldBorder, ResetConfirmError, response.ErrorMessage!);
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════════
     // VERIFICAÇÃO DE E-MAIL (PÓS CADASTRO)
     // ══════════════════════════════════════════════════════════════════════
 
-    private void OnResendVerifyCodeTapped(object sender, TappedEventArgs e)
+    // No AuthPage.xaml.cs
+    private async void OnResendVerifyCodeTapped(object sender, TappedEventArgs e)
     {
-        // TODO: Lógica para reenviar código de verificação
+        ApiResponse<EmptyDto> response = await _authApi.ResendVerificationEmailAsync(new ResendVerificationEmailRequestDto { UserEmail = _tempEmail });
+
+        if (response.IsSuccess)
+        {
+            await Toast.Make("E-mail reenviado com sucesso.", ToastDuration.Short).Show();
+            _ = StartCooldownAsync(ResendVerifyLabel, "Reenviar e-mail");
+        }
+        else
+        {
+            await Toast.Make(response.ErrorMessage ?? "Erro ao reenviar.", ToastDuration.Short).Show();
+        }
     }
 
     private async void OnVerifyEmailConfirmClicked(object sender, EventArgs e)
     {
         ClearFieldError(VerifyCodeFieldBorder, VerifyCodeError);
-        var code = VerifyCodeEntry.Text?.Trim() ?? string.Empty;
+        string code = VerifyCodeEntry.Text?.Trim() ?? string.Empty;
 
         if (code.Length < 6)
         {
@@ -501,8 +669,16 @@ public partial class AuthPage : ContentPage
             return;
         }
 
-        // TODO: Validar e-mail na API e efetivar sessão
-        await Shell.Current.GoToAsync("program-selection");
+        ApiResponse<EmptyDto> response = await _authApi.VerifyEmailAsync(new VerifyEmailRequestDto { Code = code });
+
+        if (response.IsSuccess)
+        {
+            await Shell.Current.GoToAsync("program-selection");
+        }
+        else
+        {
+            ShowFieldError(VerifyCodeFieldBorder, VerifyCodeError, response.ErrorMessage!);
+        }
     }
 
     private async void OnSkipVerifyEmailTapped(object sender, TappedEventArgs e)
@@ -549,5 +725,46 @@ public partial class AuthPage : ContentPage
         ClearFieldError(RegisterPasswordFieldBorder, null);
         ClearFieldError(ConfirmPasswordFieldBorder, ConfirmPasswordError);
         ClearFieldError(null, TermsError);
+    }
+
+    private async Task<bool> RequestPushPermissionAsync()
+    {
+        PermissionStatus status = await Permissions.RequestAsync<Permissions.PostNotifications>();
+        return status == PermissionStatus.Granted;
+    }
+
+    private async Task RegisterFcmTokenAsync()
+    {
+        try
+        {
+            string? token = await CrossFirebaseCloudMessaging.Current.GetTokenAsync();
+            if (!string.IsNullOrEmpty(token))
+            {
+                await _authApi.UpdatePushTokenAsync(new UpdatePushNotificationTokenRequestDto
+                {
+                    PushNotificationToken = token
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[FCM] Token registration failed: {ex}");
+        }
+    }
+
+    private async Task StartCooldownAsync(Label label, string originalText, int seconds = 60)
+    {
+        label.IsEnabled = false;
+        label.TextColor = Colors.Gray;
+
+        for (int i = seconds; i > 0; i--)
+        {
+            label.Text = $"Reenviar em {i}s";
+            await Task.Delay(1000);
+        }
+
+        label.Text = originalText;
+        label.IsEnabled = true;
+        label.TextColor = Color.FromArgb("#427A5B");
     }
 }

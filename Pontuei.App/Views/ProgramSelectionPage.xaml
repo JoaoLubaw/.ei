@@ -31,8 +31,16 @@
                            TextColor="#000000" FontSize="22" LineHeight="1.2" />
                 </VerticalStackLayout>
 
-                <!-- SCROLLVIEW COM A LISTA -->
-                <ScrollView Grid.Row="1" VerticalScrollBarVisibility="Never">
+                <!-- SCROLLVIEW COM A LISTA (com overlay de carregamento) -->
+                <Grid Grid.Row="1">
+                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                       IsVisible="{Binding IsLoading}"
+                                       Color="#3A6B4A"
+                                       VerticalOptions="Center"
+                                       HorizontalOptions="Center" />
+
+                    <ScrollView VerticalScrollBarVisibility="Never"
+                                IsVisible="{Binding IsNotLoading}">
                     <VerticalStackLayout Spacing="12">
                         <CollectionView x:Name="ProgramsCollectionView"
                                         SelectionMode="None"
@@ -97,7 +105,8 @@
                                 VerticalOptions="Center" />
                         </Border>
                     </VerticalStackLayout>
-                </ScrollView>
+                    </ScrollView>
+                </Grid>
 
                 <!-- CONTINUAR -->
                 <Button

@@ -29,4 +29,10 @@ public class LoginResponseDto
     /// </summary>
     [JsonPropertyName("user")]
     public required UserDto User { get; set; }
+
+    /// <summary>
+    /// Unique identifier of the user session, used to identify the session in subsequent requests.
+    /// </summary>
+    [JsonPropertyName("sessionId")]
+    public required Guid SessionId { get; set; }
 }

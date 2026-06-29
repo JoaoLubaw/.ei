@@ -181,16 +181,6 @@ public class MinioStorageService : IStorageService
 
     public string GeneratePreSignedUrl(string bucketName, string objectKey, int expirationInMinutes = 60)
     {
-        if (objectKey.StartsWith("/"))
-        {
-            objectKey = objectKey.Substring(1);
-        }
-
-        if (objectKey.StartsWith(bucketName + "/"))
-        {
-            objectKey = objectKey.Substring(bucketName.Length + 1);
-        }
-
         GetPreSignedUrlRequest request = new GetPreSignedUrlRequest
         {
             BucketName = bucketName,
@@ -199,21 +189,6 @@ public class MinioStorageService : IStorageService
         };
 
         string url = _s3Client.GetPreSignedURL(request);
-
-        // --- DOCKER TREATMENT ---
-        // When the API (inside Docker) generates the URL, MinIO uses the internal network name
-        // docker, ex: http://pontuei-minio:9000/...
-        // But the MAUI application (running in the emulator or on the phone) doesn't understand "pontuei-minio", 
-        // it needs to access via localhost (or 10.0.2.2 on Android).
-        // 
-        // So, we do a replace only for local development:
-        string localMinioUrl = "http://pontuei-minio:9000";
-        string exposedMinioUrl = "http://localhost:9000";
-
-        if (url.StartsWith(localMinioUrl))
-        {
-            url = url.Replace(localMinioUrl, exposedMinioUrl);
-        }
 
         return url;
     }

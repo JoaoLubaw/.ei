@@ -1,112 +1,76 @@
+using Pontuei.Shared.Dtos.Responses;
+
 namespace Pontuei.App.Services;
 
 /// <summary>
-/// Gerencia o estado de autenticação local do usuário.
-/// Persiste o JWT e dados da sessão via SecureStorage (criptografado pelo SO).
+/// True singleton service that manages the authentication state of the app:
+/// - Persists the access token, refresh token, and current user ID in SecureStorage.
+/// - Exposes static properties so that ApiClient can inject the Bearer token without needing DI
 /// </summary>
 public static class AuthService
 {
-    // ── Chaves do SecureStorage ───────────────────────────────────────────
     private const string KeyAccessToken = "auth_access_token";
     private const string KeyRefreshToken = "auth_refresh_token";
     private const string KeyUserId = "auth_user_id";
-    private const string KeyUserName = "auth_user_name";
-    private const string KeyUserEmail = "auth_user_email";
+    private const string KeySessionId = "auth_session_id";
 
-    // ── Propriedades em memória (cache da sessão atual) ───────────────────
 
+    // ── Memory state (loaded once at startup) ──────────────────
     public static string? AccessToken { get; private set; }
     public static string? RefreshToken { get; private set; }
-    public static Guid UserId { get; private set; }
-    public static string? UserName { get; private set; }
-    public static string? UserEmail { get; private set; }
+    public static Guid? CurrentUserId { get; private set; }
+    public static Guid? CurrentSessionId { get; private set; }
 
-    // ── Inicialização ─────────────────────────────────────────────────────
+    public static bool IsAuthenticated => !string.IsNullOrEmpty(AccessToken);
+
+    // ── Initialization ─────────────────
 
     /// <summary>
-    /// Carrega a sessão do SecureStorage para a memória.
-    /// Chamar no startup do app (MauiProgram ou App.xaml.cs).
+    /// Loads the tokens and user ID from SecureStorage into memory.
+    /// Should be called before any navigation.
     /// </summary>
     public static async Task InitializeAsync()
     {
-        try
-        {
-            AccessToken = await SecureStorage.Default.GetAsync(KeyAccessToken);
-            RefreshToken = await SecureStorage.Default.GetAsync(KeyRefreshToken);
-            UserName = await SecureStorage.Default.GetAsync(KeyUserName);
-            UserEmail = await SecureStorage.Default.GetAsync(KeyUserEmail);
+        AccessToken = await SecureStorage.Default.GetAsync(KeyAccessToken);
+        RefreshToken = await SecureStorage.Default.GetAsync(KeyRefreshToken);
 
-            string? rawId = await SecureStorage.Default.GetAsync(KeyUserId);
-            if (Guid.TryParse(rawId, out Guid id))
-                UserId = id;
-        }
-        catch
-        {
-            // SecureStorage pode falhar em emuladores sem keystore configurado.
-            // Nesse caso, o usuário vai precisar fazer login novamente.
-            ClearMemory();
-        }
+        string? rawUserId = await SecureStorage.Default.GetAsync(KeyUserId);
+        CurrentUserId = Guid.TryParse(rawUserId, out Guid id) ? id : null;
     }
 
-    // ── Verificação ───────────────────────────────────────────────────────
-
-    /// <summary>Retorna true se há um token de acesso salvo (sessão ativa).</summary>
-    public static async Task<bool> IsLoggedInAsync()
-    {
-        if (AccessToken != null) return true;
-
-        // Tenta carregar do storage caso não tenha sido inicializado ainda
-        await InitializeAsync();
-        return !string.IsNullOrEmpty(AccessToken);
-    }
-
-    // ── Persistência ──────────────────────────────────────────────────────
+    // ── Persistence (after login/refresh) ─────────────────────────────────
 
     /// <summary>
-    /// Salva os dados de sessão após login bem-sucedido.
+    /// Save the returned tokens to SecureStorage and memory.
     /// </summary>
-    public static async Task SaveSessionAsync(
-        string accessToken,
-        string refreshToken,
-        Guid userId,
-        string userName,
-        string userEmail)
+    public static async Task SaveSessionAsync(LoginResponseDto loginResponse)
     {
-        AccessToken = accessToken;
-        RefreshToken = refreshToken;
-        UserId = userId;
-        UserName = userName;
-        UserEmail = userEmail;
+        AccessToken = loginResponse.AccessToken;
+        RefreshToken = loginResponse.RefreshToken;
+        CurrentUserId = loginResponse.User.UserId;
+        CurrentSessionId = loginResponse.SessionId;
 
-        await SecureStorage.Default.SetAsync(KeyAccessToken, accessToken);
-        await SecureStorage.Default.SetAsync(KeyRefreshToken, refreshToken);
-        await SecureStorage.Default.SetAsync(KeyUserId, userId.ToString());
-        await SecureStorage.Default.SetAsync(KeyUserName, userName);
-        await SecureStorage.Default.SetAsync(KeyUserEmail, userEmail);
+        await SecureStorage.Default.SetAsync(KeyAccessToken, loginResponse.AccessToken);
+        await SecureStorage.Default.SetAsync(KeyRefreshToken, loginResponse.RefreshToken);
+        await SecureStorage.Default.SetAsync(KeyUserId, loginResponse.User.UserId.ToString());
+        await SecureStorage.Default.SetAsync(KeySessionId, loginResponse.SessionId.ToString());
     }
 
+    // ── Logout ────────────────────────────────────────────────────────────
+
     /// <summary>
-    /// Remove todos os dados de sessão (logout).
+    /// Clears the tokens from memory and SecureStorage.
     /// </summary>
-    public static void ClearSession()
+    public static async Task LogoutAsync()
     {
-        ClearMemory();
+        AccessToken = null;
+        RefreshToken = null;
+        CurrentUserId = null;
 
         SecureStorage.Default.Remove(KeyAccessToken);
         SecureStorage.Default.Remove(KeyRefreshToken);
         SecureStorage.Default.Remove(KeyUserId);
-        SecureStorage.Default.Remove(KeyUserName);
-        SecureStorage.Default.Remove(KeyUserEmail);
-    }
 
-    // ── Helpers privados ──────────────────────────────────────────────────
-
-    private static void ClearMemory()
-    {
-        AccessToken = null;
-        RefreshToken = null;
-        UserId = Guid.Empty;
-        UserName = null;
-        UserEmail = null;
+        await Task.CompletedTask;
     }
 }

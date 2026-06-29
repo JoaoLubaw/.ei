@@ -13,7 +13,7 @@
     <Nullable>enable</Nullable>
     
     <!-- Display name -->
-    <ApplicationTitle>Pontuei.App</ApplicationTitle>
+    <ApplicationTitle>.ei</ApplicationTitle>
     <ApplicationId>com.companyname.pontuei.app</ApplicationId>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
@@ -29,8 +29,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
-    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundScale="0.65" Color="#202124" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#202124" BaseSize="80,80" />    
     <MauiImage Include="Resources\Images\*" />
     <MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
     <MauiFont Include="Resources\Fonts\*" />
@@ -41,13 +41,19 @@
 
   <ItemGroup>
     <PackageReference Include="CardsView.Maui" />
+    <PackageReference Include="CommunityToolkit.Maui" />
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="FFImageLoading.Maui" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Pontuei.Shared\Pontuei.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <MauiAsset Include="appsettings.Local.json" LogicalName="appsettings.Local.json" />
   </ItemGroup>
 
   <!-- Isolamento das plataformas para não misturar iOS/Win no Android -->
@@ -67,5 +73,11 @@
   </ItemGroup>
   <ItemGroup Condition="$(TargetFramework.StartsWith('net10.0-tizen')) == false">
     <Compile Remove="Platforms\Tizen\**\*.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+      <PackageReference Include="Plugin.Firebase.CloudMessaging" />
+      <PackageReference Include="Plugin.Firebase.Auth" />
+      <PackageReference Include="Xamarin.Google.Android.Libraries.Identity.GoogleId" />
+      <GoogleServicesJson Include="google-services.json" />
   </ItemGroup>
 </Project>

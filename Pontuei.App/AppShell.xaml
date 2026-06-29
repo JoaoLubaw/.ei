@@ -6,10 +6,13 @@
     Shell.FlyoutBehavior="Disabled"
     Shell.NavBarIsVisible="False">
 
-    <!-- Tab group principal: Home e Notifications são irmãs.
-         A troca entre elas não usa push/pop, então o footer do BasePage
-         fica completamente estático — não entra na animação do Shell. -->
-<!-- Adicione Shell.TabBarIsVisible="False" no seu TabBar -->
+    <!-- 1. SPLASH PAGE NO TOPO: O app sempre abrirá aqui primeiro para avaliar o login -->
+    <ShellContent
+        Route="splash"
+        ContentTemplate="{DataTemplate views:SplashPage}"
+        Shell.NavBarIsVisible="False" />
+
+    <!-- 2. TAB BAR: Para onde o usuário vai se ESTIVER logado -->
     <TabBar Shell.NavBarIsVisible="False" Shell.TabBarIsVisible="False">
         <Tab>
             <ShellContent
@@ -33,12 +36,7 @@
         </Tab>
     </TabBar>
     
-    <!-- Auth flow — acessíveis via GoToAsync("//auth") etc quando necessário -->
-    <ShellContent
-        Route="splash"
-        ContentTemplate="{DataTemplate views:SplashPage}"
-        Shell.NavBarIsVisible="False" />
-
+    <!-- 3. ROTA DE AUTH: Para onde o usuário vai se NÃO ESTIVER logado (após clicar em "Bora começar") -->
     <ShellContent
         Route="auth"
         ContentTemplate="{DataTemplate views:AuthPage}"

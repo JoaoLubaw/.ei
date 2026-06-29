@@ -2,80 +2,141 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Pontuei.App.Services;
+using Pontuei.App.Services.Api;
 using Pontuei.Shared.Dtos.Objects;
+using Pontuei.Shared.Dtos.Requests;
+using Pontuei.Shared.Dtos.Responses;
 
 namespace Pontuei.App.Views;
 
 public partial class ProgramSelectionPage : ContentPage
 {
-    // Guarda o par (item, border) para poder animar o mais antigo ao desselecionar
+    // ── Serviços ──────────────────────────────────────────────────────────
+    private readonly LoyaltyProgramsApiService _loyaltyProgramsApi;
+
+    // ── Estado de seleção ─────────────────────────────────────────────────
+    // Guarda o par (item, border) para animar o mais antigo ao desselecionar
     private readonly List<(ProgramSelectItem Item, Border Border)> _selectionOrder = [];
     private bool _isOtherSelected;
 
+    // ── Estado de carregamento ────────────────────────────────────────────
+    private bool _isLoading;
+    public bool IsLoading
+    {
+        get => _isLoading;
+        private set
+        {
+            _isLoading = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsNotLoading));
+        }
+    }
+    public bool IsNotLoading => !_isLoading;
+
+    // ── Coleção bindada ───────────────────────────────────────────────────
     public ObservableCollection<ProgramSelectItem> ProgramItems { get; } = [];
 
-    public ProgramSelectionPage()
+    public event PropertyChangedEventHandler? PropertyChanged;
+    private void OnPropertyChanged([CallerMemberName] string? name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    // ── Construtor ────────────────────────────────────────────────────────
+    public ProgramSelectionPage(LoyaltyProgramsApiService loyaltyProgramsApi)
     {
         InitializeComponent();
         BindingContext = this;
-        LoadProgramsMock();
+        _loyaltyProgramsApi = loyaltyProgramsApi;
     }
 
-    private void LoadProgramsMock()
-    {
-        // TODO: substituir pelo GET /loyalty-programs da API
-        var mockPrograms = new List<LoyaltyProgramDto>
-        {
-            new() { LoyaltyProgramId = 1,  LoyaltyProgramName = "Esfera",           LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/Esfera.webp",           LoyaltyProgramIsActive = true },
-            new() { LoyaltyProgramId = 2,  LoyaltyProgramName = "Dotz",             LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/Dotz.webp",               LoyaltyProgramIsActive = true },
-            new() { LoyaltyProgramId = 3,  LoyaltyProgramName = "Livelo",           LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/Livelo.webp",             LoyaltyProgramIsActive = true },
-            new() { LoyaltyProgramId = 4,  LoyaltyProgramName = "Inter Loop",       LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/InterLoop.webp",          LoyaltyProgramIsActive = true },
-            new() { LoyaltyProgramId = 5,  LoyaltyProgramName = "XP Investimentos", LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/XPInvestimentos.webp",    LoyaltyProgramIsActive = true },
-            new() { LoyaltyProgramId = 6,  LoyaltyProgramName = "Átomos",           LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/Atomos.webp",             LoyaltyProgramIsActive = true },
-            new() { LoyaltyProgramId = 7,  LoyaltyProgramName = "Smiles",           LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/Smiles.webp",             LoyaltyProgramIsActive = true },
-            new() { LoyaltyProgramId = 8,  LoyaltyProgramName = "Latam Pass",       LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/LatamPass.webp",         LoyaltyProgramIsActive = true },
-            new() { LoyaltyProgramId = 9,  LoyaltyProgramName = "Tudo Azul",        LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/TudoAzul.webp",           LoyaltyProgramIsActive = true },
-            new() { LoyaltyProgramId = 10, LoyaltyProgramName = "Itaú",             LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/Itau.webp",               LoyaltyProgramIsActive = true },
-            new() { LoyaltyProgramId = 11, LoyaltyProgramName = "Caixa",            LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/Caixa.webp",              LoyaltyProgramIsActive = true },
-            new() { LoyaltyProgramId = 12, LoyaltyProgramName = "Stix",             LoyaltyProgramLogoUrl = "/pontuei-programs/loyalty-programs/Stix.webp",               LoyaltyProgramIsActive = true }
-        };
+    // ════════════════════════════════════════════════════════════════════════
+    // CICLO DE VIDA
+    // ════════════════════════════════════════════════════════════════════════
 
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        await LoadProgramsAsync();
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // CARREGAMENTO DE PROGRAMAS VIA API
+    // ════════════════════════════════════════════════════════════════════════
+
+    private async Task LoadProgramsAsync()
+    {
+        IsLoading = true;
         ProgramItems.Clear();
-        foreach (LoyaltyProgramDto program in mockPrograms)
+
+        try
         {
-            ProgramItems.Add(new ProgramSelectItem
+            // Busca todos os programas ativos do catálogo (sem filtro de usuário).
+            // A API pagina de 100 em 100 — improvável passar disso no catálogo,
+            // mas se necessário implemente paginação incremental aqui.
+            ApiResponse<GetLoyaltyProgramsResponseDto> response =
+                await _loyaltyProgramsApi.GetAllProgramsAsync(
+                    new GetLoyaltyProgramsRequestDto
+                    {
+                        Page = 1,
+                        Size = 100,
+                        Filters = new LoyaltyProgramFiltersDto { LoyaltyProgramIsActive = true }
+                    });
+
+            if (response.IsSuccess && response.Data?.LoyaltyPrograms is { } programs)
             {
-                Program = program,
-                LogoUrl = AppConstants.ResolveStorageUrl(program.LoyaltyProgramLogoUrl)
-            });
+                foreach (LoyaltyProgramDto program in programs)
+                {
+                    // Programas sem logo não entram na grade — evita células brancas.
+                    // O usuário pode usar a opção "Outro" para esses casos.
+                    if (string.IsNullOrWhiteSpace(program.LoyaltyProgramLogoUrl))
+                        continue;
+
+                    ProgramItems.Add(new ProgramSelectItem
+                    {
+                        Program = program,
+                        LogoUrl = AppConstants.ResolveStorageUrl(program.LoyaltyProgramLogoUrl)
+                    });
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    $"[ProgramSelectionPage] Falha ao carregar programas: {response.ErrorMessage}");
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[ProgramSelectionPage] LoadProgramsAsync erro: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
 
+    // ════════════════════════════════════════════════════════════════════════
+    // SELEÇÃO DE PROGRAMAS
+    // ════════════════════════════════════════════════════════════════════════
+
     private async void OnProgramTapped(object? sender, TappedEventArgs e)
     {
-        // O Border é passado diretamente via CommandParameter (definido no XAML)
-        if (e.Parameter is not Border border)
-            return;
-
-        if (border.BindingContext is not ProgramSelectItem item)
-            return;
+        if (e.Parameter is not Border border) return;
+        if (border.BindingContext is not ProgramSelectItem item) return;
 
         if (!item.IsSelected)
         {
-            // Se atingiu o limite, desseleciona o mais antigo — COM animação
+            // Atingiu o limite: desseleciona o mais antigo com animação
             if (_selectionOrder.Count >= AppConstants.MaxProgramSelection)
             {
                 var (oldestItem, oldestBorder) = _selectionOrder[0];
                 _selectionOrder.RemoveAt(0);
                 oldestItem.IsSelected = false;
-                // Roda em paralelo, sem bloquear a seleção do novo
                 _ = AnimateStroke(oldestBorder, Color.FromArgb("#3A6B4A"), Colors.Transparent, 150);
             }
 
             item.IsSelected = true;
             _selectionOrder.Add((item, border));
 
-            // Pulsa a escala e acende a borda verde simultaneamente
             await Task.WhenAll(
                 AnimateStroke(border, Colors.Transparent, Color.FromArgb("#3A6B4A"), 200),
                 border.ScaleTo(0.92, 100, Easing.CubicOut)
@@ -86,38 +147,10 @@ public partial class ProgramSelectionPage : ContentPage
         {
             item.IsSelected = false;
             _selectionOrder.RemoveAll(x => x.Item == item);
-
             await AnimateStroke(border, Color.FromArgb("#3A6B4A"), Colors.Transparent, 150);
         }
 
         UpdateContinueButton();
-    }
-
-    /// <summary>
-    /// Interpola a cor do Stroke de um Border ao longo de <paramref name="durationMs"/> ms.
-    /// MAUI não tem ColorAnimation nativa, então fazemos frame a frame.
-    /// </summary>
-    private static Task AnimateStroke(Border border, Color from, Color to, uint durationMs)
-    {
-        var tcs = new TaskCompletionSource();
-        var anim = new Animation(t =>
-        {
-            border.Stroke = new SolidColorBrush(
-                Color.FromRgba(
-                    from.Red + (to.Red - from.Red) * t,
-                    from.Green + (to.Green - from.Green) * t,
-                    from.Blue + (to.Blue - from.Blue) * t,
-                    from.Alpha + (to.Alpha - from.Alpha) * t
-                ));
-        }, 0, 1, Easing.CubicInOut);
-
-        anim.Commit(border, "StrokeAnim", length: durationMs, finished: (_, _) =>
-        {
-            border.Stroke = new SolidColorBrush(to);
-            tcs.TrySetResult();
-        });
-
-        return tcs.Task;
     }
 
     private void OnOtherTapped(object? sender, TappedEventArgs e)
@@ -139,15 +172,14 @@ public partial class ProgramSelectionPage : ContentPage
     {
         _isOtherSelected = selected;
         OtherOptionBorder.Stroke = selected
-            ? Color.FromArgb("#3A6B4A")
-            : Colors.Transparent;
+            ? new SolidColorBrush(Color.FromArgb("#3A6B4A"))
+            : new SolidColorBrush(Colors.Transparent);
     }
 
     private void ClearProgramSelections()
     {
         foreach (ProgramSelectItem item in ProgramItems)
             item.IsSelected = false;
-
         _selectionOrder.Clear();
     }
 
@@ -156,19 +188,85 @@ public partial class ProgramSelectionPage : ContentPage
         ContinueButton.IsEnabled = _selectionOrder.Count > 0 || _isOtherSelected;
     }
 
+    // ════════════════════════════════════════════════════════════════════════
+    // SALVAR E NAVEGAR
+    // ════════════════════════════════════════════════════════════════════════
+
     private async void OnContinueClicked(object sender, EventArgs e)
     {
-        var selectedPrograms = _selectionOrder
-            .Select(x => x.Item.Program)
-            .ToList();
+        ContinueButton.IsEnabled = false;
 
-        bool otherSelected = _isOtherSelected;
+        Guid? userId = AuthService.CurrentUserId;
 
-        // TODO: POST vínculo UserLoyaltyProgram (+ flag "Outro" se otherSelected)
+        if (userId is not null && _selectionOrder.Count > 0)
+        {
+            var programsPayload = _selectionOrder
+                .Select((x, index) => new CreateUserLoyaltyProgramRequestDto
+                {
+                    LoyaltyProgramId = x.Item.Program.LoyaltyProgramId,
+                    DisplayOrder = (short)index
+                })
+                .ToList();
+
+            var bulkRequest = new BulkUpdateUserLoyaltyProgramsRequestDto
+            {
+                Programs = programsPayload
+            };
+
+            ApiResponse<GetUserLoyaltyProgramsResponseDto> result =
+                await _loyaltyProgramsApi.BulkUpdateUserProgramsAsync(userId.Value, bulkRequest);
+
+            if (!result.IsSuccess)
+            {
+                // Falha não-bloqueante: o usuário chega na home e o dashboard
+                // tentará carregar. O guard não rodará novamente (MarkProgramCheckDone
+                // é chamado abaixo de qualquer forma para evitar loop).
+                System.Diagnostics.Debug.WriteLine(
+                    $"[ProgramSelectionPage] BulkUpdate falhou: {result.ErrorMessage}");
+            }
+        }
+
+        // Informa à HomePage que o guard não precisa repetir.
+        // Evita o loop: home → program-selection → home → program-selection
+        // caso a chamada acima falhe por algum motivo de rede.
+        HomePage.MarkProgramCheckDone();
 
         await Shell.Current.GoToAsync("//home");
     }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // ANIMAÇÃO DE BORDA
+    // ════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Interpola a cor do Stroke de um Border ao longo de <paramref name="durationMs"/> ms.
+    /// MAUI não tem ColorAnimation nativa — fazemos frame a frame via Animation.
+    /// </summary>
+    private static Task AnimateStroke(Border border, Color from, Color to, uint durationMs)
+    {
+        var tcs = new TaskCompletionSource();
+
+        new Animation(t =>
+        {
+            border.Stroke = new SolidColorBrush(Color.FromRgba(
+                from.Red + (to.Red - from.Red) * t,
+                from.Green + (to.Green - from.Green) * t,
+                from.Blue + (to.Blue - from.Blue) * t,
+                from.Alpha + (to.Alpha - from.Alpha) * t));
+        }, 0, 1, Easing.CubicInOut)
+        .Commit(border, "StrokeAnim", length: durationMs, finished: (_, _) =>
+        {
+            border.Stroke = new SolidColorBrush(to);
+            tcs.TrySetResult();
+        });
+
+        return tcs.Task;
+    }
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// VIEW MODEL
+// ════════════════════════════════════════════════════════════════════════════
 
 public sealed class ProgramSelectItem : INotifyPropertyChanged
 {
@@ -190,6 +288,6 @@ public sealed class ProgramSelectItem : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    private void OnPropertyChanged([CallerMemberName] string? name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }

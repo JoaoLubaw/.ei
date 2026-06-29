@@ -8,7 +8,9 @@ DROP SEQUENCE IF EXISTS public.user_loyalty_program_id_seq
 DROP TABLE IF EXISTS public.user_loyalty_program CASCADE
 ;
 
-/* Create Tables */
+/* Create Sequences FIRST */
+CREATE SEQUENCE public.user_loyalty_program_id_seq INCREMENT 1 START 1;
+
 
 CREATE TABLE public.user_loyalty_program
 (
@@ -106,5 +108,3 @@ COMMENT ON COLUMN public.user_loyalty_program.row_is_deleted
 	IS 'Row has been removed.'
 ;
 
-CREATE SEQUENCE public.user_loyalty_program_id_seq INCREMENT 1 START 1
-;
