@@ -21,6 +21,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
+Console.WriteLine("=== STARTING ===");
+Console.Out.Flush();
+
 try
 {
     Log.Information("Iniciando a API do Pontuei...");

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Pontuei.Api</RootNamespace>
-    <Version>0.0.0.1</Version>
+    <Version>0.0.0.2</Version>
     <Product>Pontuei Api</Product>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
