@@ -3,7 +3,7 @@ services:
   # API - Production server configuration
   # ============================================================
   pontuei-api:
-    image: ${API_IMAGE:-ghcr.io/JoaoLubaw/pontuei-api:latest}
+    image: ${API_IMAGE:-ghcr.io/joaolubaw/pontuei-api:latest}
     build: !reset null
     ports: !reset []
 
