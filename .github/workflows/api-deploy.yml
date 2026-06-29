@@ -96,7 +96,7 @@ jobs:
                     echo "env_file=.env.production" >> $GITHUB_OUTPUT
                   else
                     echo "name=develop" >> $GITHUB_OUTPUT
-                    echo "env_file=.env.develop" >> $GITHUB_OUTPUT
+                    echo "env_file=.env.production" >> $GITHUB_OUTPUT
                   fi
             - name: Deploy via SSH
               uses: appleboy/ssh-action@v1.0.3
