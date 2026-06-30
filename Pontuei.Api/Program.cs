@@ -48,7 +48,9 @@ try
         byte[] jsonBytes = Convert.FromBase64String(base64Str);
         string jsonString = System.Text.Encoding.UTF8.GetString(jsonBytes);
 
-        GoogleCredential credential = CredentialFactory.FromJson<GoogleCredential>(jsonString)
+        GoogleCredential credential = CredentialFactory
+            .FromJson<ServiceAccountCredential>(jsonString)
+            .ToGoogleCredential()
             .CreateScoped("https://www.googleapis.com/auth/firebase.messaging");
 
         FirebaseApp.Create(new AppOptions
