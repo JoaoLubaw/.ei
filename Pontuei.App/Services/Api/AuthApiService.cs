@@ -65,7 +65,7 @@ public class AuthApiService
     /// </summary>
     public async Task<ApiResponse<LoginResponseDto>> RegisterAsync(CreateUserRequestDto request)
     {
-        ApiResponse<LoginResponseDto> response = await _api.PostAsync<LoginResponseDto>("auth/register", request);
+        ApiResponse<LoginResponseDto> response = await _api.PostAsync<LoginResponseDto>("auth/register", request, true);
 
         if (response.IsSuccess && response.Data != null)
             await AuthService.SaveSessionAsync(response.Data);
@@ -95,7 +95,7 @@ public class AuthApiService
             return ApiResponse<LoginResponseDto>.Fail(System.Net.HttpStatusCode.Unauthorized, "Nenhum refresh token disponível.");
 
         RefreshTokenRequestDto request = new() { RefreshToken = refreshToken };
-        ApiResponse<LoginResponseDto> response = await _api.PostAsync<LoginResponseDto>("auth/refresh", request);
+        ApiResponse<LoginResponseDto> response = await _api.PostAsync<LoginResponseDto>("auth/refresh", request, true);
 
         if (response.IsSuccess && response.Data != null)
             await AuthService.SaveSessionAsync(response.Data);
@@ -125,13 +125,13 @@ public class AuthApiService
     /// Verifies the user's email using the 6-digit code sent to their inbox. If successful, the user's email is marked as verified.
     /// </summary>
     public Task<ApiResponse<EmptyDto>> VerifyEmailAsync(VerifyEmailRequestDto request)
-        => _api.PostAsync<EmptyDto>("auth/verify-email", request);
+        => _api.PostAsync<EmptyDto>("auth/verify-email", request, true);
 
     /// <summary>
     /// Resends the verification code to the user's email. The response is always generic to prevent user enumeration.
     /// </summary>
     public Task<ApiResponse<EmptyDto>> ResendVerificationEmailAsync(ResendVerificationEmailRequestDto request)
-        => _api.PostAsync<EmptyDto>("auth/resend-verification", request);
+        => _api.PostAsync<EmptyDto>("auth/resend-verification", request, true);
 
     // ── Forgot password (3 steps) ────────────────────────────────────────
 
@@ -140,13 +140,13 @@ public class AuthApiService
     /// The response is always generic to prevent user enumeration.
     /// </summary>
     public Task<ApiResponse<EmptyDto>> ForgotPasswordAsync(ForgotPasswordRequestDto request)
-        => _api.PostAsync<EmptyDto>("auth/forgot-password", request);
+        => _api.PostAsync<EmptyDto>("auth/forgot-password", request, true);
 
     /// <summary>
     /// Step 2 — validates the 6-digit code and returns a short-lived reset token.
     /// </summary>
     public Task<ApiResponse<VerifyResetCodeResponseDto>> VerifyResetCodeAsync(VerifyResetCodeRequestDto request)
-        => _api.PostAsync<VerifyResetCodeResponseDto>("auth/verify-reset-code", request);
+        => _api.PostAsync<VerifyResetCodeResponseDto>("auth/verify-reset-code", request, true);
 
     /// <summary>
     /// Step 3 — defines the new password using the token obtained in step 2.
@@ -162,5 +162,5 @@ public class AuthApiService
     /// Revokes all active sessions upon completion.
     /// </summary>
     public Task<ApiResponse<UserDto>> ChangePasswordAsync(ChangePasswordRequestDto request)
-        => _api.PostAsync<UserDto>("auth/change-password", request);
+        => _api.PostAsync<UserDto>("auth/change-password", request, true);
 }

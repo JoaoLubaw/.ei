@@ -207,7 +207,9 @@
                                             Keyboard="Email"
                                             BackgroundColor="Transparent"
                                             Margin="10,0,14,0"
-                                            VerticalOptions="Center" />
+                                            VerticalOptions="Center"
+                                            TextChanged="OnLoginTextChanged"
+                                            />
                                     </Grid>
                                 </Border>
 
@@ -251,11 +253,13 @@
                                             IsPassword="True"
                                             BackgroundColor="Transparent"
                                             Margin="10,0,0,0"
-                                            VerticalOptions="Center" />
+                                            VerticalOptions="Center" 
+                                            TextChanged="OnLoginTextChanged"
+                                            />
                                         <Image
                                             Grid.Column="2"
                                             x:Name="EyeIcon"
-                                            Source="eve_crossed.svg"
+                                            Source="eye_crossed.svg"
                                             WidthRequest="22"
                                             HeightRequest="22"
                                             Aspect="AspectFit"
@@ -327,7 +331,7 @@
 
                                 <!-- Nome -->
                                 <Border
-                                    x:Name="NameFieldBorder"
+                                    x:Name="RegisterNameFieldBorder"
                                     HeightRequest="52"
                                     BackgroundColor="#3f3838"
                                     StrokeThickness="0"
@@ -357,7 +361,8 @@
                                         </Border>
                                         <Entry
                                             Grid.Column="1"
-                                            x:Name="NameEntry"
+                                            x:Name="RegisterNameEntry"
+                                            TextChanged="OnRegisterTextChanged"
                                             Placeholder="Digite seu nome"
                                             PlaceholderColor="#9E9E9E"
                                             TextColor="White"
@@ -369,14 +374,14 @@
                                     </Grid>
                                 </Border>
                                 <Label
-                                    x:Name="NameError"
+                                    x:Name="RegisterNameError"
                                     TextColor="#E53935"
                                     FontFamily="PoppinsRegular"
                                     FontSize="11"
                                     Margin="14,0,0,6"
                                     IsVisible="False" />
 
-<!-- E-mail -->
+                                <!-- E-mail -->
                                 <Border
                                     x:Name="RegisterEmailFieldBorder"
                                     HeightRequest="52"
@@ -396,6 +401,7 @@
                                         <Entry
                                             Grid.Column="1"
                                             x:Name="RegisterEmailEntry"
+                                            TextChanged="OnRegisterTextChanged"
                                             Placeholder="Digite seu e-mail"
                                             PlaceholderColor="#9E9E9E"
                                             TextColor="White"
@@ -448,7 +454,7 @@
                                         <Image
                                             Grid.Column="2"
                                             x:Name="RegisterEyeIcon"
-                                            Source="eve_crossed.svg"
+                                            Source="eye_crossed.svg"
                                             WidthRequest="22"
                                             HeightRequest="22"
                                             Aspect="AspectFit"
@@ -460,6 +466,14 @@
                                         </Image>
                                     </Grid>
                                 </Border>
+                                <Label
+                                    x:Name="RegisterPasswordError"
+                                    TextColor="#E53935"
+                                    FontFamily="PoppinsRegular"
+                                    FontSize="11"
+                                    Margin="14,0,0,6"
+                                    IsVisible="False" />
+
 
                                 <!-- Checklist de validação de senha -->
                                 <VerticalStackLayout
@@ -519,12 +533,13 @@
                                             FontSize="14"
                                             IsPassword="True"
                                             BackgroundColor="Transparent"
+                                            TextChanged="OnRegisterTextChanged"
                                             Margin="10,0,0,0"
                                             VerticalOptions="Center" />
                                         <Image
                                             Grid.Column="2"
                                             x:Name="ConfirmEyeIcon"
-                                            Source="eve_crossed.svg"
+                                            Source="eye_crossed.svg"
                                             WidthRequest="22"
                                             HeightRequest="22"
                                             Aspect="AspectFit"
@@ -909,6 +924,7 @@
                                 <!-- Reenviar com countdown -->
                                 <Label
                                     x:Name="ResendForgotLabel"
+                                    Text="Reenviar código"
                                     TextColor="#9E9E9E"
                                     FontFamily="PoppinsRegular"
                                     FontSize="12"
@@ -1003,7 +1019,7 @@
                                         <Image
                                             Grid.Column="2"
                                             x:Name="ResetEyeIcon"
-                                            Source="eve_crossed.svg"
+                                            Source="eye_crossed.svg"
                                             WidthRequest="22"
                                             HeightRequest="22"
                                             Aspect="AspectFit"
@@ -1071,7 +1087,7 @@
                                         <Image
                                             Grid.Column="2"
                                             x:Name="ResetConfirmEyeIcon"
-                                            Source="eve_crossed.svg"
+                                            Source="eye_crossed.svg"
                                             WidthRequest="22"
                                             HeightRequest="22"
                                             Aspect="AspectFit"
@@ -1206,6 +1222,7 @@
                                 <!-- Reenviar com countdown -->
                                 <Label
                                     x:Name="ResendVerifyLabel"
+                                    Text="Reenviar e-mail"
                                     TextColor="#9E9E9E"
                                     FontFamily="PoppinsRegular"
                                     FontSize="12"

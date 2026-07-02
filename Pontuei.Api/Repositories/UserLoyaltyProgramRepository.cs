@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.Logging;
 using Pontuei.Api.Data;
-
 using Pontuei.Shared.Dtos.Requests;
 using Pontuei.Api.Interfaces.Repositories;
 using Pontuei.Api.Models;
@@ -10,37 +9,28 @@ namespace Pontuei.Api.Repositories;
 
 public class UserLoyaltyProgramRepository : BaseRepository, IUserLoyaltyProgramRepository
 {
-    public UserLoyaltyProgramRepository(PontueiDbContext dbContext) : base(dbContext)
+    private readonly ILogger<UserLoyaltyProgramRepository> _logger;
+
+    public UserLoyaltyProgramRepository(PontueiDbContext dbContext, ILogger<UserLoyaltyProgramRepository> logger) : base(dbContext)
     {
+        _logger = logger;
     }
 
-    /// <summary>
-    /// Returns all enrollment records for the given user, ordered by
-    /// <c>user_loyalty_program_display_order</c> ascending.
-    /// Navigation property <c>LoyaltyProgram</c> is included.
-    /// </summary>
     public IQueryable<UserLoyaltyProgram> GetByUserIdAsync(Guid userId)
     {
         return _dbContext.UserLoyaltyPrograms
             .Include(ulp => ulp.LoyaltyProgram)
-            .Where(ulp => ulp.UserId == userId)
+            .Where(ulp => ulp.UserId == userId && !ulp.IsDeleted)
             .OrderBy(ulp => ulp.UserLoyaltyProgramDisplayOrder);
     }
 
-    /// <summary>
-    /// Returns a single enrollment record, or <c>null</c> when the user
-    /// is not enrolled in the given program.
-    /// </summary>
     public async Task<UserLoyaltyProgram?> GetAsync(Guid userId, int loyaltyProgramId)
     {
         return await _dbContext.UserLoyaltyPrograms
             .Include(ulp => ulp.LoyaltyProgram)
-            .FirstOrDefaultAsync(ulp => ulp.UserId == userId && ulp.LoyaltyProgramId == loyaltyProgramId);
+            .FirstOrDefaultAsync(ulp => ulp.UserId == userId && ulp.LoyaltyProgramId == loyaltyProgramId && !ulp.IsDeleted);
     }
 
-    /// <summary>
-    /// Persists a new enrollment record and returns the saved entity.
-    /// </summary>
     public Task<UserLoyaltyProgram> CreateAsync(CreateUserLoyaltyProgramRequestDto dto, Guid userId, string createdBy)
     {
         UserLoyaltyProgram userLoyaltyProgram = new UserLoyaltyProgram
@@ -51,79 +41,132 @@ public class UserLoyaltyProgramRepository : BaseRepository, IUserLoyaltyProgramR
             CreationTime = DateTime.UtcNow,
             CreationUser = createdBy
         };
-
         _dbContext.UserLoyaltyPrograms.Add(userLoyaltyProgram);
-
         return Task.FromResult(userLoyaltyProgram);
     }
 
-    /// <summary>
-    /// Atomically replaces the full enrollment list for a user with the provided set.
-    /// Used by the bulk-save operation on the card-reorder screen ("Salvar").
-    /// </summary>
     public async Task BulkUpdateAsync(User user, BulkUpdateUserLoyaltyProgramsRequestDto requestDto, string updatedBy)
     {
-        List<UserLoyaltyProgram> existingEnrollments = await _dbContext.UserLoyaltyPrograms
-            .Where(ulp => ulp.UserId == user.UserId && !ulp.IsDeleted)
+        _logger.LogInformation("--- STARTING BULK UPDATE FOR USER {UserId} ---", user.UserId);
+
+        // 1. Fetch ALL existing enrollments (including deleted ones) to prevent unique constraint errors upon re-insertion
+        List<UserLoyaltyProgram> allExistingEnrollments = await _dbContext.UserLoyaltyPrograms
+            .IgnoreQueryFilters()
+            .Where(ulp => ulp.UserId == user.UserId)
             .ToListAsync();
 
-        List<int> newProgramIds = requestDto.Programs.Select(e => e.LoyaltyProgramId).Where(id => !existingEnrollments.Any(ulp => ulp.LoyaltyProgramId == id)).ToList();
+        // 2. Fetch programs with transactions in a single query
+        List<int> programsWithTransactions = await _dbContext.Set<Transaction>()
+            .Where(t => t.UserId == user.UserId && !t.IsDeleted)
+            .Select(t => t.LoyaltyProgramId)
+            .Distinct()
+            .ToListAsync();
 
-        List<UserLoyaltyProgram> enrollmentsToEdit = existingEnrollments
-            .Where(ulp => requestDto.Programs.Any(e => e.LoyaltyProgramId == ulp.LoyaltyProgramId))
+        _logger.LogInformation("Programs with transactions: {ProgramIds}", string.Join(", ", programsWithTransactions));
+
+        // 3. Filter valid requests
+        List<CreateUserLoyaltyProgramRequestDto> validRequests = new List<CreateUserLoyaltyProgramRequestDto>();
+
+        foreach (CreateUserLoyaltyProgramRequestDto req in requestDto.Programs)
+        {
+            if (req.DisplayOrder < 4)
+            {
+                validRequests.Add(req);
+            }
+            else if (programsWithTransactions.Contains(req.LoyaltyProgramId))
+            {
+                validRequests.Add(req);
+            }
+        }
+
+        List<int> validProgramIds = validRequests.Select(r => r.LoyaltyProgramId).ToList();
+        _logger.LogInformation("Programs surviving the filter (Top 3 + With Transactions): {ValidIds}", string.Join(", ", validProgramIds));
+
+        // 4. Handle Deletions
+        List<UserLoyaltyProgram> enrollmentsToDelete = allExistingEnrollments
+            .Where(ulp => !ulp.IsDeleted && !validProgramIds.Contains(ulp.LoyaltyProgramId))
             .ToList();
 
-        foreach (UserLoyaltyProgram enrollment in enrollmentsToEdit)
+        foreach (UserLoyaltyProgram enrollment in enrollmentsToDelete)
         {
-            short newDisplayOrder = requestDto.Programs.First(e => e.LoyaltyProgramId == enrollment.LoyaltyProgramId).DisplayOrder;
+            // Optimization: Reusing the list in memory instead of hitting the database again
+            bool hasTransactions = programsWithTransactions.Contains(enrollment.LoyaltyProgramId);
 
-            if (enrollment.UserLoyaltyProgramDisplayOrder != newDisplayOrder)
+            if (!hasTransactions)
             {
-                enrollment.UserLoyaltyProgramDisplayOrder = newDisplayOrder;
-                _dbContext.Entry(enrollment).Property(ulp => ulp.UserLoyaltyProgramDisplayOrder).IsModified = true;
+                _logger.LogInformation("PHYSICAL deletion of program: {ProgramId}", enrollment.LoyaltyProgramId);
+                _dbContext.UserLoyaltyPrograms.Remove(enrollment); // Hard Delete
+            }
+            else
+            {
+                _logger.LogInformation("Program {ProgramId} has transactions, keeping it at position 4", enrollment.LoyaltyProgramId);
 
+                enrollment.UserLoyaltyProgramDisplayOrder = 4; // Guarantees it falls to position 4
                 enrollment.UpdateTime = DateTime.UtcNow;
-                _dbContext.Entry(enrollment).Property(ulp => ulp.UpdateTime).IsModified = true;
-
                 enrollment.UpdateUser = updatedBy;
+
+                _dbContext.Entry(enrollment).Property(ulp => ulp.UserLoyaltyProgramDisplayOrder).IsModified = true;
+                _dbContext.Entry(enrollment).Property(ulp => ulp.UpdateTime).IsModified = true;
                 _dbContext.Entry(enrollment).Property(ulp => ulp.UpdateUser).IsModified = true;
             }
         }
 
-        foreach (int programId in newProgramIds)
+        // 5. Handle Upserts (Update existing or Insert new)
+        foreach (CreateUserLoyaltyProgramRequestDto req in validRequests)
         {
-            short displayOrder = requestDto.Programs.First(e => e.LoyaltyProgramId == programId).DisplayOrder;
+            UserLoyaltyProgram? existing = allExistingEnrollments.FirstOrDefault(ulp => ulp.LoyaltyProgramId == req.LoyaltyProgramId);
 
-            UserLoyaltyProgram newEnrollment = new UserLoyaltyProgram
+            if (existing != null)
             {
-                UserId = user.UserId,
-                LoyaltyProgramId = programId,
-                UserLoyaltyProgramDisplayOrder = displayOrder,
-                CreationTime = DateTime.UtcNow,
-                CreationUser = updatedBy
-            };
+                bool wasDeleted = existing.IsDeleted;
+                bool orderChanged = existing.UserLoyaltyProgramDisplayOrder != req.DisplayOrder;
 
-            _dbContext.UserLoyaltyPrograms.Add(newEnrollment);
+                if (wasDeleted || orderChanged)
+                {
+                    _logger.LogInformation("Updating program {ProgramId}. Was deleted? {WasDeleted}. Order changing from {OldOrder} to {NewOrder}",
+                        req.LoyaltyProgramId, wasDeleted, existing.UserLoyaltyProgramDisplayOrder, req.DisplayOrder);
+
+                    existing.IsDeleted = false;
+                    existing.UserLoyaltyProgramDisplayOrder = req.DisplayOrder;
+                    existing.UpdateTime = DateTime.UtcNow;
+                    existing.UpdateUser = updatedBy;
+
+                    _dbContext.Entry(existing).Property(ulp => ulp.IsDeleted).IsModified = true;
+                    _dbContext.Entry(existing).Property(ulp => ulp.UserLoyaltyProgramDisplayOrder).IsModified = true;
+                    _dbContext.Entry(existing).Property(ulp => ulp.UpdateTime).IsModified = true;
+                    _dbContext.Entry(existing).Property(ulp => ulp.UpdateUser).IsModified = true;
+                }
+            }
+            else
+            {
+                _logger.LogInformation("Creating NEW link for program {ProgramId} at order {DisplayOrder}", req.LoyaltyProgramId, req.DisplayOrder);
+
+                UserLoyaltyProgram newEnrollment = new UserLoyaltyProgram
+                {
+                    UserId = user.UserId,
+                    LoyaltyProgramId = req.LoyaltyProgramId,
+                    UserLoyaltyProgramDisplayOrder = req.DisplayOrder,
+                    CreationTime = DateTime.UtcNow,
+                    CreationUser = updatedBy,
+                    IsDeleted = false
+                };
+
+                _dbContext.UserLoyaltyPrograms.Add(newEnrollment);
+            }
         }
+
+        _logger.LogInformation("--- END OF BULK UPDATE PROCESSING ---");
     }
 
-    /// <summary>
-    /// Removes a single enrollment record.
-    /// Returns <c>false</c> when no matching row is found.
-    /// </summary>
     public Task DeleteAsync(UserLoyaltyProgram userLoyaltyProgram, string deletedBy)
     {
         _dbContext.Attach(userLoyaltyProgram);
-
         userLoyaltyProgram.IsDeleted = true;
         _dbContext.Entry(userLoyaltyProgram).Property(ulp => ulp.IsDeleted).IsModified = true;
-
         userLoyaltyProgram.UpdateTime = DateTime.UtcNow;
         _dbContext.Entry(userLoyaltyProgram).Property(ulp => ulp.UpdateTime).IsModified = true;
-
         userLoyaltyProgram.UpdateUser = deletedBy;
         _dbContext.Entry(userLoyaltyProgram).Property(ulp => ulp.UpdateUser).IsModified = true;
-
         return Task.CompletedTask;
     }
 

@@ -11,7 +11,7 @@ public partial class BottomNavBar : ContentView
     private bool _isAnimating;
     private int _unreadCount = 0;
 
-    public enum NavTab { Home, Notifications, History, Details, Settings }
+    public enum NavTab { Home, Notifications, History, Details, Settings, ReorderPrograms }
 
     public BottomNavBar()
     {

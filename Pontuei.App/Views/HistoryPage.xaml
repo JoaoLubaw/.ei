@@ -30,9 +30,44 @@
 
                 <Grid ColumnDefinitions="*, Auto" Margin="24,0,24,16">
                     
-                    <!-- Filtros omitidos para brevidade (mantém como estava) -->
+                    <!-- FILTROS DE STATUS (bolinhas coloridas que expandem ao tocar) -->
                     <ScrollView Grid.Column="0" Orientation="Horizontal" HorizontalScrollBarVisibility="Never" VerticalOptions="Center">
-                        <!-- ... -->
+                        <HorizontalStackLayout Spacing="8" 
+                                               BindableLayout.ItemsSource="{Binding Filters}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="local:StatusFilterItem">
+                                    <!-- Começa como um círculo de 24 (a "bolinha"); o código-behind
+                                         anima a largura até 115 e revela o Label ao ser selecionado -->
+                                    <Border WidthRequest="24"
+                                            HeightRequest="24"
+                                            Padding="0"
+                                            StrokeThickness="0"
+                                            BackgroundColor="{Binding Color}"
+                                            VerticalOptions="Center"
+                                            HorizontalOptions="Start">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="12" />
+                                        </Border.StrokeShape>
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="OnFilterTapped"
+                                                                  CommandParameter="{Binding .}" />
+                                        </Border.GestureRecognizers>
+
+                                        <!-- Texto do status, oculto até a bolinha ser tocada/expandida -->
+                                        <Label Text="{Binding Name}"
+                                               TextColor="White"
+                                               FontFamily="PoppinsSemibold"
+                                               FontSize="11"
+                                               IsVisible="False"
+                                               Opacity="0"
+                                               Margin="10,0,10,0"
+                                               VerticalOptions="Center"
+                                               HorizontalOptions="Center"
+                                               LineBreakMode="NoWrap" />
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </HorizontalStackLayout>
                     </ScrollView>
 
                     <!-- PROGRAM SWITCHER ATUALIZADO (Degradê e Logo dinâmicos) -->
@@ -73,8 +108,84 @@
                     </Border>
                 </Grid>
 
-                <!-- LISTA DE TRANSAÇÕES (mantém como estava) -->
-                <!-- ... -->
+                <!-- LISTA DE TRANSAÇÕES -->
+                <CollectionView ItemsSource="{Binding Transactions}"
+                                SelectionMode="None"
+                                Margin="24,0,24,0"
+                                VerticalOptions="Start">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Vertical" ItemSpacing="12" />
+                    </CollectionView.ItemsLayout>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="local:HistoryTransactionItem">
+                            <!-- A cor da borda representa o status (atrasada/recebida/padrão) -->
+                            <Border Stroke="{Binding StatusColor}"
+                                    StrokeThickness="2"
+                                    BackgroundColor="White"
+                                    Padding="16,12">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnTransactionTapped"
+                                                          CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+
+                                <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto" RowSpacing="4">
+
+                                    <Label Grid.Row="0" Grid.Column="0"
+                                           Text="{Binding Description}"
+                                           FontFamily="PoppinsSemibold"
+                                           FontAttributes="Bold"
+                                           FontSize="15"
+                                           TextColor="#1A1A1A"
+                                           LineBreakMode="TailTruncation" />
+
+                                    <Label Grid.Row="1" Grid.Column="0"
+                                           Text="{Binding Store}"
+                                           FontFamily="PoppinsRegular"
+                                           FontSize="12"
+                                           TextColor="#6B6B6B" />
+
+                                    <Label Grid.Row="0" Grid.Column="1"
+                                           Text="{Binding FormattedPoints}"
+                                           FontFamily="PoppinsSemibold"
+                                           FontSize="14"
+                                           TextColor="#3A6B4A"
+                                           HorizontalOptions="End" />
+
+                                    <VerticalStackLayout Grid.Row="1" Grid.Column="1"
+                                                         HorizontalOptions="End"
+                                                         Spacing="0">
+                                        <Label Text="{Binding FormattedExpected}"
+                                               FontSize="10"
+                                               TextColor="#6B6B6B"
+                                               HorizontalOptions="End" />
+                                        <Label Text="{Binding FormattedReceived}"
+                                               FontSize="10"
+                                               TextColor="#6B6B6B"
+                                               HorizontalOptions="End"
+                                               IsVisible="{Binding HasReceivedDate}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- LINK PARA TRANSAÇÕES PENDENTES -->
+                <Label Text="Ver transações aguardadas"
+                       FontFamily="PoppinsRegular"
+                       FontSize="12"
+                       TextColor="#6B6B6B"
+                       TextDecorations="Underline"
+                       HorizontalOptions="Center"
+                       Margin="0,20,0,0">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnViewPendingTapped" />
+                    </Label.GestureRecognizers>
+                </Label>
 
             </VerticalStackLayout>
         </ScrollView>

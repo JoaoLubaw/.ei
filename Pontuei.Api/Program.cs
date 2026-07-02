@@ -103,7 +103,7 @@ try
     builder.Services.AddAuthorization();
 
     // =========================================================
-    // SETTINGS — strongly-typed configuration
+    // SETTINGS 
     // =========================================================
     builder.Services.Configure<EmailSettings>(
         builder.Configuration.GetSection("EmailSettings"));
@@ -129,13 +129,16 @@ try
         options.AddPolicy("StrictAuthLimit", httpContext =>
         {
             string ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            string path = httpContext.Request.Path.ToString().ToLowerInvariant();
+
+            string partitionKey = $"{ipAddress}_{path}";
 
             return RateLimitPartition.GetFixedWindowLimiter(
-                partitionKey: ipAddress,
+                partitionKey: partitionKey,
                 factory: partition => new FixedWindowRateLimiterOptions
                 {
                     AutoReplenishment = true,
-                    PermitLimit = 3,
+                    PermitLimit = 10,
                     Window = TimeSpan.FromMinutes(1)
                 });
         });

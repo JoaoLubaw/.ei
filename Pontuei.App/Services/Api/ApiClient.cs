@@ -102,17 +102,28 @@ public class ApiClient
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
+                if (request.RequestUri?.OriginalString.Contains("/auth/") == true)
+                {
+                    string authErrorMessage = TryExtractErrorMessage(responseBody)
+                        ?? "Usuário ou senha inválidos.";
+
+                    if (!suppressToast)
+                        await Toast.Make(authErrorMessage, ToastDuration.Long, 14).Show();
+
+                    return ApiResponse<T>.Fail(HttpStatusCode.Unauthorized, authErrorMessage);
+                }
+
                 ApiResponse<LoginResponseDto> refreshResult = await new AuthApiService(this).RefreshTokenAsync();
+
                 if (refreshResult.IsSuccess)
                 {
-                    return await SendAsync<T>(request.Method, request.RequestUri.ToString(),
+                    return await SendAsync<T>(request.Method, request.RequestUri!.ToString(),
                         request.Content is StringContent sc ? JsonSerializer.Deserialize<object>(await sc.ReadAsStringAsync()) : null
                     );
                 }
                 else
                 {
                     await HandleUnauthorizedAsync();
-
                     return ApiResponse<T>.Fail(HttpStatusCode.Unauthorized, "Sessão expirada. Faça login novamente.");
                 }
             }

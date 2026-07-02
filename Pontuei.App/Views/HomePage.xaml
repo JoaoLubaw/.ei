@@ -61,7 +61,7 @@
                                         </Border.StrokeShape>
                                         <Border.Background>
                                             <RadialGradientBrush Center="0.5,0.5" Radius="0.85">
-                                                <GradientStop Color="{Binding SecundaryColor}" Offset="0.0" />
+                                                <GradientStop Color="{Binding SecondaryColor}" Offset="0.0" />
                                                 <GradientStop Color="{Binding PrimaryColor}" Offset="1.0" />
                                             </RadialGradientBrush>
                                         </Border.Background>

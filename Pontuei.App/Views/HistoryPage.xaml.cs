@@ -80,7 +80,7 @@ public partial class HistoryPage : BasePage, INotifyPropertyChanged
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        BottomNav.SetActiveTab(Controls.BottomNavBar.NavTab.History, animate: false);
+        BottomNav?.SetActiveTab(Controls.BottomNavBar.NavTab.History, animate: false);
 
         // Carrega as transações ao entrar na tela
         await LoadTransactionsAsync();

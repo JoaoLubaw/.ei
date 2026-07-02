@@ -49,7 +49,7 @@ public partial class ProgramSelectionPage : ContentPage
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    // CICLO DE VIDA
+    // LIFE CYCLE
     // ════════════════════════════════════════════════════════════════════════
 
     protected override async void OnAppearing()

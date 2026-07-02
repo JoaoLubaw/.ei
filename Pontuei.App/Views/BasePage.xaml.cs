@@ -33,7 +33,7 @@ public partial class BasePage : ContentPage
         // ─── 1. CRIANDO O HEADER GLOBAL FLUTUANTE ───
         var headerGrid = new Grid
         {
-            Padding = new Thickness(24, 16, 16, 16),
+            Padding = new Thickness(24, 16, 16, 48),
             VerticalOptions = LayoutOptions.Start, // Garante que o grid ocupe apenas o topo, sem bloquear o toque na tela toda
             ColumnDefinitions =
             {

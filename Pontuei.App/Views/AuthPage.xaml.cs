@@ -274,12 +274,18 @@ public partial class AuthPage : ContentPage
             return;
         }
 
+        LoginButton.IsEnabled = false;
+        LoginButton.Text = "Entrando...";
+
         LoginRequestDto request = new LoginRequestDto
         {
             UserEmail = EmailEntry.Text?.Trim() ?? string.Empty,
             Password = PasswordEntry.Text ?? string.Empty,
             RememberMe = RememberMeSwitch.IsToggled,
         };
+
+        LoginButton.IsEnabled = true;
+        LoginButton.Text = "Login";
 
         ApiResponse<LoginResponseDto> response = await _authApi.LoginAsync(request);
 
@@ -294,11 +300,20 @@ public partial class AuthPage : ContentPage
         }
     }
 
+    private void OnLoginTextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (LoginEmailBorder.StrokeThickness > 0 || LoginPasswordBorder.StrokeThickness > 0)
+        {
+            ClearFieldError(LoginEmailBorder, null);
+            ClearFieldError(LoginPasswordBorder, LoginError);
+        }
+    }
+
     private void OnTogglePasswordTapped(object sender, TappedEventArgs e)
     {
         _passwordVisible = !_passwordVisible;
         PasswordEntry.IsPassword = !_passwordVisible;
-        EyeIcon.Source = _passwordVisible ? "eye.svg" : "eve_crossed.svg";
+        EyeIcon.Source = _passwordVisible ? "eye.svg" : "eye_crossed.svg";
     }
 
     private void OnForgotPasswordTapped(object sender, TappedEventArgs e)
@@ -380,14 +395,14 @@ public partial class AuthPage : ContentPage
     {
         _registerPasswordVisible = !_registerPasswordVisible;
         RegisterPasswordEntry.IsPassword = !_registerPasswordVisible;
-        RegisterEyeIcon.Source = _registerPasswordVisible ? "eye.svg" : "eve_crossed.svg";
+        RegisterEyeIcon.Source = _registerPasswordVisible ? "eye.svg" : "eye_crossed.svg";
     }
 
     private void OnToggleConfirmPasswordTapped(object sender, TappedEventArgs e)
     {
         _confirmPasswordVisible = !_confirmPasswordVisible;
         ConfirmPasswordEntry.IsPassword = !_confirmPasswordVisible;
-        ConfirmEyeIcon.Source = _confirmPasswordVisible ? "eye.svg" : "eve_crossed.svg";
+        ConfirmEyeIcon.Source = _confirmPasswordVisible ? "eye.svg" : "eye_crossed.svg";
     }
 
     private void OnTermsTapped(object sender, TappedEventArgs e)
@@ -410,30 +425,42 @@ public partial class AuthPage : ContentPage
 
     private async void OnRegisterSubmitClicked(object sender, EventArgs e)
     {
+        await RegisterButton.ScaleToAsync(0.96, 80);
+        await RegisterButton.ScaleToAsync(1.0, 80);
+
         ClearAllRegisterErrors();
         bool hasError = false;
 
-        if (string.IsNullOrWhiteSpace(NameEntry.Text))
-        {
-            ShowFieldError(NameFieldBorder, NameError, "Informe seu nome.");
-            hasError = true;
-        }
-
+        string name = RegisterNameEntry.Text?.Trim() ?? string.Empty;
         string email = RegisterEmailEntry.Text?.Trim() ?? string.Empty;
-        if (string.IsNullOrEmpty(email) || !ValidationUtils.IsValidEmail(email))
+        string password = RegisterPasswordEntry.Text ?? string.Empty;
+        string confirmPassword = ConfirmPasswordEntry.Text ?? string.Empty;
+
+        if (string.IsNullOrEmpty(name))
         {
-            ShowFieldError(RegisterEmailFieldBorder, RegisterEmailError, "Digite um e-mail válido.");
+            ShowFieldError(RegisterNameFieldBorder, RegisterNameError, "O nome é obrigatório.");
             hasError = true;
         }
 
-        string pwd = RegisterPasswordEntry.Text ?? string.Empty;
-        if (!IsPasswordValid(pwd))
+        if (string.IsNullOrEmpty(email))
         {
-            ShowFieldError(RegisterPasswordFieldBorder, null, string.Empty);
+            ShowFieldError(RegisterEmailFieldBorder, RegisterEmailError, "O e-mail é obrigatório.");
             hasError = true;
         }
 
-        if (pwd != ConfirmPasswordEntry.Text)
+        if (string.IsNullOrEmpty(password))
+        {
+            ShowFieldError(RegisterPasswordFieldBorder, RegisterPasswordError, "A senha é obrigatória.");
+            hasError = true;
+        }
+
+        if (!IsPasswordValid(password))
+        {
+            ShowFieldError(RegisterPasswordFieldBorder, RegisterPasswordError, "A senha deve conter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais.");
+            hasError = true;
+        }
+
+        if (password != confirmPassword)
         {
             ShowFieldError(ConfirmPasswordFieldBorder, ConfirmPasswordError, "As senhas não correspondem.");
             hasError = true;
@@ -447,13 +474,16 @@ public partial class AuthPage : ContentPage
 
         if (hasError) return;
 
-        email = RegisterEmailEntry.Text!.Trim();
+
+        RegisterButton.IsEnabled = false;
+        RegisterButton.Text = "Cadastrando...";
+
         CreateUserRequestDto request = new CreateUserRequestDto
         {
-            UserName = NameEntry.Text!.Trim(),
+            UserName = name,
             UserEmail = email,
-            Password = RegisterPasswordEntry.Text!,
-            ConfirmPassword = ConfirmPasswordEntry.Text!,
+            Password = password,
+            ConfirmPassword = confirmPassword,
             UserAcceptedTerms = _termsAccepted,
             UserPushNotificationsEnabled = false,
             UserIsAdmin = false,
@@ -461,6 +491,9 @@ public partial class AuthPage : ContentPage
         };
 
         ApiResponse<LoginResponseDto> response = await _authApi.RegisterAsync(request);
+
+        RegisterButton.IsEnabled = true;
+        RegisterButton.Text = "Cadastrar";
 
         if (response.IsSuccess)
         {
@@ -470,6 +503,17 @@ public partial class AuthPage : ContentPage
             _ = TryRegisterPushTokenAsync();
 
             SwitchMode(AuthMode.VerifyEmail, animate: true);
+        }
+        else
+        {
+            if (response.ErrorMessage != null && response.ErrorMessage.Contains("e-mail", StringComparison.OrdinalIgnoreCase))
+            {
+                ShowFieldError(RegisterEmailFieldBorder, RegisterEmailError, response.ErrorMessage);
+            }
+            else
+            {
+                ShowFieldError(ConfirmPasswordFieldBorder, ConfirmPasswordError, response.ErrorMessage ?? "Falha ao realizar cadastro. Tente novamente.");
+            }
         }
     }
 
@@ -492,6 +536,26 @@ public partial class AuthPage : ContentPage
         {
             System.Diagnostics.Debug.WriteLine($"[FCM] Push token registration failed: {ex.Message}");
         }
+    }
+
+    private void OnRegisterTextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (RegisterNameFieldBorder.StrokeThickness > 0 ||
+            RegisterEmailFieldBorder.StrokeThickness > 0 ||
+            RegisterPasswordFieldBorder.StrokeThickness > 0 ||
+            ConfirmPasswordFieldBorder.StrokeThickness > 0)
+        {
+            ClearRegisterErrors();
+        }
+    }
+
+    private void ClearRegisterErrors()
+    {
+        ClearFieldError(RegisterNameFieldBorder, RegisterNameError);
+        ClearFieldError(RegisterEmailFieldBorder, RegisterEmailError);
+        ClearFieldError(RegisterPasswordFieldBorder, RegisterPasswordError);
+        ClearFieldError(ConfirmPasswordFieldBorder, ConfirmPasswordError);
+        ClearFieldError(null, TermsError); // Se houver erro de termos chumbado
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -589,14 +653,14 @@ public partial class AuthPage : ContentPage
     {
         _resetPasswordVisible = !_resetPasswordVisible;
         ResetPasswordEntry.IsPassword = !_resetPasswordVisible;
-        ResetEyeIcon.Source = _resetPasswordVisible ? "eye.svg" : "eve_crossed.svg";
+        ResetEyeIcon.Source = _resetPasswordVisible ? "eye.svg" : "eye_crossed.svg";
     }
 
     private void OnToggleResetConfirmTapped(object sender, TappedEventArgs e)
     {
         _resetConfirmVisible = !_resetConfirmVisible;
         ResetConfirmEntry.IsPassword = !_resetConfirmVisible;
-        ResetConfirmEyeIcon.Source = _resetConfirmVisible ? "eye.svg" : "eve_crossed.svg";
+        ResetConfirmEyeIcon.Source = _resetConfirmVisible ? "eye.svg" : "eye_crossed.svg";
     }
 
     private async void OnResetPasswordSubmitClicked(object sender, EventArgs e)
@@ -720,9 +784,9 @@ public partial class AuthPage : ContentPage
 
     private void ClearAllRegisterErrors()
     {
-        ClearFieldError(NameFieldBorder, NameError);
+        ClearFieldError(RegisterNameFieldBorder, RegisterNameError);
         ClearFieldError(RegisterEmailFieldBorder, RegisterEmailError);
-        ClearFieldError(RegisterPasswordFieldBorder, null);
+        ClearFieldError(RegisterPasswordFieldBorder, RegisterPasswordError);
         ClearFieldError(ConfirmPasswordFieldBorder, ConfirmPasswordError);
         ClearFieldError(null, TermsError);
     }

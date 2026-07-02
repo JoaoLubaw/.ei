@@ -48,7 +48,6 @@ public class UserLoyaltyProgramService : IUserLoyaltyProgramService
         if (userId != currentUserId && !loggedUser.UserIsAdmin)
         {
             _logger.LogWarning("User {CurrentUserId} attempted to access loyalty programs for user {UserId} without permission.", currentUserId, userId);
-
             return new ApiResult<GetUserLoyaltyProgramsResponseDto>(
                 InternalResultCode.NOT_ALLOWED_TO_GET_THIS_USER,
                 HttpStatusCode.Forbidden,
@@ -66,14 +65,40 @@ public class UserLoyaltyProgramService : IUserLoyaltyProgramService
                 query = query.Where(ulp => ulp.LoyaltyProgramId == dto.Filters.LoyaltyProgramId.Value);
         }
 
-        int totalElements = await query.CountAsync();
+        List<UserLoyaltyProgram> dbUserPrograms = await query.ToListAsync();
+        HashSet<int> enrolledProgramIds = dbUserPrograms.Select(up => up.LoyaltyProgramId).ToHashSet();
+
+        List<UserLoyaltyProgramDto> mergedList = dbUserPrograms.Adapt<List<UserLoyaltyProgramDto>>();
+
+        if (dto.Filters?.UserLoyaltyProgramId == null && dto.Filters?.LoyaltyProgramId == null)
+        {
+            List<LoyaltyProgram> allActivePrograms = await _loyaltyProgramRepository.GetAllAsync()
+                .Where(lp => lp.LoyaltyProgramIsActive)
+                .ToListAsync();
+
+            foreach (LoyaltyProgram program in allActivePrograms)
+            {
+                if (enrolledProgramIds.Contains(program.LoyaltyProgramId)) continue;
+
+                mergedList.Add(new UserLoyaltyProgramDto
+                {
+                    UserLoyaltyProgramId = 0,
+                    UserLoyaltyProgramDisplayOrder = 4,
+                    LoyaltyProgram = program.Adapt<LoyaltyProgramDto>()
+                });
+            }
+        }
+
+        mergedList = mergedList
+            .OrderBy(p => p.UserLoyaltyProgramDisplayOrder)
+            .ThenBy(p => p.LoyaltyProgram?.LoyaltyProgramName)
+            .ToList();
+
+        int totalElements = mergedList.Count;
         int totalPages = (int)Math.Ceiling((double)totalElements / dto.Size);
         int skip = (dto.Page - 1) * dto.Size;
 
-        List<UserLoyaltyProgram> userPrograms = await query
-            .Skip(skip)
-            .Take(dto.Size)
-            .ToListAsync();
+        List<UserLoyaltyProgramDto> pagedList = mergedList.Skip(skip).Take(dto.Size).ToList();
 
         return new ApiResult<GetUserLoyaltyProgramsResponseDto>(
             InternalResultCode.NO_ERROR,
@@ -84,7 +109,7 @@ public class UserLoyaltyProgramService : IUserLoyaltyProgramService
                 Size = dto.Size,
                 TotalElements = totalElements,
                 TotalPages = totalPages,
-                UserLoyaltyPrograms = userPrograms.Adapt<List<UserLoyaltyProgramDto>>()
+                UserLoyaltyPrograms = pagedList
             }
         );
     }
