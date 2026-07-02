@@ -66,10 +66,12 @@ public static class AuthService
         AccessToken = null;
         RefreshToken = null;
         CurrentUserId = null;
+        CurrentSessionId = null;
 
         SecureStorage.Default.Remove(KeyAccessToken);
         SecureStorage.Default.Remove(KeyRefreshToken);
         SecureStorage.Default.Remove(KeyUserId);
+        SecureStorage.Default.Remove(KeySessionId);
 
         await Task.CompletedTask;
     }

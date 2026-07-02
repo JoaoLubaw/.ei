@@ -1,20 +1,31 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Pontuei.App.Services;
+using Pontuei.Shared.Dtos.Objects;
+using Pontuei.Shared.Dtos.Requests;
 
 namespace Pontuei.App.Views;
 
 public partial class SettingsPage : BasePage, INotifyPropertyChanged
 {
-    private string _userName = "João Paulo Lubawaski";
-    private string _userEmail = "joao.lucawaski@example.com";
+    private string _userName = string.Empty;
+    private string _userEmail = string.Empty;
+
+    // Backups usados para reverter o Entry caso o usuário cancele a edição
+    private string _userNameBackup = string.Empty;
+    private string _userEmailBackup = string.Empty;
 
     private bool _isNameReadOnly = true;
     private bool _isEmailReadOnly = true;
-    private bool _isEmailUnverified = true; // Simula e-mail não confirmado
+    private bool _isEmailUnverified = false;
 
     private bool _isChangingPassword = false;
     private bool _isVerifyingEmail = false;
+
+    private bool _isBusy = false;
+
+    // Guid do usuário autenticado, usado em todas as chamadas de /users/{userId}
+    private Guid _userId;
 
     public bool IsVerifyingEmail
     {
@@ -36,7 +47,6 @@ public partial class SettingsPage : BasePage, INotifyPropertyChanged
     // Retorna 'true' apenas se o painel estiver fechado
     public bool ShowVerifyButton => !IsVerifyingEmail;
 
-
     private bool _pushAccepted;
     private bool _emailNotificationsAccepted;
 
@@ -51,27 +61,60 @@ public partial class SettingsPage : BasePage, INotifyPropertyChanged
 
     public bool IsChangingPassword { get => _isChangingPassword; set { _isChangingPassword = value; OnPropertyChanged(); OnPropertyChanged(nameof(AlterarSenhaButtonColor)); } }
 
-    public Color AlterarSenhaButtonColor => IsChangingPassword ? Color.FromArgb("#3f3838") : Color.FromArgb("#528F65");
+    public Color AlterarSenhaButtonColor => IsChangingPassword ? Color.FromArgb("#3f3838") : Color.FromArgb("#615454");
 
     public new event PropertyChangedEventHandler? PropertyChanged;
     protected new void OnPropertyChanged([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
     private readonly AuthApiService _authApi;
+    private readonly UserApiService _userApi;
 
     public SettingsPage(
-        AuthApiService authApi
+        AuthApiService authApi,
+        UserApiService userApi
     )
     {
         InitializeComponent();
         BindingContext = this;
         _authApi = authApi;
+        _userApi = userApi;
         UnverifiedEmailCard.IsVisible = _isEmailUnverified;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         BottomNav.SetActiveTab(Controls.BottomNavBar.NavTab.Settings, animate: false);
+        await LoadUserAsync();
+    }
+
+    // ── CARREGAMENTO INICIAL ────────────────────────────────────────────
+
+    private async Task LoadUserAsync()
+    {
+        _userId = AuthService.CurrentUserId ?? Guid.Empty;
+        if (_userId == Guid.Empty) return;
+
+        var response = await _userApi.GetUserByIdAsync(_userId);
+        if (!response.IsSuccess || response.Data is null) return;
+
+        UserDto user = response.Data;
+
+        UserName = user.UserName;
+        UserEmail = user.UserEmail;
+        _userNameBackup = user.UserName;
+        _userEmailBackup = user.UserEmail;
+
+        IsEmailUnverified = !user.UserEmailVerified;
+        UnverifiedEmailCard.IsVisible = IsEmailUnverified;
+
+        _pushAccepted = user.UserPushNotificationsEnabled;
+        PushCheckMark.IsVisible = _pushAccepted;
+        PushCheckBorder.BackgroundColor = _pushAccepted ? Color.FromArgb("#E8F5E9") : Colors.Transparent;
+
+        _emailNotificationsAccepted = user.UserEmailNotificationsEnabled;
+        EmailCheckMark.IsVisible = _emailNotificationsAccepted;
+        EmailCheckBorder.BackgroundColor = _emailNotificationsAccepted ? Color.FromArgb("#E8F5E9") : Colors.Transparent;
     }
 
     // ── ANIMAÇÃO GLOBAL DE PAINÉIS (Deslizar e Aparecer) ──
@@ -98,24 +141,102 @@ public partial class SettingsPage : BasePage, INotifyPropertyChanged
     }
 
     // ── GESTÃO VISUAL INLINE: NOME ──
-    private void OnEnableNameEditTapped(object sender, EventArgs e) => IsNameReadOnly = false;
-    private void OnCancelNameEditTapped(object sender, EventArgs e) { IsNameReadOnly = true; }
-    private void OnConfirmNameEditTapped(object sender, EventArgs e)
+    private void OnEnableNameEditTapped(object sender, EventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(NameEntry.Text)) return;
+        _userNameBackup = UserName;
+        IsNameReadOnly = false;
+    }
 
+    private void OnCancelNameEditTapped(object sender, EventArgs e)
+    {
+        UserName = _userNameBackup;
         IsNameReadOnly = true;
+    }
+
+    private async void OnConfirmNameEditTapped(object sender, EventArgs e)
+    {
+        if (_isBusy) return;
+
+        var newName = NameEntry.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            UserName = _userNameBackup;
+            IsNameReadOnly = true;
+            return;
+        }
+
+        // Nada mudou, não precisa chamar a API
+        if (newName == _userNameBackup)
+        {
+            IsNameReadOnly = true;
+            return;
+        }
+
+        _isBusy = true;
+        var request = new UpdateUserRequestDto { UserName = newName };
+        var response = await _userApi.UpdateUserAsync(_userId, request);
+        _isBusy = false;
+
+        if (response.IsSuccess && response.Data != null)
+        {
+            UserName = response.Data.UserName;
+            _userNameBackup = response.Data.UserName;
+            IsNameReadOnly = true;
+        }
+        else
+        {
+            // Erro já mostrado via toast pelo ApiClient — só reverte o campo
+            UserName = _userNameBackup;
+        }
         // Oculta os botões automaticamente, indicando sucesso de forma limpa. Sem popups!
     }
 
     // ── GESTÃO VISUAL INLINE: E-MAIL ──
-    private void OnEnableEmailEditTapped(object sender, EventArgs e) => IsEmailReadOnly = false;
-    private void OnCancelEmailEditTapped(object sender, EventArgs e) => IsEmailReadOnly = true;
+    private void OnEnableEmailEditTapped(object sender, EventArgs e)
+    {
+        _userEmailBackup = UserEmail;
+        IsEmailReadOnly = false;
+    }
+
+    private void OnCancelEmailEditTapped(object sender, EventArgs e)
+    {
+        UserEmail = _userEmailBackup;
+        IsEmailReadOnly = true;
+    }
+
     private async void OnConfirmEmailEditTapped(object sender, EventArgs e)
     {
-        var email = EmailEntry.Text?.Trim() ?? string.Empty;
-        if (string.IsNullOrEmpty(email) || !email.Contains('@')) return;
+        if (_isBusy) return;
 
+        var email = EmailEntry.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(email) || !email.Contains('@'))
+        {
+            UserEmail = _userEmailBackup;
+            IsEmailReadOnly = true;
+            return;
+        }
+
+        if (email == _userEmailBackup)
+        {
+            IsEmailReadOnly = true;
+            return;
+        }
+
+        _isBusy = true;
+        var request = new UpdateUserRequestDto { UserEmail = email };
+        var response = await _userApi.UpdateUserAsync(_userId, request);
+        _isBusy = false;
+
+        if (!response.IsSuccess)
+        {
+            UserEmail = _userEmailBackup;
+            IsEmailReadOnly = true;
+            return;
+        }
+
+        // O backend dispara o fluxo de verificação automaticamente ao trocar o e-mail
+        UserEmail = email;
+        _userEmailBackup = email;
         IsEmailReadOnly = true;
         IsEmailUnverified = true;
 
@@ -131,6 +252,9 @@ public partial class SettingsPage : BasePage, INotifyPropertyChanged
     {
         if (!IsVerifyingEmail)
         {
+            // Reenvia o código para o e-mail atual antes de abrir o painel
+            await _authApi.ResendVerificationEmailAsync(new ResendVerificationEmailRequestDto { UserEmail = UserEmail });
+
             IsVerifyingEmail = true;
             // Anima os dois ao mesmo tempo: Esconde o alerta amarelo e Mostra o código
             await Task.WhenAll(
@@ -157,7 +281,14 @@ public partial class SettingsPage : BasePage, INotifyPropertyChanged
 
     private async void OnSubmitVerifyEmailClicked(object sender, EventArgs e)
     {
+        if (_isBusy) return;
         if (EmailCodeEntry.Text?.Length != 6) return;
+
+        _isBusy = true;
+        var response = await _authApi.VerifyEmailAsync(new VerifyEmailRequestDto { Code = EmailCodeEntry.Text });
+        _isBusy = false;
+
+        if (!response.IsSuccess) return; // erro já mostrado via toast; painel permanece aberto para nova tentativa
 
         IsVerifyingEmail = false;
         IsEmailUnverified = false;
@@ -185,7 +316,23 @@ public partial class SettingsPage : BasePage, INotifyPropertyChanged
 
     private async void OnSaveNewPasswordClicked(object sender, EventArgs e)
     {
-        if (NewPasswordEntry.Text != ConfirmPasswordEntry.Text || string.IsNullOrWhiteSpace(NewPasswordEntry.Text)) return;
+        if (_isBusy) return;
+
+        var request = new ChangePasswordRequestDto
+        {
+            CurrentPassword = CurrentPasswordEntry.Text ?? string.Empty,
+            NewPassword = NewPasswordEntry.Text ?? string.Empty,
+            ConfirmNewPassword = ConfirmPasswordEntry.Text ?? string.Empty
+        };
+
+        if (!request.PasswordsMatch() || !request.IsValidPassword() || string.IsNullOrWhiteSpace(request.CurrentPassword))
+            return;
+
+        _isBusy = true;
+        var response = await _authApi.ChangePasswordAsync(request);
+        _isBusy = false;
+
+        if (!response.IsSuccess) return; // erro já mostrado via toast; painel permanece aberto
 
         // Sucesso: Fecha o painel suavemente
         IsChangingPassword = false;
@@ -205,18 +352,39 @@ public partial class SettingsPage : BasePage, INotifyPropertyChanged
     }
 
     // ── NOTIFICAÇÕES (Estilo Checkbox Auth) ──
-    private void OnPushNotificationTapped(object sender, EventArgs e)
+    private async void OnPushNotificationTapped(object sender, EventArgs e)
     {
+        bool previous = _pushAccepted;
         _pushAccepted = !_pushAccepted;
         PushCheckMark.IsVisible = _pushAccepted;
         PushCheckBorder.BackgroundColor = _pushAccepted ? Color.FromArgb("#E8F5E9") : Colors.Transparent;
+
+        var response = await _userApi.UpdateUserAsync(_userId, new UpdateUserRequestDto { UserPushNotificationsEnabled = _pushAccepted });
+
+        if (!response.IsSuccess)
+        {
+            // Reverte visualmente se a API recusou a mudança
+            _pushAccepted = previous;
+            PushCheckMark.IsVisible = _pushAccepted;
+            PushCheckBorder.BackgroundColor = _pushAccepted ? Color.FromArgb("#E8F5E9") : Colors.Transparent;
+        }
     }
 
-    private void OnEmailNotificationTapped(object sender, EventArgs e)
+    private async void OnEmailNotificationTapped(object sender, EventArgs e)
     {
+        bool previous = _emailNotificationsAccepted;
         _emailNotificationsAccepted = !_emailNotificationsAccepted;
         EmailCheckMark.IsVisible = _emailNotificationsAccepted;
         EmailCheckBorder.BackgroundColor = _emailNotificationsAccepted ? Color.FromArgb("#E8F5E9") : Colors.Transparent;
+
+        var response = await _userApi.UpdateUserAsync(_userId, new UpdateUserRequestDto { UserEmailNotificationsEnabled = _emailNotificationsAccepted });
+
+        if (!response.IsSuccess)
+        {
+            _emailNotificationsAccepted = previous;
+            EmailCheckMark.IsVisible = _emailNotificationsAccepted;
+            EmailCheckBorder.BackgroundColor = _emailNotificationsAccepted ? Color.FromArgb("#E8F5E9") : Colors.Transparent;
+        }
     }
 
     // ── FLUXOS DE SAÍDA / EXCLUSÃO ──
@@ -224,7 +392,13 @@ public partial class SettingsPage : BasePage, INotifyPropertyChanged
     {
         // Neste caso excepcional de exclusão, um alerta nativo faz sentido por segurança (Safety Prompt).
         bool confirm = await DisplayAlertAsync("Atenção", "Tem certeza que deseja deletar sua conta? Essa ação é irreversível.", "Deletar", "Cancelar");
-        if (confirm) await Shell.Current.GoToAsync("//auth");
+        if (!confirm) return;
+
+        var response = await _userApi.DeleteAccountAsync(_userId);
+        if (!response.IsSuccess) return; // erro já mostrado via toast
+
+        await AuthService.LogoutAsync();
+        await Shell.Current.GoToAsync("//auth");
     }
 
     private async void OnLogoutClicked(object sender, EventArgs e)
@@ -242,4 +416,3 @@ public partial class SettingsPage : BasePage, INotifyPropertyChanged
     }
 
 }
-

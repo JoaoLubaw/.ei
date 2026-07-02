@@ -177,6 +177,7 @@
             <!-- BOTÃO: SAIR -->
             <Button Text="Sair" FontFamily="PoppinsSemibold" FontSize="15" TextColor="White" BackgroundColor="#3f3838" CornerRadius="26" HeightRequest="52" Clicked="OnLogoutClicked" />
 
+            <Label Text="{Binding AppVersionText}" TextColor="#9E9E9E" FontSize="11" FontFamily="PoppinsRegular" HorizontalOptions="Center" Margin="0,24,0,0" />
         </VerticalStackLayout>
     </ScrollView>
 </views:BasePage>
