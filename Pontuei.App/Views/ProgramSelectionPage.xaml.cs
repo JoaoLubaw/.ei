@@ -9,14 +9,32 @@ using Pontuei.Shared.Dtos.Responses;
 
 namespace Pontuei.App.Views;
 
-public partial class ProgramSelectionPage : ContentPage
+/// <summary>
+/// Modo de operação da tela: onboarding (multi-seleção + persiste via API,
+/// navega pra home) ou filter (seleção única, não persiste nada, apenas
+/// devolve o programa escolhido pra quem chamou a tela).
+/// </summary>
+public enum ProgramSelectionMode
+{
+    Onboarding,
+    Filter
+}
+
+public partial class ProgramSelectionPage : ContentPage, IQueryAttributable
 {
     // ── Serviços ──────────────────────────────────────────────────────────
     private readonly LoyaltyProgramsApiService _loyaltyProgramsApi;
 
+    // ── Modo / parâmetros de navegação ─────────────────────────────────── 
+    private ProgramSelectionMode _mode = ProgramSelectionMode.Onboarding;
+    private int? _preSelectedProgramId;
+
     // ── Estado de seleção ─────────────────────────────────────────────────
-    // Guarda o par (item, border) para animar o mais antigo ao desselecionar
-    private readonly List<(ProgramSelectItem Item, Border Border)> _selectionOrder = [];
+    // Ordem em que os itens foram selecionados (o mais antigo é removido
+    // primeiro ao estourar o limite). Não depende do Border visual — assim
+    // também funciona para pré-seleção vinda por navegação, antes de o
+    // CollectionView ter realizado os itens na tela.
+    private readonly List<ProgramSelectItem> _selectionOrder = [];
     private bool _isOtherSelected;
 
     // ── Estado de carregamento ────────────────────────────────────────────
@@ -33,6 +51,44 @@ public partial class ProgramSelectionPage : ContentPage
     }
     public bool IsNotLoading => !_isLoading;
 
+    // ── Textos contextuais (mudam conforme o modo) ───────────────────────
+    // Substitua as suas propriedades automáticas por estas:
+
+    private string _headerEyebrow = "A gente precisa saber...";
+    public string HeaderEyebrow
+    {
+        get => _headerEyebrow;
+        set { _headerEyebrow = value; OnPropertyChanged(); }
+    }
+
+    private string _headerTitle = "Quais os seus principais sistemas de pontuação atualmente?";
+    public string HeaderTitle
+    {
+        get => _headerTitle;
+        set { _headerTitle = value; OnPropertyChanged(); }
+    }
+
+    private string _continueButtonText = "Continuar";
+    public string ContinueButtonText
+    {
+        get => _continueButtonText;
+        set { _continueButtonText = value; OnPropertyChanged(); }
+    }
+
+    private string _otherOptionLabel = "Outro";
+    public string OtherOptionLabel
+    {
+        get => _otherOptionLabel;
+        set { _otherOptionLabel = value; OnPropertyChanged(); }
+    }
+
+    private bool _isHeaderVisible = true;
+    public bool IsHeaderVisible
+    {
+        get => _isHeaderVisible;
+        set { _isHeaderVisible = value; OnPropertyChanged(); }
+    }
+
     // ── Coleção bindada ───────────────────────────────────────────────────
     public ObservableCollection<ProgramSelectItem> ProgramItems { get; } = [];
 
@@ -44,8 +100,69 @@ public partial class ProgramSelectionPage : ContentPage
     public ProgramSelectionPage(LoyaltyProgramsApiService loyaltyProgramsApi)
     {
         InitializeComponent();
-        BindingContext = this;
         _loyaltyProgramsApi = loyaltyProgramsApi;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // PARÂMETROS DE NAVEGAÇÃO
+    // ════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Recebe o modo ("Onboarding" | "Filter") e, no modo filtro, o programa
+    /// atualmente selecionado (para vir pré-marcado na grade). Chamado pelo
+    /// Shell ANTES de OnAppearing, então o LoadProgramsAsync já enxerga esse
+    /// estado quando roda.
+    /// </summary>
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        // 1. Buscamos a chave ignorando maiúsculas/minúsculas para blindar o código
+        var modeKey = query.Keys.FirstOrDefault(k => k.Equals("mode", StringComparison.OrdinalIgnoreCase));
+        if (modeKey != null)
+        {
+            var modeValue = query[modeKey];
+            if (modeValue is ProgramSelectionMode enumMode)
+            {
+                _mode = enumMode;
+            }
+            else if (modeValue?.ToString() is string modeStr && Enum.TryParse<ProgramSelectionMode>(modeStr, true, out var parsedMode))
+            {
+                _mode = parsedMode;
+            }
+        }
+
+        var idKey = query.Keys.FirstOrDefault(k => k.Equals("selectedProgramId", StringComparison.OrdinalIgnoreCase));
+        if (idKey != null)
+        {
+            var idValue = query[idKey];
+            if (idValue is int id)
+            {
+                _preSelectedProgramId = id;
+            }
+            else if (idValue?.ToString() is string idStr && int.TryParse(idStr, out int parsedId))
+            {
+                _preSelectedProgramId = parsedId;
+            }
+        }
+
+        // 2. Ajustamos os textos dependendo do modo (Botão sempre como "Outro")
+        if (_mode == ProgramSelectionMode.Filter)
+        {
+            HeaderEyebrow = "Filtrar histórico";
+            HeaderTitle = "Qual programa você quer visualizar?";
+            ContinueButtonText = "Aplicar filtro";
+        }
+        else
+        {
+            HeaderEyebrow = "A gente precisa saber...";
+            HeaderTitle = "Quais os seus principais sistemas de pontuação atualmente?";
+            ContinueButtonText = "Continuar";
+        }
+
+        OtherOptionLabel = "Outro";
+        IsHeaderVisible = true;
+
+        BindingContext = null;
+        BindingContext = this;
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -66,6 +183,8 @@ public partial class ProgramSelectionPage : ContentPage
     {
         IsLoading = true;
         ProgramItems.Clear();
+        _selectionOrder.Clear();
+        SetOtherSelected(false);
 
         try
         {
@@ -86,7 +205,7 @@ public partial class ProgramSelectionPage : ContentPage
                 foreach (LoyaltyProgramDto program in programs)
                 {
                     // Programas sem logo não entram na grade — evita células brancas.
-                    // O usuário pode usar a opção "Outro" para esses casos.
+                    // O usuário pode usar a opção "Outro"/"Exibir todos" para esses casos.
                     if (string.IsNullOrWhiteSpace(program.LoyaltyProgramLogoUrl))
                         continue;
 
@@ -96,6 +215,8 @@ public partial class ProgramSelectionPage : ContentPage
                         LogoUrl = AppConstants.ResolveStorageUrl(program.LoyaltyProgramLogoUrl)
                     });
                 }
+
+                ApplyPreSelection();
             }
             else
             {
@@ -114,6 +235,33 @@ public partial class ProgramSelectionPage : ContentPage
         }
     }
 
+    /// <summary>
+    /// Aplica o estado inicial de seleção vindo da navegação: marca o programa
+    /// já selecionado (se houver) ou, no modo filtro sem programa nenhum
+    /// (equivale a "Todos"), marca a opção "Exibir todos".
+    /// </summary>
+    private void ApplyPreSelection()
+    {
+        if (_preSelectedProgramId.HasValue)
+        {
+            ProgramSelectItem? match = ProgramItems
+                .FirstOrDefault(p => p.Program.LoyaltyProgramId == _preSelectedProgramId.Value);
+
+            if (match != null)
+            {
+                match.IsSelected = true;
+                _selectionOrder.Add(match);
+            }
+        }
+        else if (_mode == ProgramSelectionMode.Filter)
+        {
+            // Sem programa específico no filtro atual = "Exibir todos"
+            SetOtherSelected(true);
+        }
+
+        UpdateContinueButton();
+    }
+
     // ════════════════════════════════════════════════════════════════════════
     // SELEÇÃO DE PROGRAMAS
     // ════════════════════════════════════════════════════════════════════════
@@ -123,31 +271,34 @@ public partial class ProgramSelectionPage : ContentPage
         if (e.Parameter is not Border border) return;
         if (border.BindingContext is not ProgramSelectItem item) return;
 
+        // No modo filtro a seleção é única; no onboarding, respeita o limite normal.
+        int effectiveMax = _mode == ProgramSelectionMode.Filter ? 1 : AppConstants.MaxProgramSelection;
+
         if (!item.IsSelected)
         {
-            // Atingiu o limite: desseleciona o mais antigo com animação
-            if (_selectionOrder.Count >= AppConstants.MaxProgramSelection)
+            // Selecionar um programa cancela a opção "Outro"/"Exibir todos"
+            if (_isOtherSelected) SetOtherSelected(false);
+
+            // Atingiu o limite: desseleciona o(s) mais antigo(s).
+            // A cor da borda é controlada por DataTrigger (Border.Triggers no XAML),
+            // então só precisamos atualizar o IsSelected do modelo.
+            while (_selectionOrder.Count >= effectiveMax)
             {
-                var (oldestItem, oldestBorder) = _selectionOrder[0];
+                ProgramSelectItem oldest = _selectionOrder[0];
                 _selectionOrder.RemoveAt(0);
-                oldestItem.IsSelected = false;
-                _ = AnimateStroke(oldestBorder, Color.FromArgb("#3A6B4A"), Colors.Transparent, 150);
+                oldest.IsSelected = false;
             }
 
             item.IsSelected = true;
-            _selectionOrder.Add((item, border));
+            _selectionOrder.Add(item);
 
-            await Task.WhenAll(
-                AnimateStroke(border, Colors.Transparent, Color.FromArgb("#3A6B4A"), 200),
-                border.ScaleTo(0.92, 100, Easing.CubicOut)
-                      .ContinueWith(_ => border.ScaleTo(1.0, 150, Easing.SpringOut))
-            );
+            await border.ScaleTo(0.92, 100, Easing.CubicOut);
+            await border.ScaleTo(1.0, 150, Easing.SpringOut);
         }
         else
         {
             item.IsSelected = false;
-            _selectionOrder.RemoveAll(x => x.Item == item);
-            await AnimateStroke(border, Color.FromArgb("#3A6B4A"), Colors.Transparent, 150);
+            _selectionOrder.Remove(item);
         }
 
         UpdateContinueButton();
@@ -185,25 +336,35 @@ public partial class ProgramSelectionPage : ContentPage
 
     private void UpdateContinueButton()
     {
-        ContinueButton.IsEnabled = _selectionOrder.Count > 0 || _isOtherSelected;
+        // No modo filtro, não selecionar nada é uma opção válida (= "Todos",
+        // sem filtro de programa no request), então o botão nunca fica travado.
+        ContinueButton.IsEnabled = _mode == ProgramSelectionMode.Filter
+            || _selectionOrder.Count > 0
+            || _isOtherSelected;
     }
 
     // ════════════════════════════════════════════════════════════════════════
-    // SALVAR E NAVEGAR
+    // SALVAR/DEVOLVER E NAVEGAR
     // ════════════════════════════════════════════════════════════════════════
 
     private async void OnContinueClicked(object sender, EventArgs e)
     {
         ContinueButton.IsEnabled = false;
 
+        if (_mode == ProgramSelectionMode.Filter)
+        {
+            await ApplyFilterSelectionAsync();
+            return;
+        }
+
         Guid? userId = AuthService.CurrentUserId;
 
         if (userId is not null && _selectionOrder.Count > 0)
         {
             var programsPayload = _selectionOrder
-                .Select((x, index) => new CreateUserLoyaltyProgramRequestDto
+                .Select((item, index) => new CreateUserLoyaltyProgramRequestDto
                 {
-                    LoyaltyProgramId = x.Item.Program.LoyaltyProgramId,
+                    LoyaltyProgramId = item.Program.LoyaltyProgramId,
                     DisplayOrder = (short)index
                 })
                 .ToList();
@@ -234,33 +395,37 @@ public partial class ProgramSelectionPage : ContentPage
         await Shell.Current.GoToAsync("//home");
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    // ANIMAÇÃO DE BORDA
-    // ════════════════════════════════════════════════════════════════════════
-
     /// <summary>
-    /// Interpola a cor do Stroke de um Border ao longo de <paramref name="durationMs"/> ms.
-    /// MAUI não tem ColorAnimation nativa — fazemos frame a frame via Animation.
+    /// Modo filtro: NÃO chama a API de bulk update (isso persistiria os
+    /// programas do usuário, o que não faz sentido pra um filtro de tela).
+    /// Apenas devolve o programa escolhido — ou "Todos" — pra quem navegou
+    /// pra cá, usando o padrão de retorno de valor do Shell (GoToAsync("..", params)
+    /// entrega os parâmetros via IQueryAttributable da página anterior).
     /// </summary>
-    private static Task AnimateStroke(Border border, Color from, Color to, uint durationMs)
+    private async Task ApplyFilterSelectionAsync()
     {
-        var tcs = new TaskCompletionSource();
+        ProgramSelectItem? selected = _selectionOrder.Count > 0 ? _selectionOrder[0] : null;
 
-        new Animation(t =>
-        {
-            border.Stroke = new SolidColorBrush(Color.FromRgba(
-                from.Red + (to.Red - from.Red) * t,
-                from.Green + (to.Green - from.Green) * t,
-                from.Blue + (to.Blue - from.Blue) * t,
-                from.Alpha + (to.Alpha - from.Alpha) * t));
-        }, 0, 1, Easing.CubicInOut)
-        .Commit(border, "StrokeAnim", length: durationMs, finished: (_, _) =>
-        {
-            border.Stroke = new SolidColorBrush(to);
-            tcs.TrySetResult();
-        });
+        var resultParams = new Dictionary<string, object>();
 
-        return tcs.Task;
+        if (selected is null || _isOtherSelected)
+        {
+            resultParams["selectedProgramId"] = null!;
+            resultParams["selectedProgramName"] = "Todos";
+            resultParams["selectedProgramLogo"] = string.Empty;
+            resultParams["selectedProgramPrimaryColor"] = string.Empty;
+            resultParams["selectedProgramSecondaryColor"] = string.Empty;
+        }
+        else
+        {
+            resultParams["selectedProgramId"] = selected.Program.LoyaltyProgramId;
+            resultParams["selectedProgramName"] = selected.Program.LoyaltyProgramName;
+            resultParams["selectedProgramLogo"] = selected.LogoUrl;
+            resultParams["selectedProgramPrimaryColor"] = selected.Program.LoyaltyProgramBrandPrimaryColor ?? string.Empty;
+            resultParams["selectedProgramSecondaryColor"] = selected.Program.LoyaltyProgramBrandSecondaryColor ?? string.Empty;
+        }
+
+        await Shell.Current.GoToAsync("..", resultParams);
     }
 }
 

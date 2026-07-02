@@ -21,7 +21,7 @@
                        ZIndex="10" />
 
     <ScrollView VerticalScrollBarVisibility="Never"
-                Padding="0,0,0,110"
+                Padding="0,0,0,0"
                 IsVisible="{Binding IsNotLoading}">
 
         <VerticalStackLayout Spacing="0">
@@ -30,7 +30,7 @@
             <cards:CardsView
                 x:Name="ProgramsCarousel"
                 ItemsSource="{Binding Cards}"
-                Margin="24,48,24,0"
+                Margin="24,0,24,0"
                 HeightRequest="260"
                 IsCyclical="True"
                 ItemSwiped="OnCardSwiped">

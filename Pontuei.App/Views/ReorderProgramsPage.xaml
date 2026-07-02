@@ -17,7 +17,7 @@
                            ZIndex="10" />
 
 <ScrollView VerticalScrollBarVisibility="Never"
-                    Padding="0,110,0,110"
+                    Padding="0,0,0,110"
                     IsVisible="{Binding IsNotLoading}">
             <VerticalStackLayout Spacing="0" Padding="24,56,24,24">
 

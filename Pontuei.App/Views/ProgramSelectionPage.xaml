@@ -26,9 +26,11 @@
                 <!-- HEADER -->
                 <VerticalStackLayout Grid.Row="0" Spacing="6" Margin="0,0,0,20">
                     <ffimageloading:CachedImage Source="logo.svg" HeightRequest="60" HorizontalOptions="End" Aspect="AspectFit" />
-                    <Label Text="A gente precisa saber..." TextColor="#6B6B6B" FontSize="18" FontFamily="PoppinsRegular" />
-                    <Label Text="Quais os seus principais sistemas de pontuação atualmente?" 
-                           TextColor="#000000" FontSize="22" LineHeight="1.2" />
+                    <VerticalStackLayout Spacing="6" IsVisible="{Binding IsHeaderVisible}">
+                        <Label Text="{Binding HeaderEyebrow}" TextColor="#6B6B6B" FontSize="18" FontFamily="PoppinsRegular" />
+                        <Label Text="{Binding HeaderTitle}" 
+                               TextColor="#000000" FontSize="22" LineHeight="1.2" />
+                    </VerticalStackLayout>
                 </VerticalStackLayout>
 
                 <!-- SCROLLVIEW COM A LISTA (com overlay de carregamento) -->
@@ -65,6 +67,16 @@
                                         StrokeThickness="2"
                                         Stroke="Transparent">
 
+                                        <!-- Destaque de seleção via DataTrigger: reflete IsSelected
+                                             automaticamente, inclusive quando o item já vem
+                                             pré-selecionado pela navegação (filtro), sem depender
+                                             de um toque para colorir a borda. -->
+                                        <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                                <Setter Property="Stroke" Value="#3A6B4A" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+
                                         <Border.GestureRecognizers>
                                             <!-- CommandParameter passa o próprio Border para o handler -->
                                             <TapGestureRecognizer
@@ -96,7 +108,7 @@
                                 <TapGestureRecognizer Tapped="OnOtherTapped" />
                             </Border.GestureRecognizers>
                             <Label
-                                Text="Outro"
+                                Text="{Binding OtherOptionLabel}"
                                 TextColor="#1A1A1A"
                                 FontFamily="PoppinsSemibold"
                                 FontAttributes="Bold"
@@ -112,7 +124,7 @@
                 <Button
                     Grid.Row="2"
                     x:Name="ContinueButton"
-                    Text="Continuar"
+                    Text="{Binding ContinueButtonText}"
                     FontFamily="PoppinsBold"
                     FontAttributes="Bold"
                     FontSize="16"

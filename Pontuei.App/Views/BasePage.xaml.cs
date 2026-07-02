@@ -110,12 +110,17 @@ public partial class BasePage : ContentPage
                 // ─── O TRUQUE MÁGICO DO PADDING ───
                 // Empurra o conteúdo do ScrollView para baixo do header flutuante, 
                 // para que a tela inicie limpa, mas permitindo rolar por trás dele!
-                if (xamlContent is ScrollView scroll)
+                // Antes só funcionava quando o ScrollView ERA o Content raiz da página.
+                // Telas como a HistoryPage têm um Grid como raiz (para sobrepor o
+                // ActivityIndicator de loading por cima do ScrollView), então agora
+                // procuramos o ScrollView recursivamente em qualquer profundidade.
+                ScrollView? scroll = FindScrollView(xamlContent);
+                if (scroll != null)
                 {
                     var currentPadding = scroll.Padding;
                     if (currentPadding.Top < 100) // Evita adicionar o espaço repetidas vezes
                     {
-                        scroll.Padding = new Thickness(currentPadding.Left, currentPadding.Top + 110, currentPadding.Right, currentPadding.Bottom);
+                        scroll.Padding = new Thickness(currentPadding.Left, currentPadding.Top + 86, currentPadding.Right, currentPadding.Bottom);
                     }
                 }
 
@@ -123,6 +128,39 @@ public partial class BasePage : ContentPage
                 _pageContent.Content = xamlContent;
             }
         }
+    }
+
+    /// <summary>
+    /// Procura recursivamente por um ScrollView dentro da árvore de elementos da página,
+    /// para poder aplicar o padding do header flutuante mesmo quando o ScrollView não é
+    /// o elemento raiz (ex: está dentro de um Grid junto com um overlay de loading).
+    /// </summary>
+    private static ScrollView? FindScrollView(Element element)
+    {
+        if (element is ScrollView scrollView)
+            return scrollView;
+
+        if (element is Layout layout)
+        {
+            foreach (var child in layout.Children)
+            {
+                if (child is Element childElement)
+                {
+                    var found = FindScrollView(childElement);
+                    if (found != null) return found;
+                }
+            }
+        }
+        else if (element is ContentView contentView && contentView.Content is Element contentViewChild)
+        {
+            return FindScrollView(contentViewChild);
+        }
+        else if (element is Border border && border.Content is Element borderChild)
+        {
+            return FindScrollView(borderChild);
+        }
+
+        return null;
     }
 
     protected override async void OnAppearing()

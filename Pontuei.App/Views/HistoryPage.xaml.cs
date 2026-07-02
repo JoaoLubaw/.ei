@@ -11,7 +11,7 @@ using Pontuei.Shared.Enums;
 
 namespace Pontuei.App.Views;
 
-public partial class HistoryPage : BasePage, INotifyPropertyChanged
+public partial class HistoryPage : BasePage, INotifyPropertyChanged, IQueryAttributable
 {
     private readonly TransactionApiService _transactionApi;
 
@@ -29,14 +29,22 @@ public partial class HistoryPage : BasePage, INotifyPropertyChanged
     public string SelectedProgramName
     {
         get => _selectedProgramName;
-        set { _selectedProgramName = value; OnPropertyChanged(); OnPropertyChanged(nameof(ShowProgramName)); }
+        set { _selectedProgramName = value; OnPropertyChanged(); }
     }
 
     private string _selectedProgramLogo = string.Empty;
     public string SelectedProgramLogo
     {
         get => _selectedProgramLogo;
-        set { _selectedProgramLogo = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasProgramLogo)); }
+        set
+        {
+            _selectedProgramLogo = value;
+            OnPropertyChanged();
+            // Tanto HasProgramLogo quanto ShowProgramName dependem do Logo (não do Name),
+            // então os dois precisam ser notificados aqui — não no setter de Name.
+            OnPropertyChanged(nameof(HasProgramLogo));
+            OnPropertyChanged(nameof(ShowProgramName));
+        }
     }
 
     private Color _selectedProgramPrimaryColor = Color.FromArgb("#6B6B6B");
@@ -84,6 +92,28 @@ public partial class HistoryPage : BasePage, INotifyPropertyChanged
 
         // Carrega as transações ao entrar na tela
         await LoadTransactionsAsync();
+    }
+
+    /// <summary>
+    /// Recebe de volta o resultado da ProgramSelectionPage (modo filtro), entregue
+    /// via Shell.Current.GoToAsync("..", params) quando o usuário toca em
+    /// "Aplicar filtro" ou "Exibir todos". Se os parâmetros não vierem de lá
+    /// (ex: navegação normal pra tela), simplesmente ignora.
+    /// </summary>
+    public void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (!query.TryGetValue("selectedProgramName", out var nameObj)) return;
+
+        int? programId = query.TryGetValue("selectedProgramId", out var idObj) && idObj is int id
+            ? id
+            : null;
+
+        string name = nameObj as string ?? "Todos";
+        string logo = query.TryGetValue("selectedProgramLogo", out var logoObj) ? logoObj as string ?? string.Empty : string.Empty;
+        string primaryColor = query.TryGetValue("selectedProgramPrimaryColor", out var primaryObj) ? primaryObj as string ?? string.Empty : string.Empty;
+        string secondaryColor = query.TryGetValue("selectedProgramSecondaryColor", out var secondaryObj) ? secondaryObj as string ?? string.Empty : string.Empty;
+
+        UpdateSelectedProgram(programId, name, logo, primaryColor, secondaryColor);
     }
 
     private void SetupFilters()
@@ -253,8 +283,17 @@ public partial class HistoryPage : BasePage, INotifyPropertyChanged
 
     private async void OnChangeProgramTapped(object sender, TappedEventArgs e)
     {
-        // Aqui você chamaria a página de seleção de programas do histórico
-        await DisplayAlert("Em breve", "Seletor de programa.", "OK");
+        var navParams = new Dictionary<string, object>
+        {
+            { "mode", nameof(ProgramSelectionMode.Filter) }
+        };
+
+        // Manda o programa atualmente selecionado pra vir pré-marcado na grade.
+        // Se for null (filtro "Todos"), a tela de seleção já mostra "Exibir todos" marcado.
+        if (_currentLoyaltyProgramId.HasValue)
+            navParams["selectedProgramId"] = _currentLoyaltyProgramId.Value;
+
+        await Shell.Current.GoToAsync("program-selection", navParams);
     }
 
     private async void OnTransactionTapped(object sender, TappedEventArgs e)
